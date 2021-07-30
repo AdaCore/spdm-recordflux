@@ -1,0 +1,6 @@
+[submodule "contrib/dmtf/spdm-emu"]
+	path = contrib/dmtf/spdm-emu
+	url = https://github.com/DMTF/spdm-emu.git
+[submodule "contrib/dmtf/spdm-dump"]
+	path = contrib/dmtf/spdm-dump
+	url = https://github.com/DMTF/spdm-dump.git
