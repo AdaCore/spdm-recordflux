@@ -21,6 +21,8 @@ test_validate: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_res
 	mkdir -p $(TMPDIR)/spdm
 	build/spdm_emu/bin/spdm_responder_emu --pcap $(TMPDIR)/test_validate.pcap & sleep 1 && build/spdm_emu/bin/spdm_requester_emu
 	PATH=build/spdm_dump/bin:$(PATH) tools/dump_validate.py -f $(TMPDIR)/test_validate.pcap -o $(TMPDIR)/spdm
+	contrib/RecordFlux-specifications/tools/validate_spec.py -s contrib/RecordFlux-specifications/spdm.rflx -m SPDM::Request -v $(TMPDIR)/spdm/Request/valid
+	contrib/RecordFlux-specifications/tools/validate_spec.py -s contrib/RecordFlux-specifications/spdm.rflx -m SPDM::Response -v $(TMPDIR)/spdm/Response/valid
 
 clean:
 	rm -rf build
