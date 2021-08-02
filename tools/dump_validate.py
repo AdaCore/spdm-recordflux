@@ -46,6 +46,10 @@ def dump(pcap_file: Path, out_dir: Path) -> int:
         valid = out_dir / m_type / "valid"
         os.makedirs(str(valid), exist_ok=True)
         for m in messages:
+            if "ALGORITHMS" in m[0]:
+                # SPDM_ALGORITHMS and SPDM_NEGOTIATE_ALGORITHMS require little endian support
+                # which is not yet available
+                continue
             with (valid / f"{m[0]}.bin").open("wb") as message:
                 message.write(m[1])
 
