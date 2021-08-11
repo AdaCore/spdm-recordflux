@@ -10,7 +10,8 @@ from typing import Dict, List, Tuple
 
 re_packet_line = re.compile(r"^\d")
 re_packet_name = re.compile(r" [A-Z_]+ ")
-re_packet_data = re.compile("^    \d{4}:")
+re_packet_data = re.compile("^    [0-9a-f]{4}:")
+re_packet_is_message = re.compile("^  SPDM Message")
 
 
 def dump(pcap_file: Path, out_dir: Path) -> int:
@@ -19,6 +20,7 @@ def dump(pcap_file: Path, out_dir: Path) -> int:
     current_name: str = None
     current_type: str = None
     current_data: List[str] = []
+    is_message = False
 
     def update_packets() -> None:
         nonlocal current_name
@@ -35,19 +37,29 @@ def dump(pcap_file: Path, out_dir: Path) -> int:
             current_name = None
 
     for line in output.split("\n"):
-        if re_packet_line.match(line):
+        if "SecuredSPDM" in line:
+            update_packets()
+            current_name = None
+            current_type = None
+            is_message = False
+        elif re_packet_line.match(line):
             update_packets()
             current_name = re_packet_name.findall(line)[0].strip()
             current_type = "Request" if "REQ->RSP" in line else "Response"
-        if re_packet_data.match(line) and current_name:
+            is_message = False
+        elif re_packet_is_message.match(line) and current_name:
+            is_message = True
+        elif re_packet_data.match(line) and is_message:
             current_data.extend(line.split(":")[1].strip().split(" "))
     update_packets()
     for m_type, messages in packets.items():
         valid = out_dir / m_type / "valid"
         os.makedirs(str(valid), exist_ok=True)
+        count = 1
         for m in messages:
-            with (valid / f"{m[0]}.bin").open("wb") as message:
+            with (valid / f"{count}_{m[0]}.bin").open("wb") as message:
                 message.write(m[1])
+            count += 1
 
 
 if __name__ == "__main__":
