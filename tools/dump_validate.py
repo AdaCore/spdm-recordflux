@@ -5,18 +5,39 @@ import os
 import re
 from subprocess import check_output
 import sys
+from hashlib import sha1
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 re_packet_line = re.compile(r"^\d")
 re_packet_name = re.compile(r" [A-Z_]+ ")
 re_packet_data = re.compile("^    [0-9a-f]{4}:")
 re_packet_is_message = re.compile("^  SPDM Message")
+re_dhe_secret = re.compile(r"\[DHE Secret\]")
+re_psk = re.compile(r"\[PSK\]")
 
 
-def dump(pcap_file: Path, out_dir: Path) -> int:
+def extract_secrets(log_file: Path) -> Tuple[Optional[str], Optional[str]]:
+    dhe_secret: str = None
+    psk: str = None
+    with log_file.open("r") as log:
+        for line in log.readlines():
+            if dhe_secret and psk:
+                return dhe_secret, psk
+            if re_psk.match(line):
+                psk = line.split(":")[1].strip()
+            elif re_dhe_secret.match(line):
+                dhe_secret = line.split(":")[1].strip()
+    return dhe_secret, psk
+
+
+def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
     packets: Dict[str, List[Tuple[str, bytes]]] = {}
-    output = check_output(["spdm_dump", "-r", str(pcap_file), "-x"]).decode("utf-8")
+    spdm_dump = ["spdm_dump", "-r", str(pcap_file), "-x"]
+    if dhe_secret and psk:
+        spdm_dump.extend(["--dhe_secret", dhe_secret, "--psk", psk])
+    print(" ".join(spdm_dump))
+    output = check_output(spdm_dump).decode("utf-8")
     current_name: str = None
     current_type: str = None
     current_data: List[str] = []
@@ -37,34 +58,45 @@ def dump(pcap_file: Path, out_dir: Path) -> int:
             current_name = None
 
     for line in output.split("\n"):
-        if "SecuredSPDM" in line:
-            update_packets()
-            current_name = None
-            current_type = None
-            is_message = False
-        elif re_packet_line.match(line):
-            update_packets()
-            current_name = re_packet_name.findall(line)[0].strip()
-            current_type = "Request" if "REQ->RSP" in line else "Response"
-            is_message = False
-        elif re_packet_is_message.match(line) and current_name:
-            is_message = True
-        elif re_packet_data.match(line) and is_message:
-            current_data.extend(line.split(":")[1].strip().split(" "))
+        try:
+            if "(?)->(?)" in line or "SecuredSPDM message" in line:
+                update_packets()
+                current_name = None
+                current_type = None
+                is_message = False
+            elif re_packet_line.match(line):
+                update_packets()
+                try:
+                    current_name = re_packet_name.findall(line)[0].strip()
+                    current_type = "Request" if "REQ->RSP" in line else "Response"
+                except IndexError: # MTCP message
+                    current_name = None
+                    current_type = None
+                is_message = False
+            elif re_packet_is_message.match(line) and current_name:
+                is_message = True
+            elif re_packet_data.match(line) and is_message:
+                current_data.extend(line.split(":")[1].strip().split(" "))
+        except Exception as e:
+            print(line)
+            raise e
     update_packets()
     for m_type, messages in packets.items():
         valid = out_dir / m_type / "valid"
         os.makedirs(str(valid), exist_ok=True)
-        count = 1
         for m in messages:
-            with (valid / f"{count}_{m[0]}.bin").open("wb") as message:
+            with (valid / f"{sha1(m[1]).hexdigest()}_{m[0]}.bin").open("wb") as message:
                 message.write(m[1])
-            count += 1
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", type=Path, help="pcap file", required=True)
     parser.add_argument("-o", "--out", type=Path, help="output dir", required=True)
+    parser.add_argument("-l", "--log", type=Path, help="spdm_emu log file")
     args = parser.parse_args(sys.argv[1:])
-    exit(dump(args.file, args.out))
+    dhe_secret: str = None
+    psk: str = None
+    if args.log:
+        dhe_secret, psk = extract_secrets(args.log)
+    exit(dump(args.file, args.out, dhe_secret, psk))
