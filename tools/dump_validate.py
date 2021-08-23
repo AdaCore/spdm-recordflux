@@ -16,6 +16,19 @@ re_packet_is_message = re.compile("^  SPDM Message")
 re_dhe_secret = re.compile(r"\[DHE Secret\]")
 re_psk = re.compile(r"\[PSK\]")
 
+unsupported_messages = {
+    "SPDM_GET_ENCAPSULATED_REQUEST",
+    "SPDM_PSK_EXCHANGE",
+    "SPDM_DELIVER_ENCAPSULATED_RESPONSE",
+    "SPDM_HEARTBEAT",
+    "SPDM_ENCAPSULATED_REQUEST",
+    "SPDM_PSK_FINISH",
+    "SPDM_ENCAPSULATED_RESPONSE_ACK",
+    "SPDM_PSK_EXCHANGE_RSP",
+    "SPDM_HEARTBEAT_ACK",
+    "SPDM_PSK_FINISH_RSP",
+}
+
 
 def extract_secrets(log_file: Path) -> Tuple[Optional[str], Optional[str]]:
     dhe_secret: str = None
@@ -69,7 +82,7 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
                 try:
                     current_name = re_packet_name.findall(line)[0].strip()
                     current_type = "Request" if "REQ->RSP" in line else "Response"
-                except IndexError: # MTCP message
+                except IndexError:  # MTCP message
                     current_name = None
                     current_type = None
                 is_message = False
@@ -85,6 +98,8 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
         valid = out_dir / m_type / "valid"
         os.makedirs(str(valid), exist_ok=True)
         for m in messages:
+            if m[0] in unsupported_messages:
+                continue
             with (valid / f"{sha1(m[1]).hexdigest()}_{m[0]}.bin").open("wb") as message:
                 message.write(m[1])
 
