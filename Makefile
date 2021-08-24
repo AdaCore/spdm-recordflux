@@ -1,6 +1,6 @@
 .PHONY: all clean
 
-all: build build/spdm_dump/bin/spdm_dump build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu
+all: build build/spdm_dump/bin/spdm_dump build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/responder/main
 
 build/spdm_dump:
 	mkdir -p build/spdm_dump
@@ -15,6 +15,13 @@ build/spdm_dump/bin/spdm_dump: build/spdm_dump
 build/spdm_emu/bin/spdm_%_emu: build/spdm_emu
 	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Release -DCRYPTO=mbedtls -S contrib/dmtf/spdm-emu -B build/spdm_emu
 	make -C build/spdm_emu -j$(shell nproc)
+
+build/generated:
+	mkdir -p $@
+	rflx --no-verification generate contrib/RecordFlux-specifications/spdm.rflx -d $@
+
+build/responder/main: build/generated responder.gpr src/*.ads src/*.adb
+	gprbuild -p responder.gpr -s
 
 test_validate: TMPDIR := $(shell mktemp -d)
 test_validate: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump
