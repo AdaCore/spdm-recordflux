@@ -18,9 +18,9 @@ build/spdm_emu/bin/spdm_%_emu: build/spdm_emu
 	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Release -DCRYPTO=mbedtls -S contrib/dmtf/spdm-emu -B build/spdm_emu
 	make -C build/spdm_emu -j$(shell nproc)
 
-build/generated:
+build/generated: contrib/RecordFlux-specifications/spdm.rflx
 	mkdir -p $@
-	rflx --no-verification generate contrib/RecordFlux-specifications/spdm.rflx -d $@
+	rflx --no-verification generate contrib/RecordFlux-specifications/spdm.rflx --debug -d $@
 
 build/responder/main: build/generated responder.gpr src/*.ads src/*.adb
 	gprbuild -p responder.gpr -s
@@ -33,8 +33,8 @@ test_validate: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_res
 	contrib/RecordFlux-specifications/tools/validate_spec.py -s contrib/RecordFlux-specifications/spdm.rflx -m SPDM::Request -v $(TMPDIR)/spdm/Request/valid --no-verification
 	contrib/RecordFlux-specifications/tools/validate_spec.py -s contrib/RecordFlux-specifications/spdm.rflx -m SPDM::Response -v $(TMPDIR)/spdm/Response/valid --no-verification
 
-test_responder: build/responder/main
-	build/responder/main & sleep 1 && build/spdm_emu/bin/spdm_requester_emu
+test_responder: build/responder/main build/spdm_emu/bin/spdm_requester_emu
+	build/responder/main & sleep 1 && build/spdm_emu/bin/spdm_requester_emu --trans NONE
 
 clean:
 	rm -rf build

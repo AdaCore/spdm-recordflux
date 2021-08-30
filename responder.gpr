@@ -1,3 +1,5 @@
+with "contrib/RecordFlux/defaults.gpr";
+
 project Responder is
 
    for Source_Dirs use ("src", "build/generated");
@@ -15,5 +17,9 @@ project Responder is
    package Binder is
       for Default_Switches ("Ada") use ("-Es");
    end Binder;
+
+   package Prove is
+      for Proof_Switches ("Ada") use Defaults.Proof_Switches;
+   end Prove;
 
 end Responder;
