@@ -1,0 +1,25 @@
+with SPDM;
+
+package SPDM_Emu is
+
+   type Command is (Normal   => 16#0001#,
+                    Shutdown => 16#FFFE#) with Size => 32;
+
+   type Transport_Type is (None => 0
+                           --  Unsupported:
+                           --  MCTP => 1,
+                           --  PCI_DOE => 2
+                          ) with Size => 32;
+
+   type Size is range 0 .. 2 ** 24 - 1 with Size => 32;
+
+   type Platform_Port is
+      message
+         Command : Command;
+         Transport_Type : Transport_Type;
+         Size : Size;
+         SPDM_Payload : Opaque with
+            Size => Size * 8;
+      end message;
+
+end SPDM_Emu;

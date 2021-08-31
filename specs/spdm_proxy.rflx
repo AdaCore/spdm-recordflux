@@ -1,0 +1,68 @@
+with SPDM_Emu;
+with SPDM;
+
+package SPDM_Proxy is
+
+   for SPDM_Emu::Platform_Port use (SPDM_Payload => SPDM::Request);
+
+   generic
+      Emu_Transport : Channel with Readable, Writable;
+      SPDM_Transport : Channel with Readable, Writable;
+   session Proxy with
+      Initial => Receive_Request,
+      Final => Error
+   is
+      Request : SPDM_Emu::Platform_Port;
+      Response : SPDM::Response;
+   begin
+      state Receive_Request
+      is
+      begin
+         Emu_Transport'Read (Request);
+      transition
+         then Send_Request
+            if Request'Valid
+         then Error
+      end Receive_Request;
+
+      state Send_Request
+      is
+         SPDM_Request : SPDM::Request;
+      begin
+         SPDM_Request := SPDM::Request (Request.SPDM_Payload);
+         SPDM_Transport'Write (SPDM_Request);
+      transition
+         then Receive_Response
+      exception
+         then Error
+      end Send_Request;
+
+      state Receive_Response
+      is
+      begin
+         SPDM_Transport'Read (Response);
+      transition
+         then Send_Response
+            if Response'Valid
+         then Error
+      end Receive_Response;
+
+      state Send_Response
+      is
+         Response_Size : SPDM_Emu::Size;
+      begin
+         Response_Size := 8 * 8; --Response'Size;
+         Emu_Transport'Write (SPDM_Emu::Platform_Port'(Command => SPDM_Emu::Normal,
+                                                       Transport_Type => SPDM_Emu::None,
+                                                       Size => Response_Size,
+                                                       SPDM_Payload => Response'Opaque));
+      transition
+         then Receive_Request
+      exception
+         then Error
+      end Send_Response;
+
+      state Error is null state;
+   end Proxy;
+
+end SPDM_Proxy;

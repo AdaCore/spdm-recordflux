@@ -45,6 +45,11 @@ package body Channel is
       Data : Ada.Streams.Stream_Element_Array (1 .. Buffer'Length);
       Last : Ada.Streams.Stream_Element_Offset;
    begin
+      --  FIXME: The SPDM requester sends a packet in multiple parts, we have to wait for the whole packet to parse it
+      while not Has_Data loop
+         delay 0.1;
+      end loop;
+      delay 0.2;
       GNAT.Sockets.Receive_Socket (Socket => Socket,
                                    Item => Data,
                                    Last => Last);

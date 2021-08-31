@@ -6,12 +6,12 @@ with Ada.Text_IO;
 with Ada.Command_Line;
 with GNAT.Traceback.Symbolic;
 
-procedure Main
+procedure Responder
 is
    Listener : Server.Server_Type := Server.Create_Server;
    Connection : Server.Server_Type;
 begin
-   Server.Listen (Listener, 2323, Connection);
+   Server.Listen (Listener, 2324, Connection);
    declare
       package TCP_Channel is new Channel (Connection);
       package Responder is new RFLX.SPDM.Responder (TCP_Channel.Has_Data,
@@ -26,4 +26,4 @@ exception
                             & ASCII.LF
                             & GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
       Ada.Command_Line.Set_Exit_Status (1);
-end Main;
+end Responder;
