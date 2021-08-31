@@ -51,7 +51,7 @@ package SPDM_Proxy is
       is
          Response_Size : SPDM_Emu::Size;
       begin
-         Response_Size := 8 * 8; --Response'Size;
+         Response_Size := Response'Size / 8;
          Emu_Transport'Write (SPDM_Emu::Platform_Port'(Command => SPDM_Emu::Normal,
                                                        Transport_Type => SPDM_Emu::None,
                                                        Size => Response_Size,
