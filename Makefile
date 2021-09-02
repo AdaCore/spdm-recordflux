@@ -34,7 +34,7 @@ test_validate: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_res
 	contrib/RecordFlux-specifications/tools/validate_spec.py -s contrib/RecordFlux-specifications/spdm.rflx -m SPDM::Response -v $(TMPDIR)/spdm/Response/valid --no-verification
 
 test_responder: build/responder/responder build/spdm_emu/bin/spdm_requester_emu
-	build/responder/responder & sleep 1 && build/responder/proxy & sleep 2 && build/spdm_emu/bin/spdm_requester_emu --trans NONE
+	tools/run_responder.sh
 
 clean:
 	rm -rf build
