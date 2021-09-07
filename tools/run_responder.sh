@@ -1,7 +1,6 @@
 #!/bin/bash
 
-set -e
-set -m
+set -em
 
 build/responder/responder &
 sleep 1 && build/responder/proxy &
