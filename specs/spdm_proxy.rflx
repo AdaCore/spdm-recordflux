@@ -9,45 +9,45 @@ package SPDM_Proxy is
       Emu_Transport : Channel with Readable, Writable;
       SPDM_Transport : Channel with Readable, Writable;
    session Proxy with
-      Initial => Receive_Request,
-      Final => Error
+      Initial => Proxy_Receive_Request,
+      Final => Proxy_Error
    is
       Request : SPDM_Emu::Platform_Port;
       Response : SPDM::Response;
    begin
-      state Receive_Request
+      state Proxy_Receive_Request
       is
       begin
          Emu_Transport'Read (Request);
       transition
-         goto Send_Request
+         goto Proxy_Send_Request
             if Request'Valid
-         goto Error
-      end Receive_Request;
+         goto Proxy_Error
+      end Proxy_Receive_Request;
 
-      state Send_Request
+      state Proxy_Send_Request
       is
          SPDM_Request : SPDM::Request;
       begin
          SPDM_Request := SPDM::Request (Request.SPDM_Payload);
          SPDM_Transport'Write (SPDM_Request);
       transition
-         goto Receive_Response
+         goto Proxy_Receive_Response
       exception
-         goto Error
-      end Send_Request;
+         goto Proxy_Error
+      end Proxy_Send_Request;
 
-      state Receive_Response
+      state Proxy_Receive_Response
       is
       begin
          SPDM_Transport'Read (Response);
       transition
-         goto Send_Response
+         goto Proxy_Send_Response
             if Response'Valid
-         goto Error
-      end Receive_Response;
+         goto Proxy_Error
+      end Proxy_Receive_Response;
 
-      state Send_Response
+      state Proxy_Send_Response
       is
          Response_Size : SPDM_Emu::Size;
       begin
@@ -57,12 +57,12 @@ package SPDM_Proxy is
                                                        Size => Response_Size,
                                                        SPDM_Payload => Response'Opaque));
       transition
-         goto Receive_Request
+         goto Proxy_Receive_Request
       exception
-         goto Error
-      end Send_Response;
+         goto Proxy_Error
+      end Proxy_Send_Response;
 
-      state Error is null state;
+      state Proxy_Error is null state;
    end Proxy;
 
 end SPDM_Proxy;
