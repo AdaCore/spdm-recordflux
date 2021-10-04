@@ -20,9 +20,9 @@ package SPDM_Proxy is
       begin
          Emu_Transport'Read (Request);
       transition
-         then Send_Request
+         goto Send_Request
             if Request'Valid
-         then Error
+         goto Error
       end Receive_Request;
 
       state Send_Request
@@ -32,9 +32,9 @@ package SPDM_Proxy is
          SPDM_Request := SPDM::Request (Request.SPDM_Payload);
          SPDM_Transport'Write (SPDM_Request);
       transition
-         then Receive_Response
+         goto Receive_Response
       exception
-         then Error
+         goto Error
       end Send_Request;
 
       state Receive_Response
@@ -42,9 +42,9 @@ package SPDM_Proxy is
       begin
          SPDM_Transport'Read (Response);
       transition
-         then Send_Response
+         goto Send_Response
             if Response'Valid
-         then Error
+         goto Error
       end Receive_Response;
 
       state Send_Response
@@ -57,9 +57,9 @@ package SPDM_Proxy is
                                                        Size => Response_Size,
                                                        SPDM_Payload => Response'Opaque));
       transition
-         then Receive_Request
+         goto Receive_Request
       exception
-         then Error
+         goto Error
       end Send_Response;
 
       state Error is null state;

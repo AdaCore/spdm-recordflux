@@ -100,7 +100,7 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
         for m in messages:
             if m[0] in unsupported_messages:
                 continue
-            with (valid / f"{sha1(m[1]).hexdigest()}_{m[0]}.bin").open("wb") as message:
+            with (valid / f"{sha1(m[1]).hexdigest()}_{m[0]}.raw").open("wb") as message:
                 message.write(m[1])
 
 
