@@ -18,7 +18,7 @@ build/spdm_emu/bin/spdm_%_emu: build/spdm_emu
 	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Release -DCRYPTO=mbedtls -S contrib/dmtf/spdm-emu -B build/spdm_emu
 	make -C build/spdm_emu -j$(shell nproc)
 
-build/generated/rflx.ads: contrib/RecordFlux-specifications/spdm.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx
+build/generated/rflx.ads: specs/spdm.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx
 	mkdir -p build/generated
 	rflx --no-verification generate $^ --debug -d build/generated
 
@@ -30,8 +30,8 @@ test_validate: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_res
 	mkdir -p $(TMPDIR)/spdm
 	tools/run_emu.sh $(TMPDIR)/test_validate.pcap
 	PATH=build/spdm_dump/bin:$(PATH) tools/dump_validate.py -f $(TMPDIR)/test_validate.pcap -l $(TMPDIR)/test_validate.pcap.log -o $(TMPDIR)/spdm
-	contrib/RecordFlux-specifications/tools/validate_spec.py -s contrib/RecordFlux-specifications/spdm.rflx -m SPDM::Request -v $(TMPDIR)/spdm/Request/valid --no-verification
-	contrib/RecordFlux-specifications/tools/validate_spec.py -s contrib/RecordFlux-specifications/spdm.rflx -m SPDM::Response -v $(TMPDIR)/spdm/Response/valid --no-verification
+	contrib/RecordFlux-specifications/tools/validate_spec.py -s specs/spdm.rflx -m SPDM::Request -v $(TMPDIR)/spdm/Request/valid --no-verification
+	contrib/RecordFlux-specifications/tools/validate_spec.py -s specs/spdm.rflx -m SPDM::Response -v $(TMPDIR)/spdm/Response/valid --no-verification
 
 test_responder: build/responder/responder build/spdm_emu/bin/spdm_requester_emu
 	tools/run_responder.sh
