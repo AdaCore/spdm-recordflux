@@ -1,6 +1,9 @@
 .PHONY: all clean
 
-all: build build/spdm_dump/bin/spdm_dump build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/responder/main
+TMPDIR := $(shell mktemp -d)
+RFLX = $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx
+
+all: build build/spdm_dump/bin/spdm_dump build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/responder/responder
 
 test: test_validate test_responder
 
@@ -18,23 +21,33 @@ build/spdm_emu/bin/spdm_%_emu: build/spdm_emu
 	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Release -DCRYPTO=mbedtls -S contrib/dmtf/spdm-emu -B build/spdm_emu
 	make -C build/spdm_emu -j$(shell nproc)
 
-build/generated/rflx.ads: specs/spdm.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx
+build/generated/rflx.ads: specs/spdm.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx | $(RFLX)
 	mkdir -p build/generated
-	rflx --no-verification generate $^ --debug -d build/generated
+	$(RFLX) --no-verification generate $^ --debug -d build/generated
 
 build/responder/responder: build/generated/rflx.ads responder.gpr src/*.ads src/*.adb
 	gprbuild -p responder.gpr -s
 
-test_validate: TMPDIR := $(shell mktemp -d)
-test_validate: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump
+test_validate: test_validate_libspdm test_validate_static
+
+test_validate_libspdm: $(RFLX)
+test_validate_libspdm: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump
 	mkdir -p $(TMPDIR)/spdm
 	tools/run_emu.sh $(TMPDIR)/test_validate.pcap
 	PATH=build/spdm_dump/bin:$(PATH) tools/dump_validate.py -f $(TMPDIR)/test_validate.pcap -l $(TMPDIR)/test_validate.pcap.log -o $(TMPDIR)/spdm
-	contrib/RecordFlux-specifications/tools/validate_spec.py -s specs/spdm.rflx -m SPDM::Request -v $(TMPDIR)/spdm/Request/valid --no-verification
-	contrib/RecordFlux-specifications/tools/validate_spec.py -s specs/spdm.rflx -m SPDM::Response -v $(TMPDIR)/spdm/Response/valid --no-verification
+	$(RFLX) --no-verification --max-errors=1 validate -v $(TMPDIR)/spdm/Request/valid specs/spdm.rflx SPDM::Request
+	$(RFLX) --no-verification --max-errors=1 validate -v $(TMPDIR)/spdm/Response/valid specs/spdm.rflx SPDM::Response
+
+test_validate_static: $(RFLX)
+	$(RFLX) --no-verification --max-errors=1 validate -v tests/data/spdm/Request/valid specs/spdm.rflx SPDM::Request
+	$(RFLX) --no-verification --max-errors=1 validate -v tests/data/spdm/Response/valid specs/spdm.rflx SPDM::Response
 
 test_responder: build/responder/responder build/spdm_emu/bin/spdm_requester_emu
 	tools/run_responder.sh
+
+$(RFLX):
+	virtualenv -p python3 $(TMPDIR)/venv
+	$(TMPDIR)/venv/bin/pip3 install contrib/RecordFlux[devel]
 
 clean:
 	rm -rf build
