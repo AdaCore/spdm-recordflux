@@ -6,7 +6,7 @@ package SPDM is
 
    -- We will define a static hash type Hash, even though this is acutally based on prior
    -- negotiation. We will use Hash'Size throughout this spec to simulate that.
-   -- ISSUE: Componolit/RecordFlux-specifications#92
+   -- ISSUE: Componolit/SPDM#31
    type Hash is
       message
          Data : Opaque
@@ -165,7 +165,7 @@ package SPDM is
        PSK_Req_Supported   => 1)
    with Size => 2;
 
-   --  ISSUE: Componolit/RecordFlux-specifications#92
+   --  ISSUE: Componolit/SPDM#31
    --  This message differs between SPDM version 1.0 and 1.1.
    --  Since the minor version is not accessible from
    --  within this message one message is needed for each version
@@ -245,7 +245,7 @@ package SPDM is
        PSK_Resp_With_Context    => 2)
    with Size => 2;
 
-   --  ISSUE: Componolit/RecordFlux-specifications#92
+   --  ISSUE: Componolit/SPDM#31
    --  This message differs between SPDM version 1.0 and 1.1.
    --  Since the minor version is not accessible from
    --  within this message one message is needed for each version
@@ -421,7 +421,7 @@ package SPDM is
 
    type Block_Count is range 0 .. 2 ** 8 - 1 with Size => 8;
 
-   --  ISSUE: Componolit/RecordFlux-specifications#92
+   --  ISSUE: Componolit/SPDM#31
    --  This message differs between SPDM version 1.0 and 1.1.
    --  Since the minor version is not accessible from
    --  within this message one message is needed for each version
@@ -447,7 +447,7 @@ package SPDM is
             -- ISSUE: Componolit/RecordFlux#104
             with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1);
          --  The existence of Signature depends on the request
-         --  ISSUE: Componolit/RecordFlux-specifications#609
+         --  ISSUE: Componolit/SPDM#31
          Signature : Opaque
             with Size => Message'Last - Opaque_Data'Last;
       end message;
@@ -474,7 +474,7 @@ package SPDM is
             -- ISSUE: Componolit/RecordFlux#104
             with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1);
          --  The existence of Signature depends on the request
-         --  ISSUE: Componolit/RecordFlux-specifications#609
+         --  ISSUE: Componolit/SPDM#31
          Signature : Opaque
             with Size => Message'Last - Opaque_Data'Last;
       end message;
@@ -587,7 +587,7 @@ package SPDM is
    type Ext_Asym_Count is range 0 .. 2**8 - 1 with Size => 8;
    type Ext_Hash_Count is range 0 .. 2**8 - 1 with Size => 8;
 
-   --  ISSUE: Componolit/RecordFlux-specifications#92
+   --  ISSUE: Componolit/SPDM#31
    --  This message differs between SPDM version 1.0 and 1.1.
    --  Since the minor version is not accessible from
    --  within this message one message is needed for each version
@@ -685,7 +685,7 @@ package SPDM is
          Ext_Hash : Ext_Algs
             with Size => 32 * Ext_Hash_Count
             then Req_Alg_Structs
-               --  ISSUE: Componolit/RecordFlux-specifications#92
+               --  ISSUE: Componolit/SPDM#31
                --  Length is the total length of the message, we have to subtract the common header
                --  consisting of the Version and the Request/Response code of the Request/Response.
                with Size => 8 * (Length_2 * 256 + Length_1) - 16 - (Ext_Hash'Last - Req_Alg_Struct_Count'First + 1)
@@ -781,7 +781,7 @@ package SPDM is
          Param_1 : Reserved_8;
          Slot_Mask : Slot_Mask;
          Digests_Data : Hashes
-            --  ISSUE: RecordFlux-specifications#92
+            --  ISSUE: SPDM#31
             with Size => 8 * 48 * (Slot_Mask_Slot_0_Present
                                    + Slot_Mask_Slot_1_Present
                                    + Slot_Mask_Slot_2_Present
@@ -822,7 +822,7 @@ package SPDM is
          Length_2 : Length;
       end message;
 
-   --  ISSUE: Componolit/RecordFlux-specifications#92
+   --  ISSUE: Componolit/SPDM#31
    --  This message differs between SPDM version 1.0 and 1.1.
    --  Since the minor version is not accessible from
    --  within this message one message is needed for each version
@@ -860,7 +860,7 @@ package SPDM is
             with Size => 8 * 32;
       end message;
 
-   --  ISSUE: Componolit/RecordFlux-specifications#92
+   --  ISSUE: Componolit/SPDM#31
    --  This message differs between SPDM version 1.0 and 1.1.
    --  Since the minor version is not accessible from
    --  within this message one message is needed for each version
@@ -883,7 +883,7 @@ package SPDM is
          Cert_Chain_Hash    : Hash;
          Nonce : Opaque
             with Size => 8 * 32;
-         --  ISSUE: Componolit/RecordFlux-specifications#92
+         --  ISSUE: Componolit/SPDM#31
          --  This field shall
          --    - not be present if Hash_Type of the request was No_Measurement or measurement is
          --      unsupported
@@ -939,7 +939,7 @@ package SPDM is
    type Vendor_ID_Double is mod 2**16;
    type Vendor_ID_Quad is mod 2**32;
 
-   --  ISSUE: Componolit/RecordFlux-specifications#92
+   --  ISSUE: Componolit/SPDM#31
    --  This message differs between SPDM version 1.0 and 1.1.
    --  Since the minor version is not accessible from
    --  within this message one message is needed for each version
@@ -1081,7 +1081,7 @@ package SPDM is
          Random_Data : Opaque
             with Size => 8 * 32;
          Exchange_Data : Opaque
-            -- ISSUE: Componolit/RecordFlux-specifications#92
+            -- ISSUE: Componolit/SPDM#31
             -- Size of ExchangeData is determined by the algorithm selected in previous ALGORITHMS
             -- message
             with Size => 8 * 96;
@@ -1118,12 +1118,12 @@ package SPDM is
          Random_Data : Opaque
             with Size => 8 * 32;
          Exchange_Data : Opaque
-            -- ISSUE: Componolit/RecordFlux-specifications#92
+            -- ISSUE: Componolit/SPDM#31
             -- Size of ExchangeData is determined by the algorithm selected in previous ALGORITHMS
             -- message
             with Size => 8 * 76;
          Measurement_Summary_Hash : Opaque
-            -- ISSUE: Componolit/RecordFlux-specifications#92
+            -- ISSUE: Componolit/SPDM#31
             -- Size of MeasurementSummaryHash is determined by the algorithm selected in previous
             -- ALGORITHMS message
             with Size => 8 * 76;
@@ -1132,12 +1132,12 @@ package SPDM is
          Opaque_Data : Opaque
             with Size => 8 * (Opaque_Data_Length_2 * 256 + Opaque_Data_Length_1);
          Signature : Opaque
-            -- ISSUE: Componolit/RecordFlux-specifications#92
+            -- ISSUE: Componolit/SPDM#31
             -- Size of Signature is determined by the algorithm selected in previous ALGORITHMS
             -- message
             with Size => 8 * 52;
          Responder_Verify_Data : Opaque
-            -- ISSUE: Componolit/RecordFlux-specifications#92
+            -- ISSUE: Componolit/SPDM#31
             -- If both the Requester and Responder set HANDSHAKE_IN_THE_CLEAR_CAP to 1, then this
             -- field shall be absent. Otherwise its size is H, which is the hash size determined
             -- by previous ALGORITHMS message
@@ -1156,12 +1156,12 @@ package SPDM is
             then Requester_Verify_Data
                if Signature_Included = False;
          Signature : Opaque
-            -- ISSUE: Componolit/RecordFlux-specifications#92
+            -- ISSUE: Componolit/SPDM#31
             -- Size of Signature is determined by the algorithm selected in previous
             -- ALGORITHMS message
             with Size => 8 * 216;
          Requester_Verify_Data : Opaque
-            -- ISSUE: Componolit/RecordFlux-specifications#92
+            -- ISSUE: Componolit/SPDM#31
             -- Size of Requester_Verify_Data is determined by the algorithm selected in previous
             -- ALGORITHMS message
             with Size => 8 * 216;
@@ -1172,7 +1172,7 @@ package SPDM is
          Param_1 : Reserved_8;
          Param_2 : Reserved_8;
          Responder_Verify_Data : Opaque
-            -- ISSUE: Componolit/RecordFlux-specifications#92
+            -- ISSUE: Componolit/SPDM#31
             -- Presence of Responder_Verify_Data is determined by the Handshake_In_The_Clear_Cap
             -- flag in the previous capabilities request
             -- Size of Responder_Verify_Data is determined by the algorithm selected
