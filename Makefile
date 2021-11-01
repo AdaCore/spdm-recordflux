@@ -55,10 +55,15 @@ $(RFLX):
 
 package: build/spdm.tar.gz
 
-build/spdm.tar.gz:
+build/spdm.tar:
 	mkdir -p build
 	git ls-files --recurse-submodules | grep -v -e "^.git\|/\.git" > $(FILE_LIST)
 	tar cvf build/spdm.tar -T $(FILE_LIST)
+
+build/spdm.tar.xz: build/spdm.tar
+	xz -z -e -9 -T0 build/spdm.tar
+
+build/spdm.tar.gz: build/spdm.tar
 	gzip build/spdm.tar
 
 test_package: package
