@@ -1,9 +1,10 @@
-.PHONY: all test check clean
+.PHONY: all test check package test_package clean
 
 TMPDIR := $(shell mktemp -d)
+FILE_LIST := $(shell mktemp)
 RFLX = $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx
 
-all: check test
+all: check test test_package
 
 test: test_validate test_responder
 
@@ -51,6 +52,19 @@ test_responder: build/responder/responder build/spdm_emu/bin/spdm_requester_emu
 $(RFLX):
 	virtualenv -p python3 $(TMPDIR)/venv
 	$(TMPDIR)/venv/bin/pip3 install contrib/RecordFlux[devel]
+
+package: build/spdm.tar.gz
+
+build/spdm.tar.gz:
+	mkdir -p build
+	git ls-files --recurse-submodules | grep -v -e "^.git\|/\.git" > $(FILE_LIST)
+	tar cvf build/spdm.tar -T $(FILE_LIST)
+	gzip build/spdm.tar
+
+test_package: package
+	mkdir -p $(TMPDIR)/package_test
+	tar -xvf build/spdm.tar.gz --directory $(TMPDIR)/package_test
+	make -C $(TMPDIR)/package_test check test
 
 clean:
 	rm -rf build
