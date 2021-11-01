@@ -68,7 +68,7 @@ build/spdm.tar.xz: build/spdm.tar
 	xz -z -e -9 -T0 build/spdm.tar
 
 build/spdm.tar.gz: build/spdm.tar
-	gzip build/spdm.tar
+	gzip -f build/spdm.tar
 
 test_package: package
 	mkdir -p $(TMPDIR)/package_test
