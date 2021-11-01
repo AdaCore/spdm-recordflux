@@ -1,11 +1,9 @@
-.PHONY: all test test_check check clean
+.PHONY: all test check clean
 
 TMPDIR := $(shell mktemp -d)
 RFLX = $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx
 
-all: build build/spdm_dump/bin/spdm_dump build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/responder/responder
-
-test_check: check test
+all: check test
 
 test: test_validate test_responder
 
