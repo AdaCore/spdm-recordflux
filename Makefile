@@ -57,6 +57,7 @@ $(RFLX):
 package: build/spdm_$(GITREV).tar.gz
 
 build/spdm_$(GITREV).tar: .git/logs/HEAD
+	# check for local changes, abort if not committed
 	git diff --summary --exit-code
 	git diff --summary --exit-code --cached
 	mkdir -p build
