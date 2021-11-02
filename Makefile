@@ -2,6 +2,7 @@
 
 TMPDIR := $(shell mktemp -d)
 FILE_LIST := $(shell mktemp)
+GITREV := $(shell git rev-parse --short HEAD 2>/dev/null || echo local)
 RFLX = $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx
 
 all: check test test_package
@@ -53,26 +54,26 @@ $(RFLX):
 	virtualenv -p python3 $(TMPDIR)/venv
 	$(TMPDIR)/venv/bin/pip3 install contrib/RecordFlux[devel]
 
-package: build/spdm.tar.gz
+package: build/spdm_$(GITREV).tar.gz
 
-build/spdm.tar: .git/logs/HEAD
+build/spdm_$(GITREV).tar: .git/logs/HEAD
 	git diff --summary --exit-code
 	git diff --summary --exit-code --cached
 	mkdir -p build
 	git ls-files --recurse-submodules | grep -v -e "^.git\|/\.git" > $(FILE_LIST)
-	tar cvf build/spdm.tar -T $(FILE_LIST)
+	tar cvf build/spdm_$(GITREV).tar -T $(FILE_LIST)
 	git rev-parse HEAD > $(TMPDIR)/commit
-	tar rvf build/spdm.tar --directory $(TMPDIR) commit
+	tar rvf build/spdm_$(GITREV).tar --directory $(TMPDIR) commit
 
-build/spdm.tar.xz: build/spdm.tar
-	xz -z -e -9 -T0 build/spdm.tar
+build/spdm_$(GITREV).tar.xz: build/spdm_$(GITREV).tar
+	xz -z -e -9 -T0 $^
 
-build/spdm.tar.gz: build/spdm.tar
-	gzip -f build/spdm.tar
+build/spdm_$(GITREV).tar.gz: build/spdm_$(GITREV).tar
+	gzip -f $^
 
-test_package: package
+test_package: build/spdm_$(GITREV).tar
 	mkdir -p $(TMPDIR)/package_test
-	tar -xvf build/spdm.tar.gz --directory $(TMPDIR)/package_test
+	tar -xvf $^ --directory $(TMPDIR)/package_test
 	make -C $(TMPDIR)/package_test check test
 
 clean:
