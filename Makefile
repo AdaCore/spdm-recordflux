@@ -33,10 +33,15 @@ build/generated/rflx.ads: specs/spdm.rflx specs/spdm_emu.rflx specs/spdm_proxy.r
 build/responder/responder: build/generated/rflx.ads responder.gpr src/*.ads src/*.adb
 	gprbuild -p responder.gpr -s
 
+build/certificates:
+	mkdir -p build/certificates
+	cp contrib/dmtf/spdm-emu/libspdm/unit_test/sample_key/openssl.cnf build/certificates
+	tools/generate_certificates.sh build/certificates
+
 test_validate: test_validate_libspdm test_validate_static
 
 test_validate_libspdm: $(RFLX)
-test_validate_libspdm: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump
+test_validate_libspdm: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump build/certificates
 	mkdir -p $(TMPDIR)/spdm
 	tools/run_emu.sh $(TMPDIR)/test_validate.pcap
 	PATH=build/spdm_dump/bin:$(PATH) tools/dump_validate.py -f $(TMPDIR)/test_validate.pcap -l $(TMPDIR)/test_validate.pcap.log -o $(TMPDIR)/spdm
