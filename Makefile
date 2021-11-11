@@ -44,7 +44,7 @@ test_validate_libspdm: $(RFLX)
 test_validate_libspdm: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump build/certificates
 	mkdir -p $(TMPDIR)/spdm
 	tools/run_emu.sh $(TMPDIR)/test_validate.pcap
-	PATH=build/spdm_dump/bin:$(PATH) tools/dump_validate.py -f $(TMPDIR)/test_validate.pcap -l $(TMPDIR)/test_validate.pcap.log -o $(TMPDIR)/spdm
+	PATH="build/spdm_dump/bin:$(PATH)" tools/dump_validate.py -f $(TMPDIR)/test_validate.pcap -l $(TMPDIR)/test_validate.pcap.log -o $(TMPDIR)/spdm
 	$(RFLX) --no-verification --max-errors=1 validate -v $(TMPDIR)/spdm/Request/valid specs/spdm.rflx SPDM::Request
 	$(RFLX) --no-verification --max-errors=1 validate -v $(TMPDIR)/spdm/Response/valid specs/spdm.rflx SPDM::Response
 
