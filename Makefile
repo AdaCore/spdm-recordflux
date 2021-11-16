@@ -3,7 +3,12 @@
 TMPDIR := $(shell mktemp -d)
 FILE_LIST := $(shell mktemp)
 GITREV := $(shell git rev-parse --short HEAD 2>/dev/null || echo local)
+
+ifdef LOCAL_RFLX
+RFLX = $(shell which rflx)
+else
 RFLX = $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx
+endif
 
 all: check test test_package
 
@@ -55,7 +60,7 @@ test_validate_static: $(RFLX)
 test_responder: build/responder/responder build/spdm_emu/bin/spdm_requester_emu
 	tools/run_responder.sh
 
-$(RFLX):
+$(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx:
 	virtualenv -p python3 $(TMPDIR)/venv
 	$(TMPDIR)/venv/bin/pip3 install contrib/RecordFlux[devel]
 
