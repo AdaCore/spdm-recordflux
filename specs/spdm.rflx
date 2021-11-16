@@ -165,18 +165,7 @@ package SPDM is
        PSK_Req_Supported   => 1)
    with Size => 2;
 
-   --  ISSUE: Componolit/SPDM#31
-   --  This message differs between SPDM version 1.0 and 1.1.
-   --  Since the minor version is not accessible from
-   --  within this message one message is needed for each version
-   --  that is selected by an outer message.
-   type Get_Capabilities_Request_1_0 is
-      message
-         Param_1 : Reserved_8;
-         Param_2 : Reserved_8;
-      end message;
-
-   type Get_Capabilities_Request_1_1 is
+   type Get_Capabilities_Request is
       message
          Param_1 : Reserved_8;
          Param_2 : Reserved_8;
@@ -245,30 +234,7 @@ package SPDM is
        PSK_Resp_With_Context    => 2)
    with Size => 2;
 
-   --  ISSUE: Componolit/SPDM#31
-   --  This message differs between SPDM version 1.0 and 1.1.
-   --  Since the minor version is not accessible from
-   --  within this message one message is needed for each version
-   --  that is selected by an outer message.
-   type Capabilities_Response_1_0 is
-      message
-         Param_1 : Reserved_8;
-         Param_2 : Reserved_8;
-         Reserved_1 : Reserved_8;
-         CT_Exponent : CT_Exponent;
-         Reserved_2 : Reserved_16;
-         Reserved_3 : Reserved_2;
-         Meas_Fresh_Cap : Boolean;
-         Meas_Cap : Meas_Cap;
-         Chal_Cap : Boolean;
-         Cert_Cap : Boolean;
-         Cache_Cap : Boolean;
-         Reserved_4 : Reserved_8;
-         Reserved_5 : Reserved_8;
-         Reserved_6 : Reserved_8;
-      end message;
-
-   type Capabilities_Response_1_1 is
+   type Capabilities_Response is
       message
          Param_1 : Reserved_8;
          Param_2 : Reserved_8;
@@ -345,20 +311,7 @@ package SPDM is
        NS_Trusted_Environment => 16#F#)
    with Size => 4;
 
-   type Get_Measurements_Request_1_0 is
-      message
-         Reserved_1 : Reserved_7;
-         Generate_Signature : Boolean;
-         Measurement_Operation : Measurement_Operation
-            then Nonce
-               if Generate_Signature = True
-            then null
-               if Generate_Signature = False;
-         Nonce : Opaque
-            with Size => 32 * 8;
-      end message;
-
-   type Get_Measurements_Request_1_1 is
+   type Get_Measurements_Request is
       message
          Reserved_1 : Reserved_7;
          Generate_Signature : Boolean;
@@ -421,38 +374,7 @@ package SPDM is
 
    type Block_Count is range 0 .. 2 ** 8 - 1 with Size => 8;
 
-   --  ISSUE: Componolit/SPDM#31
-   --  This message differs between SPDM version 1.0 and 1.1.
-   --  Since the minor version is not accessible from
-   --  within this message one message is needed for each version
-   --  that is selected by an outer message.
-   type Measurements_Response_1_0 is
-      message
-         Number_Of_Indices : Measurement_Count;
-         Reserved_1 : Reserved_8;
-         Number_Of_Blocks : Block_Count;
-         Measurement_Record_Length_1 : Length;
-         Measurement_Record_Length_2 : Length;
-         Measurement_Record_Length_3 : Length;
-         Measurement_Record : Measurement_Record
-            -- ISSUE: Componolit/RecordFlux#104
-            with Size => 8 * (Measurement_Record_Length_3 * 65536
-                              + Measurement_Record_Length_2 * 256
-                              + Measurement_Record_Length_1);
-         Nonce : Opaque
-            with Size => 8 * 32;
-         Opaque_Length_1 : Length;
-         Opaque_Length_2 : Length;
-         Opaque_Data : Opaque
-            -- ISSUE: Componolit/RecordFlux#104
-            with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1);
-         --  The existence of Signature depends on the request
-         --  ISSUE: Componolit/SPDM#31
-         Signature : Opaque
-            with Size => Message'Last - Opaque_Data'Last;
-      end message;
-
-   type Measurements_Response_1_1 is
+   type Measurements_Response is
       message
          Number_Of_Indices : Measurement_Count;
          Reserved_1 : Reserved_4;
@@ -587,53 +509,7 @@ package SPDM is
    type Ext_Asym_Count is range 0 .. 2 ** 8 - 1 with Size => 8;
    type Ext_Hash_Count is range 0 .. 2 ** 8 - 1 with Size => 8;
 
-   --  ISSUE: Componolit/SPDM#31
-   --  This message differs between SPDM version 1.0 and 1.1.
-   --  Since the minor version is not accessible from
-   --  within this message one message is needed for each version
-   --  that is selected by an outer message.
-   type Negotiate_Algorithms_Request_1_0 is
-      message
-         Param_1 : Reserved_8;
-         Param_2 : Reserved_8;
-         Length_1 : Length;
-         Length_2 : Length
-            then Measurement_Specification_Reserved
-               if Length_2 * 256 + Length_1 <= 64;
-         Measurement_Specification_Reserved : Reserved_7;
-         Measurement_Specification_DMTF : Boolean;
-         Reserved_1 : Reserved_8;
-         Base_Asym_Algo_TPM_ALG_ECDSA_ECC_NIST_P384 : Boolean;
-         Base_Asym_Algo_TPM_ALG_RSAPSS_4096 : Boolean;
-         Base_Asym_Algo_TPM_ALG_RSASSA_4096 : Boolean;
-         Base_Asym_Algo_TPM_ALG_ECDSA_ECC_NIST_P256 : Boolean;
-         Base_Asym_Algo_TPM_ALG_RSAPSS_3072 : Boolean;
-         Base_Asym_Algo_TPM_ALG_RSASSA_3072 : Boolean;
-         Base_Asym_Algo_TPM_ALG_RSAPSS_2048 : Boolean;
-         Base_Asym_Algo_TPM_ALG_RSASSA_2048 : Boolean;
-         Base_Asym_Algo_Reserved_1 : Reserved_7;
-         Base_Asym_Algo_TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean;
-         Base_Asym_Algo_Reserved_2 : Reserved_16;
-         Base_Hash_Algo_Reserved_1 : Reserved_2;
-         Base_Hash_Algo_TPM_ALG_SHA3_512 : Boolean;
-         Base_Hash_Algo_TPM_ALG_SHA3_384 : Boolean;
-         Base_Hash_Algo_TPM_ALG_SHA3_256 : Boolean;
-         Base_Hash_Algo_TPM_ALG_SHA_512 : Boolean;
-         Base_Hash_Algo_TPM_ALG_SHA_384 : Boolean;
-         Base_Hash_Algo_TPM_ALG_SHA_256 : Boolean;
-         Base_Hash_Algo_Reserved_2 : Reserved_24;
-         Reserved_2 : Reserved_64;
-         Reserved_3 : Reserved_32;
-         Ext_Asym_Count : Ext_Asym_Count;
-         Ext_Hash_Count : Ext_Hash_Count;
-         Reserved_4 : Reserved_16;
-         Ext_Asym : Ext_Algs
-            with Size => 32 * Ext_Asym_Count;
-         Ext_Hash : Ext_Algs
-            with Size => 32 * Ext_Hash_Count;
-      end message;
-
-   type Negotiate_Algorithms_Request_1_1 is
+   type Negotiate_Algorithms_Request is
       message
          Req_Alg_Struct_Count : Alg_Struct_Count;
          Param_2 : Reserved_8;
@@ -822,17 +698,7 @@ package SPDM is
          Length_2 : Length;
       end message;
 
-   --  ISSUE: Componolit/SPDM#31
-   --  This message differs between SPDM version 1.0 and 1.1.
-   --  Since the minor version is not accessible from
-   --  within this message one message is needed for each version
-   --  that is selected by an outer message.
-   type Certificate_Response_1_0 is
-      message
-         Slot : Slot;
-      end message;
-
-   type Certificate_Response_1_1 is
+   type Certificate_Response is
       message
          Slot : Slot;
          Param_2 : Reserved_8;
@@ -860,21 +726,7 @@ package SPDM is
             with Size => 8 * 32;
       end message;
 
-   --  ISSUE: Componolit/SPDM#31
-   --  This message differs between SPDM version 1.0 and 1.1.
-   --  Since the minor version is not accessible from
-   --  within this message one message is needed for each version
-   --  that is selected by an outer message.
-   type Challenge_Auth_Response_1_0 is
-      message
-         Slot            : Slot;
-         Slot_Mask       : Slot_Mask;
-         Cert_Chain_Hash : Hash;
-         Nonce           : Opaque
-            with Size => 8 * 32;
-      end message;
-
-   type Challenge_Auth_Response_1_1 is
+   type Challenge_Auth_Response is
       message
          Basic_Mut_Auth_Req : Boolean;
          Reserved           : Reserved_3;
@@ -939,66 +791,7 @@ package SPDM is
    type Vendor_ID_Double is mod 2 ** 16;
    type Vendor_ID_Quad is mod 2 ** 32;
 
-   --  ISSUE: Componolit/SPDM#31
-   --  This message differs between SPDM version 1.0 and 1.1.
-   --  Since the minor version is not accessible from
-   --  within this message one message is needed for each version
-   --  that is selected by an outer message.
-   type Error_Response_1_0 is
-      message
-         Error_Code : Error_Code
-            then Zero_Error_Data
-               if Error_Code = Invalid_Request
-                  or Error_Code = Busy
-                  or Error_Code = Unexpected_Request
-                  or Error_Code = Unspecified
-                  or Error_Code = Major_Version_Mismatch
-                  or Error_Code = Response_Not_Ready
-                  or Error_Code = Request_Resynch
-            then Request_Response_Code
-               if Error_Code = Unsupported_Request
-            then Registry_ID
-               if Error_Code = Vendor;
-         Zero_Error_Data : Zero_Error_Data
-            then Response_Not_Ready_Data
-               if Error_Code = Response_Not_Ready
-            then null
-               if Error_Code /= Response_Not_Ready;
-         Request_Response_Code : Request_Code
-            then null;
-         Response_Not_Ready_Data : Response_Not_Ready_Data
-            then null;
-         Registry_ID : Registry_ID;
-         Vendor_ID_Len : Vendor_ID_Len
-            then Opaque_Error_Data
-               with Size => Message'Size - (Vendor_ID_Len'Last - Error_Code'First + 1)
-               if Vendor_ID_Len = 0
-                  and Registry_ID = Reg_DMTF
-            then Vendor_ID_Double
-               if Vendor_ID_Len = 2
-                  and (Registry_ID = Reg_TCG
-                       or Registry_ID = Reg_USB
-                       or Registry_ID = Reg_PCI_SIG
-                       or Registry_ID = Reg_MIPI
-                       or Registry_ID = Reg_CXL
-                       or Registry_ID = Reg_JEDEC)
-            then Vendor_ID_Quad
-               if Vendor_ID_Len = 4
-                  and (Registry_ID = Reg_IANA
-                       or Registry_ID = Reg_HD_Base_T);
-         --  [394] The value of this field shall indicate the Vendor ID, as assigned
-         --  by the registry or standards body. The Registry or standards body ID table
-         --  describes the length of this field. Shall be in little endian format.
-         Vendor_ID_Double : Vendor_ID_Double
-            then Opaque_Error_Data
-               with Size => Message'Size - (Vendor_ID_Double'Last - Error_Code'First + 1);
-         Vendor_ID_Quad : Vendor_ID_Quad
-            then Opaque_Error_Data
-               with Size => Message'Size - (Vendor_ID_Quad'Last - Error_Code'First + 1);
-         Opaque_Error_Data : Opaque;
-      end message;
-
-   type Error_Response_1_1 is
+   type Error_Response is
       message
          Error_Code : Error_Code
             then Invalid_Session_ID
@@ -1226,13 +1019,9 @@ package SPDM is
          Code : Request_Code
             then Get_Version_Request
                if Code = Get_Version and Minor_Version = 0
-            then Get_Capabilities_Request_1_0
-               if Code = Get_Capabilities and Minor_Version = 0
-            then Get_Capabilities_Request_1_1
+            then Get_Capabilities_Request
                if Code = Get_Capabilities and Minor_Version = 1
-            then Negotiate_Algorithms_Request_1_0
-               if Code = Negotiate_Algorithms and Minor_Version = 0
-            then Negotiate_Algorithms_Request_1_1
+            then Negotiate_Algorithms_Request
                if Code = Negotiate_Algorithms and Minor_Version = 1
             then Get_Digests_Request
                if Code = Get_Digests
@@ -1240,9 +1029,7 @@ package SPDM is
                if Code = Get_Certificate
             then Challenge_Request
                if Code = Challenge
-            then Get_Measurements_1_0
-               if Code = Get_Measurements and Minor_Version = 0
-            then Get_Measurements_1_1
+            then Get_Measurements_Request
                if Code = Get_Measurements and Minor_Version = 1
             then Respond_If_Ready_Request
                if Code = Respond_If_Ready
@@ -1256,13 +1043,9 @@ package SPDM is
                if Code = End_Session and Minor_Version = 1;
          Get_Version_Request : Get_Version_Request
             then null;
-         Get_Capabilities_Request_1_0 : Get_Capabilities_Request_1_0
+         Get_Capabilities_Request : Get_Capabilities_Request
             then null;
-         Get_Capabilities_Request_1_1 : Get_Capabilities_Request_1_1
-            then null;
-         Negotiate_Algorithms_Request_1_0 : Negotiate_Algorithms_Request_1_0
-            then null;
-         Negotiate_Algorithms_Request_1_1 : Negotiate_Algorithms_Request_1_1
+         Negotiate_Algorithms_Request : Negotiate_Algorithms_Request
             then null;
          Get_Digests_Request : Get_Digests_Request
             then null;
@@ -1270,9 +1053,7 @@ package SPDM is
             then null;
          Challenge_Request : Challenge_Request
             then null;
-         Get_Measurements_1_0 : Get_Measurements_Request_1_0
-            then null;
-         Get_Measurements_1_1 : Get_Measurements_Request_1_1
+         Get_Measurements_Request : Get_Measurements_Request
             then null;
          Respond_If_Ready_Request : Respond_If_Ready_Request
             then null;
@@ -1296,29 +1077,19 @@ package SPDM is
          Code : Response_Code
             then Version_Response
                if Code = Version and Minor_Version = 0
-            then Capabilities_Response_1_0
-               if Code = Capabilities and Minor_Version = 0
-            then Capabilities_Response_1_1
+            then Capabilities_Response
                if Code = Capabilities and Minor_Version = 1
             then Algorithms_Response
                if Code = Algorithms
             then Digests_Response
                if Code = Digests
-            then Certificate_Response_1_0
-               if Code = Certificate and Minor_Version = 0
-            then Certificate_Response_1_1
+            then Certificate_Response
                if Code = Certificate and Minor_Version = 1
-            then Challenge_Auth_Response_1_0
-               if Code = Challenge_Auth and Minor_Version = 0
-            then Challenge_Auth_Response_1_1
+            then Challenge_Auth_Response
                if Code = Challenge_Auth and Minor_Version = 1
-            then Measurements_1_0
-               if Code = Measurements and Minor_Version = 0
-            then Measurements_1_1
+            then Measurements_Response
                if Code = Measurements and Minor_Version = 1
-            then Error_Response_1_0
-               if Code = Error and Minor_Version = 0
-            then Error_Response_1_1
+            then Error_Response
                if Code = Error and Minor_Version = 1
             then Key_Exchange_Response
                if Code = Key_Exchange_RSP and Minor_Version = 1
@@ -1330,29 +1101,19 @@ package SPDM is
                if Code = End_Session_ACK and Minor_Version = 1;
          Version_Response : Version_Response
             then null;
-         Capabilities_Response_1_0 : Capabilities_Response_1_0
-            then null;
-         Capabilities_Response_1_1 : Capabilities_Response_1_1
+         Capabilities_Response : Capabilities_Response
             then null;
          Algorithms_Response : Algorithms_Response
             then null;
          Digests_Response : Digests_Response
             then null;
-         Certificate_Response_1_0 : Certificate_Response_1_0
+         Certificate_Response : Certificate_Response
             then null;
-         Certificate_Response_1_1 : Certificate_Response_1_1
+         Challenge_Auth_Response : Challenge_Auth_Response
             then null;
-         Challenge_Auth_Response_1_0 : Challenge_Auth_Response_1_0
+         Measurements_Response : Measurements_Response
             then null;
-         Challenge_Auth_Response_1_1 : Challenge_Auth_Response_1_1
-            then null;
-         Measurements_1_0 : Measurements_Response_1_0
-            then null;
-         Measurements_1_1 : Measurements_Response_1_1
-            then null;
-         Error_Response_1_0 : Error_Response_1_0
-            then null;
-         Error_Response_1_1 : Error_Response_1_1
+         Error_Response : Error_Response
             then null;
          Key_Exchange_Response : Key_Exchange_Response
             then null;
@@ -1430,30 +1191,30 @@ package SPDM is
       is
       begin
          Transport'Write
-            (Response'(Major_Version                                        => 1,
-                       Minor_Version                                        => 1,
-                       Code                                                 => Capabilities,
-                       Capabilities_Response_1_1_Param_1                    => 0,
-                       Capabilities_Response_1_1_Param_2                    => 0,
-                       Capabilities_Response_1_1_Reserved_1                 => 0,
-                       Capabilities_Response_1_1_CT_Exponent                => 10,
-                       Capabilities_Response_1_1_Reserved_2                 => 0,
-                       Capabilities_Response_1_1_MAC_Cap                    => True,
-                       Capabilities_Response_1_1_Encrypt_Cap                => True,
-                       Capabilities_Response_1_1_Meas_Fresh_Cap             => False,
-                       Capabilities_Response_1_1_Meas_Cap                   => Meas_Plain,
-                       Capabilities_Response_1_1_Chal_Cap                   => False,
-                       Capabilities_Response_1_1_Cert_Cap                   => False,  --  Supported in WP 2.3.7
-                       Capabilities_Response_1_1_Cache_Cap                  => False,
-                       Capabilities_Response_1_1_Handshake_In_The_Clear_Cap => True,
-                       Capabilities_Response_1_1_Key_Upd_Cap                => False,  --  Supported in WP 2.3.8
-                       Capabilities_Response_1_1_Hbeat_Cap                  => False,
-                       Capabilities_Response_1_1_Encap_Cap                  => False,
-                       Capabilities_Response_1_1_PSK_Cap                    => PSK_Resp_Unsupported,
-                       Capabilities_Response_1_1_Key_Ex_Cap                 => True,
-                       Capabilities_Response_1_1_Mut_Auth_Cap               => False,
-                       Capabilities_Response_1_1_Reserved_4                 => 0,
-                       Capabilities_Response_1_1_Pub_Key_ID_Cap             => False));
+            (Response'(Major_Version                                    => 1,
+                       Minor_Version                                    => 1,
+                       Code                                             => Capabilities,
+                       Capabilities_Response_Param_1                    => 0,
+                       Capabilities_Response_Param_2                    => 0,
+                       Capabilities_Response_Reserved_1                 => 0,
+                       Capabilities_Response_CT_Exponent                => 10,
+                       Capabilities_Response_Reserved_2                 => 0,
+                       Capabilities_Response_MAC_Cap                    => True,
+                       Capabilities_Response_Encrypt_Cap                => True,
+                       Capabilities_Response_Meas_Fresh_Cap             => False,
+                       Capabilities_Response_Meas_Cap                   => Meas_Plain,
+                       Capabilities_Response_Chal_Cap                   => False,
+                       Capabilities_Response_Cert_Cap                   => False,  --  Supported in WP 2.3.7
+                       Capabilities_Response_Cache_Cap                  => False,
+                       Capabilities_Response_Handshake_In_The_Clear_Cap => True,
+                       Capabilities_Response_Key_Upd_Cap                => False,  --  Supported in WP 2.3.8
+                       Capabilities_Response_Hbeat_Cap                  => False,
+                       Capabilities_Response_Encap_Cap                  => False,
+                       Capabilities_Response_PSK_Cap                    => PSK_Resp_Unsupported,
+                       Capabilities_Response_Key_Ex_Cap                 => True,
+                       Capabilities_Response_Mut_Auth_Cap               => False,
+                       Capabilities_Response_Reserved_4                 => 0,
+                       Capabilities_Response_Pub_Key_ID_Cap             => False));
       transition
          goto Receive
       exception
@@ -1464,11 +1225,11 @@ package SPDM is
       is
       begin
          Transport'Write
-            (Response'(Major_Version                            => 1,
-                       Minor_Version                            => 1,
-                       Code                                     => Error,
-                       Error_Response_1_1_Error_Code            => Unsupported_Request,
-                       Error_Response_1_1_Request_Response_Code => Request.Code));
+            (Response'(Major_Version                        => 1,
+                       Minor_Version                        => 1,
+                       Code                                 => Error,
+                       Error_Response_Error_Code            => Unsupported_Request,
+                       Error_Response_Request_Response_Code => Request.Code));
       transition
          goto End_Session
       exception
@@ -1479,11 +1240,11 @@ package SPDM is
       is
       begin
          Transport'Write
-            (Response'(Major_Version                      => 1,
-                       Minor_Version                      => 1,
-                       Code                               => Error,
-                       Error_Response_1_1_Error_Code      => Invalid_Request,
-                       Error_Response_1_1_Zero_Error_Data => 0));
+            (Response'(Major_Version                  => 1,
+                       Minor_Version                  => 1,
+                       Code                           => Error,
+                       Error_Response_Error_Code      => Invalid_Request,
+                       Error_Response_Zero_Error_Data => 0));
       transition
          goto End_Session
       exception
@@ -1494,11 +1255,11 @@ package SPDM is
       is
       begin
          Transport'Write
-            (Response'(Major_Version                      => 1,
-                       Minor_Version                      => 1,
-                       Code                               => Error,
-                       Error_Response_1_1_Error_Code      => Unspecified,
-                       Error_Response_1_1_Zero_Error_Data => 0));
+            (Response'(Major_Version                  => 1,
+                       Minor_Version                  => 1,
+                       Code                           => Error,
+                       Error_Response_Error_Code      => Unspecified,
+                       Error_Response_Zero_Error_Data => 0));
       transition
          goto End_Session
       exception
