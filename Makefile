@@ -10,7 +10,12 @@ else
 RFLX = $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx
 endif
 
-all: check test test_package
+all: check test
+
+lib: build/lib/libspdm.a
+
+build/lib/libspdm.a: build/generated/rflx.ads
+	gprbuild -j0 -P spdm
 
 test: test_validate test_responder
 
@@ -45,15 +50,14 @@ build/certificates:
 
 test_validate: test_validate_libspdm test_validate_static
 
-test_validate_libspdm: $(RFLX)
-test_validate_libspdm: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump build/certificates
+test_validate_libspdm: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump build/certificates | $(RFLX)
 	mkdir -p $(TMPDIR)/spdm
 	tools/run_emu.sh $(TMPDIR)/test_validate.pcap
 	PATH="build/spdm_dump/bin:$(PATH)" tools/dump_validate.py -f $(TMPDIR)/test_validate.pcap -l $(TMPDIR)/test_validate.pcap.log -o $(TMPDIR)/spdm
 	$(RFLX) --no-verification --max-errors=1 validate -v $(TMPDIR)/spdm/Request/valid specs/spdm.rflx SPDM::Request
 	$(RFLX) --no-verification --max-errors=1 validate -v $(TMPDIR)/spdm/Response/valid specs/spdm.rflx SPDM::Response
 
-test_validate_static: $(RFLX)
+test_validate_static: | $(RFLX)
 	$(RFLX) --no-verification --max-errors=1 validate -v tests/data/spdm/Request/valid specs/spdm.rflx SPDM::Request
 	$(RFLX) --no-verification --max-errors=1 validate -v tests/data/spdm/Response/valid specs/spdm.rflx SPDM::Response
 

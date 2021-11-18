@@ -1,0 +1,20 @@
+project SPDM is
+
+   for Create_Missing_Dirs use "true";
+   for Languages use ("Ada", "C");
+   for Source_Dirs use ("src", "build/generated");
+   for Library_Name use "spdm";
+   for Library_Kind use "static";
+   for Library_Dir use "build/lib";
+   for Object_Dir use "build/obj";
+
+   for Target use "arm-eabi";
+   for Runtime ("Ada") use "zfp-cortex-m4";
+
+   package Compiler is
+      Common_Args := ("-g", "-Ofast");
+      for Default_Switches ("Ada") use Common_Args & "-gnatn2";
+      for Default_Switches ("C") use Common_Args;
+   end Compiler;
+
+end SPDM;
