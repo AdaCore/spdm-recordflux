@@ -100,8 +100,17 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
         for m in messages:
             if m[0] in unsupported_messages:
                 continue
-            with (valid / f"{sha1(m[1]).hexdigest()}_{m[0]}.raw").open("wb") as message:
+            basename = valid / f"{sha1(m[1]).hexdigest()}_{m[0]}"
+            with (basename.with_suffix(".raw")).open("wb") as message:
                 message.write(m[1])
+            with (basename.with_suffix(".yaml")).open("w") as config:
+                config.write(
+                    "Meas_Cap: 2\n"
+                    "Hash_Type: 1\n"
+                    "Hash_Size: 48\n"
+                    "Signature_Size: 96\n"
+                    f"Message_Size: {len(m[1])}\n"
+                )
 
 
 if __name__ == "__main__":
