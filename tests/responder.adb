@@ -1,6 +1,6 @@
 with Server;
 with Channel;
-with RFLX.SPDM.Responder;
+with RFLX.SPDM_Responder.Session;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada.Command_Line;
@@ -14,9 +14,9 @@ begin
    Server.Listen (Listener, 2324, Connection);
    declare
       package TCP_Channel is new Channel (Connection);
-      package Responder is new RFLX.SPDM.Responder (TCP_Channel.Has_Data,
-                                                    TCP_Channel.Receive,
-                                                    TCP_Channel.Send);
+      package Responder is new RFLX.SPDM_Responder.Session (TCP_Channel.Has_Data,
+                                                            TCP_Channel.Receive,
+                                                            TCP_Channel.Send);
    begin
       Responder.Run;
    end;

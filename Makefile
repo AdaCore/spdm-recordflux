@@ -20,7 +20,7 @@ build/lib/libspdm.a: build/generated/rflx.ads
 test: test_validate test_responder
 
 check: | $(RFLX)
-	$(RFLX) check specs/spdm.rflx
+	$(RFLX) check specs/spdm_responder.rflx
 
 build/spdm_dump:
 	mkdir -p build/spdm_dump
@@ -36,7 +36,7 @@ build/spdm_emu/bin/spdm_%_emu: build/spdm_emu
 	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Release -DCRYPTO=mbedtls -S contrib/dmtf/spdm-emu -B build/spdm_emu
 	make -C build/spdm_emu -j$(shell nproc)
 
-build/generated/rflx.ads: specs/spdm.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx | $(RFLX)
+build/generated/rflx.ads: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx | $(RFLX)
 	mkdir -p build/generated
 	$(RFLX) --no-verification generate $^ --debug -d build/generated
 
