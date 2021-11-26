@@ -223,9 +223,9 @@ package SPDM is
       end message;
 
    type Meas_Cap is
-      (Meas_Supported => 0,
-       Meas_Plain     => 1,
-       Meas_Signed    => 2)
+      (Meas_Unsupported => 0,
+       Meas_Plain       => 1,
+       Meas_Signed      => 2)
    with Size => 2;
 
    type PSK_Resp_Cap is
