@@ -30,6 +30,10 @@ package SPDM is
    -- calculated.
    type Index is range 1 .. 2 ** 8 - 1 with Size => 8;
 
+   type Signature_Size is range 384 .. 4096 with Size => 13;
+   type Hash_Size is range 256 .. 512 with Size => 10;
+   type Message_Size is range 0 .. 2 ** 32 - 1 with Size => 32;
+
    -- ISSUE: Componolit/RecordFlux#601
    -- [33] Unless otherwise specified, reserved numeric and bit fields shall be written as
    --      zero (0) and ignored when read.
@@ -374,7 +378,8 @@ package SPDM is
 
    type Block_Count is range 0 .. 2 ** 8 - 1 with Size => 8;
 
-   type Measurements_Response is
+   type Measurements_Response (Signature_Size : Signature_Size;
+                               Message_Size   : Message_Size) is
       message
          Number_Of_Indices : Measurement_Count;
          Reserved_1 : Reserved_4;
@@ -394,11 +399,15 @@ package SPDM is
          Opaque_Length_2 : Length;
          Opaque_Data : Opaque
             -- ISSUE: Componolit/RecordFlux#104
-            with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1);
-         --  The existence of Signature depends on the request
-         --  ISSUE: Componolit/SPDM#31
+            with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1)
+            then Signature
+               if Opaque_Data'Last - Message'First + 1 + Signature_Size <= Message_Size
+            then null
+               if Opaque_Data'Last - Message'First + 1 = Message_Size;
          Signature : Opaque
-            with Size => Message'Last - Opaque_Data'Last;
+            with Size => Signature_Size
+            then null
+               if Message_Size = Message'Size;
       end message;
 
    -- [201] Extended Algorithm field format
@@ -1066,7 +1075,9 @@ package SPDM is
          End_Session_Request : End_Session_Request;
       end message;
 
-   type Response is
+   type Response (Signature_Size : Signature_Size;
+                  Message_Size   : Message_Size)
+   is
       message
          Major_Version : Major_Version
             then Minor_Version
@@ -1112,6 +1123,8 @@ package SPDM is
          Challenge_Auth_Response : Challenge_Auth_Response
             then null;
          Measurements_Response : Measurements_Response
+                                    (Signature_Size => Signature_Size,
+                                     Message_Size   => Message_Size - (Code'Last - Message'First + 1))
             then null;
          Error_Response : Error_Response
             then null;
