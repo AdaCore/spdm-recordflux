@@ -24,6 +24,7 @@ package SPDM is
    type Index is range 1 .. 2 ** 8 - 1 with Size => 8;
 
    type Signature_Size is range 48 .. 512 with Size => 10;
+   type Exchange_Data_Size is range 96 .. 512 with Size => 10;
    type Hash_Size is range 32 .. 64 with Size => 7;
    type Message_Size is range 0 .. 2 ** 32 - 1 with Size => 32;
 
@@ -870,7 +871,7 @@ package SPDM is
 
    type Session_ID is mod 2 ** 16;
 
-   type Key_Exchange_Request is
+   type Key_Exchange_Request (Exchange_Data_Size : Exchange_Data_Size) is
       message
          Measurement_Summary_Hash_Type : Measurement_Summary_Hash_Type;
          Slot : Slot;
@@ -879,10 +880,7 @@ package SPDM is
          Random_Data : Opaque
             with Size => 8 * 32;
          Exchange_Data : Opaque
-            -- ISSUE: Componolit/SPDM#31
-            -- Size of ExchangeData is determined by the algorithm selected in previous ALGORITHMS
-            -- message
-            with Size => 8 * 96;
+            with Size => 8 * Exchange_Data_Size;
          Opaque_Data_Length_1 : Length;
          Opaque_Data_Length_2 : Length;
          Opaque_Data : Opaque
@@ -1013,7 +1011,7 @@ package SPDM is
 
    -- 8.2 Generic SPDM message format
 
-   type Request is
+   type Request (Exchange_Data_Size : Exchange_Data_Size) is
       message
          Major_Version : Major_Version
             then Minor_Version
@@ -1062,7 +1060,7 @@ package SPDM is
             then null;
          Respond_If_Ready_Request : Respond_If_Ready_Request
             then null;
-         Key_Exchange_Request : Key_Exchange_Request
+         Key_Exchange_Request : Key_Exchange_Request (Exchange_Data_Size => Exchange_Data_Size)
             then null;
          Finish_Request : Finish_Request
             then null;
