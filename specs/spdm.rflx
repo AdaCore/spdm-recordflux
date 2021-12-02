@@ -727,7 +727,8 @@ package SPDM is
             with Size => 8 * 32;
       end message;
 
-   type Challenge_Auth_Response (Hash_Size : Hash_Size) is
+   type Challenge_Auth_Response (Hash_Size      : Hash_Size;
+                                 Signature_Size : Signature_Size) is
       message
          Basic_Mut_Auth_Req : Boolean;
          Reserved           : Reserved_3;
@@ -752,7 +753,8 @@ package SPDM is
                if Opaque_Length_2 * 256 + Opaque_Length_1 <= 1024;
          Opaque_Data : Opaque
             with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1);
-         Signature : Signature;
+         Signature : Opaque
+            with Size => 8 * Signature_Size;
       end message;
 
    -- 10.12 ERROR response message
@@ -1115,7 +1117,8 @@ package SPDM is
             then null;
          Certificate_Response : Certificate_Response
             then null;
-         Challenge_Auth_Response : Challenge_Auth_Response (Hash_Size => Hash_Size)
+         Challenge_Auth_Response : Challenge_Auth_Response (Hash_Size      => Hash_Size,
+                                                            Signature_Size => Signature_Size)
             then null;
          Measurements_Response : Measurements_Response
                                     (Signature_Size => Signature_Size,
