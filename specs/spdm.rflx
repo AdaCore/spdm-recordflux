@@ -7,18 +7,11 @@ package SPDM is
    -- We will define a static hash type Hash, even though this is acutally based on prior
    -- negotiation. We will use Hash'Size throughout this spec to simulate that.
    -- ISSUE: Componolit/SPDM#31
-   type Hash is
-      message
-         Data : Opaque
-            with Size => 8 * 48;
-      end message;
    type Signature is
       message
          Data : Opaque
             with Size => 8 * 96;
       end message;
-
-   type Hashes is sequence of Hash;
 
    -- Base types
 
@@ -661,20 +654,19 @@ package SPDM is
          Param_2 : Reserved_8;
       end message;
 
-   type Digests_Response is
+   type Digests_Response (Hash_Size : Hash_Size) is
       message
          Param_1 : Reserved_8;
          Slot_Mask : Slot_Mask;
-         Digests_Data : Hashes
-            --  ISSUE: SPDM#31
-            with Size => 8 * 48 * (Slot_Mask_Slot_0_Present
-                                   + Slot_Mask_Slot_1_Present
-                                   + Slot_Mask_Slot_2_Present
-                                   + Slot_Mask_Slot_3_Present
-                                   + Slot_Mask_Slot_4_Present
-                                   + Slot_Mask_Slot_5_Present
-                                   + Slot_Mask_Slot_6_Present
-                                   + Slot_Mask_Slot_7_Present);
+         Digests_Data : Opaque
+            with Size => Hash_Size * (Slot_Mask_Slot_0_Present
+                                      + Slot_Mask_Slot_1_Present
+                                      + Slot_Mask_Slot_2_Present
+                                      + Slot_Mask_Slot_3_Present
+                                      + Slot_Mask_Slot_4_Present
+                                      + Slot_Mask_Slot_5_Present
+                                      + Slot_Mask_Slot_6_Present
+                                      + Slot_Mask_Slot_7_Present);
       end message;
 
    -- 10.8 GET_CERTIFICATE request and CERTIFICATE response messages
@@ -735,13 +727,14 @@ package SPDM is
             with Size => 8 * 32;
       end message;
 
-   type Challenge_Auth_Response is
+   type Challenge_Auth_Response (Hash_Size : Hash_Size) is
       message
          Basic_Mut_Auth_Req : Boolean;
          Reserved           : Reserved_3;
          Slot               : Narrow_Slot;
          Slot_Mask          : Slot_Mask;
-         Cert_Chain_Hash    : Hash;
+         Cert_Chain_Hash    : Opaque
+            with Size => Hash_Size;
          Nonce : Opaque
             with Size => 8 * 32;
          --  ISSUE: Componolit/SPDM#31
@@ -751,7 +744,8 @@ package SPDM is
          --    - contain a hash if Hash_Type was TCB_Measurement
          --    - be 0 if Hash_Type was TCB_Measurement and no measurement is required
          --    - contain a hash of all measurements if Hash_Type was All_Measurments
-         Measurement_Summary_Hash : Hash;
+         Measurement_Summary_Hash : Opaque
+            with Size => Hash_Size;
          Opaque_Length_1 : Length;
          Opaque_Length_2 : Length
             then Opaque_Data
@@ -1076,6 +1070,7 @@ package SPDM is
       end message;
 
    type Response (Signature_Size : Signature_Size;
+                  Hash_Size      : Hash_Size;
                   Message_Size   : Message_Size)
    is
       message
@@ -1116,11 +1111,11 @@ package SPDM is
             then null;
          Algorithms_Response : Algorithms_Response
             then null;
-         Digests_Response : Digests_Response
+         Digests_Response : Digests_Response (Hash_Size => Hash_Size)
             then null;
          Certificate_Response : Certificate_Response
             then null;
-         Challenge_Auth_Response : Challenge_Auth_Response
+         Challenge_Auth_Response : Challenge_Auth_Response (Hash_Size => Hash_Size)
             then null;
          Measurements_Response : Measurements_Response
                                     (Signature_Size => Signature_Size,
