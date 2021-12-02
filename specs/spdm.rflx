@@ -23,8 +23,8 @@ package SPDM is
    -- calculated.
    type Index is range 1 .. 2 ** 8 - 1 with Size => 8;
 
-   type Signature_Size is range 384 .. 4096 with Size => 13;
-   type Hash_Size is range 256 .. 512 with Size => 10;
+   type Signature_Size is range 48 .. 512 with Size => 10;
+   type Hash_Size is range 32 .. 64 with Size => 7;
    type Message_Size is range 0 .. 2 ** 32 - 1 with Size => 32;
 
    -- ISSUE: Componolit/RecordFlux#601
@@ -394,11 +394,11 @@ package SPDM is
             -- ISSUE: Componolit/RecordFlux#104
             with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1)
             then Signature
-               if Opaque_Data'Last - Message'First + 1 + Signature_Size <= Message_Size
+               if Opaque_Data'Last - Message'First + 1 + 8 * Signature_Size <= Message_Size
             then null
                if Opaque_Data'Last - Message'First + 1 = Message_Size;
          Signature : Opaque
-            with Size => Signature_Size
+            with Size => 8 * Signature_Size
             then null
                if Message_Size = Message'Size;
       end message;
@@ -659,14 +659,14 @@ package SPDM is
          Param_1 : Reserved_8;
          Slot_Mask : Slot_Mask;
          Digests_Data : Opaque
-            with Size => Hash_Size * (Slot_Mask_Slot_0_Present
-                                      + Slot_Mask_Slot_1_Present
-                                      + Slot_Mask_Slot_2_Present
-                                      + Slot_Mask_Slot_3_Present
-                                      + Slot_Mask_Slot_4_Present
-                                      + Slot_Mask_Slot_5_Present
-                                      + Slot_Mask_Slot_6_Present
-                                      + Slot_Mask_Slot_7_Present);
+            with Size => 8 * Hash_Size * (Slot_Mask_Slot_0_Present
+                                          + Slot_Mask_Slot_1_Present
+                                          + Slot_Mask_Slot_2_Present
+                                          + Slot_Mask_Slot_3_Present
+                                          + Slot_Mask_Slot_4_Present
+                                          + Slot_Mask_Slot_5_Present
+                                          + Slot_Mask_Slot_6_Present
+                                          + Slot_Mask_Slot_7_Present);
       end message;
 
    -- 10.8 GET_CERTIFICATE request and CERTIFICATE response messages
@@ -734,7 +734,7 @@ package SPDM is
          Slot               : Narrow_Slot;
          Slot_Mask          : Slot_Mask;
          Cert_Chain_Hash    : Opaque
-            with Size => Hash_Size;
+            with Size => 8 * Hash_Size;
          Nonce : Opaque
             with Size => 8 * 32;
          --  ISSUE: Componolit/SPDM#31
@@ -745,7 +745,7 @@ package SPDM is
          --    - be 0 if Hash_Type was TCB_Measurement and no measurement is required
          --    - contain a hash of all measurements if Hash_Type was All_Measurments
          Measurement_Summary_Hash : Opaque
-            with Size => Hash_Size;
+            with Size => 8 * Hash_Size;
          Opaque_Length_1 : Length;
          Opaque_Length_2 : Length
             then Opaque_Data
