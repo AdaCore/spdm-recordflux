@@ -4,15 +4,6 @@ package SPDM is
    -- Document Identifier: DSP0274
    -- Version: 1.1.0
 
-   -- We will define a static hash type Hash, even though this is acutally based on prior
-   -- negotiation. We will use Hash'Size throughout this spec to simulate that.
-   -- ISSUE: Componolit/SPDM#31
-   type Signature is
-      message
-         Data : Opaque
-            with Size => 8 * 96;
-      end message;
-
    -- Base types
 
    type Length is mod 2 ** 8;
@@ -728,7 +719,9 @@ package SPDM is
             with Size => 8 * 32;
       end message;
 
-   type Challenge_Auth_Response (Hash_Size      : Hash_Size;
+   type Challenge_Auth_Response (Meas_Cap       : Meas_Cap;
+                                 Hash_Type      : Measurement_Summary_Hash_Type;
+                                 Hash_Size      : Hash_Size;
                                  Signature_Size : Signature_Size) is
       message
          Basic_Mut_Auth_Req : Boolean;
@@ -738,14 +731,14 @@ package SPDM is
          Cert_Chain_Hash    : Opaque
             with Size => 8 * Hash_Size;
          Nonce : Opaque
-            with Size => 8 * 32;
-         --  ISSUE: Componolit/SPDM#31
-         --  This field shall
-         --    - not be present if Hash_Type of the request was No_Measurement or measurement is
-         --      unsupported
-         --    - contain a hash if Hash_Type was TCB_Measurement
-         --    - be 0 if Hash_Type was TCB_Measurement and no measurement is required
-         --    - contain a hash of all measurements if Hash_Type was All_Measurments
+            with Size => 8 * 32
+            --  [256] MeasurementSummaryHash:
+            --  When the Responder does not support measurement or requested Param2=0
+            --  (i.e. Hash_Type = No_Measurment), the field shall be absent.
+            then Opaque_Length_1
+               if Meas_Cap = Meas_Unsupported or Hash_Type = No_Measurement
+            then Measurement_Summary_Hash
+               if Meas_Cap /= Meas_Unsupported and Hash_Type /= No_Measurement;
          Measurement_Summary_Hash : Opaque
             with Size => 8 * Hash_Size;
          Opaque_Length_1 : Length;
@@ -1069,8 +1062,10 @@ package SPDM is
          End_Session_Request : End_Session_Request;
       end message;
 
-   type Response (Signature_Size : Signature_Size;
+   type Response (Meas_Cap       : Meas_Cap;
+                  Hash_Type      : Measurement_Summary_Hash_Type;
                   Hash_Size      : Hash_Size;
+                  Signature_Size : Signature_Size;
                   Message_Size   : Message_Size)
    is
       message
@@ -1115,7 +1110,9 @@ package SPDM is
             then null;
          Certificate_Response : Certificate_Response
             then null;
-         Challenge_Auth_Response : Challenge_Auth_Response (Hash_Size      => Hash_Size,
+         Challenge_Auth_Response : Challenge_Auth_Response (Meas_Cap       => Meas_Cap,
+                                                            Hash_Type      => Hash_Type,
+                                                            Hash_Size      => Hash_Size,
                                                             Signature_Size => Signature_Size)
             then null;
          Measurements_Response : Measurements_Response
