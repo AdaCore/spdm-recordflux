@@ -555,7 +555,7 @@ package SPDM is
          Ext_Hash : Ext_Algs
             with Size => 32 * Ext_Hash_Count
             then Req_Alg_Structs
-               --  ISSUE: Componolit/SPDM#31
+               --  ISSUE: Componolit/SPDM#104
                --  Length is the total length of the message, we have to subtract the common header
                --  consisting of the Version and the Request/Response code of the Request/Response.
                with Size => 8 * (Length_2 * 256 + Length_1) - 16 - (Ext_Hash'Last - Req_Alg_Struct_Count'First + 1)
