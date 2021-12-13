@@ -17,7 +17,7 @@ package SPDM is
    type Signature_Size is range 48 .. 512 with Size => 10;
    type Exchange_Data_Size is range 96 .. 512 with Size => 10;
    type Hash_Size is range 32 .. 64 with Size => 7;
-   type Message_Size is range 0 .. 2 ** 32 - 1 with Size => 32;
+   type Message_Size is range 1 .. 2 ** 32 - 1 with Size => 32;
 
    -- ISSUE: Componolit/RecordFlux#601
    -- [33] Unless otherwise specified, reserved numeric and bit fields shall be written as
@@ -386,7 +386,7 @@ package SPDM is
             -- ISSUE: Componolit/RecordFlux#104
             with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1)
             then Signature
-               if Opaque_Data'Last - Message'First + 1 + 8 * Signature_Size <= Message_Size
+               if Opaque_Data'Last - Message'First + 1 + 8 * Signature_Size = Message_Size
             then null
                if Opaque_Data'Last - Message'First + 1 = Message_Size;
          Signature : Opaque
@@ -882,7 +882,11 @@ package SPDM is
 
    type Heartbeat_Period is mod 2 ** 8;
 
-   type Key_Exchange_Response is
+   type Key_Exchange_Response (Exchange_Data_Size     : Exchange_Data_Size;
+                               Hash_Size              : Hash_Size;
+                               Signature_Size         : Signature_Size;
+                               Handshake_In_The_Clear : Boolean)
+   is
       message
          Heartbeat_Period : Heartbeat_Period;
          Param_2 : Reserved_8;
@@ -907,30 +911,23 @@ package SPDM is
          Random_Data : Opaque
             with Size => 8 * 32;
          Exchange_Data : Opaque
-            -- ISSUE: Componolit/SPDM#31
-            -- Size of ExchangeData is determined by the algorithm selected in previous ALGORITHMS
-            -- message
-            with Size => 8 * 76;
+            with Size => 8 * Exchange_Data_Size;
          Measurement_Summary_Hash : Opaque
-            -- ISSUE: Componolit/SPDM#31
-            -- Size of MeasurementSummaryHash is determined by the algorithm selected in previous
-            -- ALGORITHMS message
-            with Size => 8 * 76;
+            with Size => 8 * Hash_Size;
          Opaque_Data_Length_1 : Length;
          Opaque_Data_Length_2 : Length;
          Opaque_Data : Opaque
             with Size => 8 * (Opaque_Data_Length_2 * 256 + Opaque_Data_Length_1);
          Signature : Opaque
-            -- ISSUE: Componolit/SPDM#31
-            -- Size of Signature is determined by the algorithm selected in previous ALGORITHMS
-            -- message
-            with Size => 8 * 52;
+            with Size => 8 * Signature_Size
+            then Responder_Verify_Data
+               if Handshake_In_The_Clear = False
+            then null
+               if Handshake_In_The_Clear = True;
+         -- [422] If both the Requester and Responder set HANDSHAKE_IN_THE_CLEAR_CAP to 1, then this
+         --       field shall be absent.
          Responder_Verify_Data : Opaque
-            -- ISSUE: Componolit/SPDM#31
-            -- If both the Requester and Responder set HANDSHAKE_IN_THE_CLEAR_CAP to 1, then this
-            -- field shall be absent. Otherwise its size is H, which is the hash size determined
-            -- by previous ALGORITHMS message
-            with Size => 8 * 52;
+            with Size => 8 * Hash_Size;
       end message;
 
    --  10.17 FINISH request and FINISH_RSP response messages
@@ -1062,11 +1059,13 @@ package SPDM is
          End_Session_Request : End_Session_Request;
       end message;
 
-   type Response (Meas_Cap       : Meas_Cap;
-                  Hash_Type      : Measurement_Summary_Hash_Type;
-                  Hash_Size      : Hash_Size;
-                  Signature_Size : Signature_Size;
-                  Message_Size   : Message_Size)
+   type Response (Meas_Cap               : Meas_Cap;
+                  Hash_Type              : Measurement_Summary_Hash_Type;
+                  Hash_Size              : Hash_Size;
+                  Signature_Size         : Signature_Size;
+                  Message_Size           : Message_Size;
+                  Exchange_Data_Size     : Exchange_Data_Size;
+                  Handshake_In_The_Clear : Boolean)
    is
       message
          Major_Version : Major_Version
@@ -1121,7 +1120,10 @@ package SPDM is
             then null;
          Error_Response : Error_Response
             then null;
-         Key_Exchange_Response : Key_Exchange_Response
+         Key_Exchange_Response : Key_Exchange_Response (Exchange_Data_Size     => Exchange_Data_Size,
+                                                        Hash_Size              => Hash_Size,
+                                                        Signature_Size         => Signature_Size,
+                                                        Handshake_In_The_Clear => Handshake_In_The_Clear)
             then null;
          Finish_Response : Finish_Response
             then null;
