@@ -932,7 +932,9 @@ package SPDM is
 
    --  10.17 FINISH request and FINISH_RSP response messages
 
-   type Finish_Request is
+   type Finish_Request (Signature_Size : Signature_Size;
+                        Hash_Size      : Hash_Size)
+   is
       message
          Reserved : Reserved_7;
          Signature_Included : Boolean;
@@ -942,28 +944,25 @@ package SPDM is
             then Requester_Verify_Data
                if Signature_Included = False;
          Signature : Opaque
-            -- ISSUE: Componolit/SPDM#31
-            -- Size of Signature is determined by the algorithm selected in previous
-            -- ALGORITHMS message
-            with Size => 8 * 216;
+            with Size => 8 * Signature_Size;
          Requester_Verify_Data : Opaque
-            -- ISSUE: Componolit/SPDM#31
-            -- Size of Requester_Verify_Data is determined by the algorithm selected in previous
-            -- ALGORITHMS message
-            with Size => 8 * 216;
+            with Size => 8 * Hash_Size;
       end message;
 
-   type Finish_Response is
+   type Finish_Response (Hash_Size              : Hash_Size;
+                         Handshake_In_The_Clear : Boolean)
+   is
       message
          Param_1 : Reserved_8;
-         Param_2 : Reserved_8;
+         Param_2 : Reserved_8
+            -- [433] If both the Requester and Responder support HANDSHAKE_IN_THE_CLEAR_CAP field,
+            --       this field shall be of length H [...].
+            then Responder_Verify_Data
+               if Handshake_In_The_Clear = True
+            then null
+               if Handshake_In_The_Clear = False;
          Responder_Verify_Data : Opaque
-            -- ISSUE: Componolit/SPDM#31
-            -- Presence of Responder_Verify_Data is determined by the Handshake_In_The_Clear_Cap
-            -- flag in the previous capabilities request
-            -- Size of Responder_Verify_Data is determined by the algorithm selected
-            -- in previous ALGORITHMS message
-            with Size => 8 * 48;
+            with Size => 8 * Hash_Size;
       end message;
 
    --  10.21 KEY_UPDATE request and KEY_UPDATE_ACK response messages
@@ -1001,7 +1000,9 @@ package SPDM is
 
    -- 8.2 Generic SPDM message format
 
-   type Request (Exchange_Data_Size : Exchange_Data_Size) is
+   type Request (Hash_Size          : Hash_Size;
+                 Signature_Size     : Signature_Size;
+                 Exchange_Data_Size : Exchange_Data_Size) is
       message
          Major_Version : Major_Version
             then Minor_Version
@@ -1052,7 +1053,8 @@ package SPDM is
             then null;
          Key_Exchange_Request : Key_Exchange_Request (Exchange_Data_Size => Exchange_Data_Size)
             then null;
-         Finish_Request : Finish_Request
+         Finish_Request : Finish_Request (Signature_Size => Signature_Size,
+                                          Hash_Size      => Hash_Size)
             then null;
          Key_Update_Request : Key_Update_Request
             then null;
@@ -1125,7 +1127,8 @@ package SPDM is
                                                         Signature_Size         => Signature_Size,
                                                         Handshake_In_The_Clear => Handshake_In_The_Clear)
             then null;
-         Finish_Response : Finish_Response
+         Finish_Response : Finish_Response (Hash_Size              => Hash_Size,
+                                            Handshake_In_The_Clear => Handshake_In_The_Clear)
             then null;
          Key_Update_ACK_Response : Key_Update_Ack_Response
             then null;

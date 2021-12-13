@@ -107,6 +107,8 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
                 if m_type == "Request":
                     config.write(
                         "Exchange_Data_Size: 96\n"
+                        "Signature_Size: 384\n"
+                        "Hash_Size: 48\n"
                     )
                 elif m_type == "Response":
                     config.write(
