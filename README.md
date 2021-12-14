@@ -54,7 +54,9 @@ For the following step a Python virtualenv is recommended, but a user
 installation will also work:
 
 ```
-$ PATH=/path/to/your/NATIVE/gnat:$PATH pip3 install contrib/RecordFlux
+$ virtualenv -p python3 venv
+$ . venv/bin/activate
+$ PATH=/path/to/your/NATIVE/gnat:$PATH pip install contrib/RecordFlux
 [this will take a while]
 ```
 
