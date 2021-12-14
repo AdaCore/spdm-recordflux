@@ -40,7 +40,7 @@ build/generated/rflx.ads: specs/spdm.rflx specs/spdm_emu.rflx specs/spdm_proxy.r
 	mkdir -p build/generated
 	$(RFLX) --no-verification generate $^ --debug -d build/generated
 
-build/tests/responder: build/generated/rflx.ads tests/tests.gpr tests/*.ad?
+build/tests/proxy build/tests/responder: build/generated/rflx.ads tests/tests.gpr tests/*.ad?
 	gprbuild -p tests/tests.gpr -s
 
 build/certificates:
@@ -61,7 +61,7 @@ test_validate_static: | $(RFLX)
 	$(RFLX) --no-verification --max-errors=1 validate -v tests/data/spdm/Request/valid specs/spdm.rflx SPDM::Request
 	$(RFLX) --no-verification --max-errors=1 validate -v tests/data/spdm/Response/valid specs/spdm.rflx SPDM::Response
 
-test_responder: build/tests/responder build/spdm_emu/bin/spdm_requester_emu
+test_responder: build/tests/responder build/tests/proxy build/spdm_emu/bin/spdm_requester_emu
 	tools/run_responder.sh
 
 $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx:

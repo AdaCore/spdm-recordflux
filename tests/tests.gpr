@@ -1,9 +1,9 @@
 with "contrib/RecordFlux/defaults.gpr";
 
-project Responder is
+project Tests is
 
    for Source_Dirs use (".", "../build/generated");
-   for Object_Dir use "build/tests/responder";
+   for Object_Dir use "../build/tests";
    for Main use ("responder.adb", "proxy.adb");
 
    package Builder is
@@ -22,4 +22,4 @@ project Responder is
       for Proof_Switches ("Ada") use Defaults.Proof_Switches;
    end Prove;
 
-end Responder;
+end Tests;
