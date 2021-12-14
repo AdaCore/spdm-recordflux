@@ -14,27 +14,35 @@ package SPDM_Proxy is
    is
       Request : SPDM_Emu::Platform_Port;
       Response : SPDM::Response;
+      SPDM_Request : SPDM::Request;
+      Response_Size : SPDM_Emu::Size;
    begin
       state Proxy_Receive_Request
       is
       begin
          Emu_Transport'Read (Request);
       transition
-         goto Proxy_Send_Request
+         goto Proxy_Prepare_Request
             if Request'Valid
          goto Proxy_Error
       end Proxy_Receive_Request;
 
-      state Proxy_Send_Request
+      state Proxy_Prepare_Request
       is
-         SPDM_Request : SPDM::Request;
       begin
          SPDM_Request := SPDM::Request (Request.SPDM_Payload);
+      transition
+         goto Proxy_Send_Request
+      exception
+         goto Proxy_Error
+      end Proxy_Prepare_Request;
+
+      state Proxy_Send_Request
+      is
+      begin
          SPDM_Transport'Write (SPDM_Request);
       transition
          goto Proxy_Receive_Response
-      exception
-         goto Proxy_Error
       end Proxy_Send_Request;
 
       state Proxy_Receive_Response
@@ -42,24 +50,31 @@ package SPDM_Proxy is
       begin
          SPDM_Transport'Read (Response);
       transition
-         goto Proxy_Send_Response
+         goto Proxy_Prepare_Response
             if Response'Valid
          goto Proxy_Error
       end Proxy_Receive_Response;
 
-      state Proxy_Send_Response
+      state Proxy_Prepare_Response
       is
-         Response_Size : SPDM_Emu::Size;
       begin
          Response_Size := Response'Size / 8;
-         Emu_Transport'Write (SPDM_Emu::Platform_Port'(Command => SPDM_Emu::Normal,
-                                                       Transport_Type => SPDM_Emu::None,
-                                                       Size => Response_Size,
-                                                       SPDM_Payload => Response'Opaque));
+         Request := SPDM_Emu::Platform_Port'(Command => SPDM_Emu::Normal,
+                                             Transport_Type => SPDM_Emu::None,
+                                             Size => Response_Size,
+                                             SPDM_Payload => Response'Opaque);
       transition
-         goto Proxy_Receive_Request
+         goto Proxy_Send_Response
       exception
          goto Proxy_Error
+      end Proxy_Prepare_Response;
+
+      state Proxy_Send_Response
+      is
+      begin
+         Emu_Transport'Write (Request);
+      transition
+         goto Proxy_Receive_Request
       end Proxy_Send_Response;
 
       state Proxy_Error is null state;

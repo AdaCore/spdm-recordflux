@@ -17,7 +17,6 @@ package SPDM is
    type Signature_Size is range 48 .. 512 with Size => 10;
    type Exchange_Data_Size is range 96 .. 512 with Size => 10;
    type Hash_Size is range 32 .. 64 with Size => 7;
-   type Message_Size is range 1 .. 2 ** 32 - 1 with Size => 32;
 
    -- ISSUE: Componolit/RecordFlux#601
    -- [33] Unless otherwise specified, reserved numeric and bit fields shall be written as
@@ -363,8 +362,7 @@ package SPDM is
 
    type Block_Count is range 0 .. 2 ** 8 - 1 with Size => 8;
 
-   type Measurements_Response (Signature_Size : Signature_Size;
-                               Message_Size   : Message_Size) is
+   type Measurements_Response (Signature_Size : Signature_Size) is
       message
          Number_Of_Indices : Measurement_Count;
          Reserved_1 : Reserved_4;
@@ -386,13 +384,11 @@ package SPDM is
             -- ISSUE: Componolit/RecordFlux#104
             with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1)
             then Signature
-               if Opaque_Data'Last - Message'First + 1 + 8 * Signature_Size = Message_Size
+               if Opaque_Data'Last + 8 * Signature_Size = Message'Last
             then null
-               if Opaque_Data'Last - Message'First + 1 = Message_Size;
+               if Opaque_Data'Last = Message'Last;
          Signature : Opaque
-            with Size => 8 * Signature_Size
-            then null
-               if Message_Size = Message'Size;
+            with Size => 8 * Signature_Size;
       end message;
 
    -- [201] Extended Algorithm field format
@@ -828,7 +824,7 @@ package SPDM is
          Registry_ID : Registry_ID;
          Vendor_ID_Len : Vendor_ID_Len
             then Opaque_Error_Data
-               with Size => Message'Size - (Vendor_ID_Len'Last - Error_Code'First + 1)
+               with Size => Message'Last - Vendor_ID_Len'Last
                if Vendor_ID_Len = 0
                   and Registry_ID = Reg_DMTF
             then Vendor_ID_Double
@@ -845,10 +841,10 @@ package SPDM is
                        or Registry_ID = Reg_HD_Base_T);
          Vendor_ID_Double : Vendor_ID_Double
             then Opaque_Error_Data
-               with Size => Message'Size - (Vendor_ID_Double'Last - Error_Code'First + 1);
+               with Size => Message'Last - Vendor_ID_Double'Last;
          Vendor_ID_Quad : Vendor_ID_Quad
             then Opaque_Error_Data
-               with Size => Message'Size - (Vendor_ID_Quad'Last - Error_Code'First + 1);
+               with Size => Message'Last - Vendor_ID_Quad'Last;
          Opaque_Error_Data : Opaque;
       end message;
 
@@ -1065,7 +1061,6 @@ package SPDM is
                   Hash_Type              : Measurement_Summary_Hash_Type;
                   Hash_Size              : Hash_Size;
                   Signature_Size         : Signature_Size;
-                  Message_Size           : Message_Size;
                   Exchange_Data_Size     : Exchange_Data_Size;
                   Handshake_In_The_Clear : Boolean)
    is
@@ -1116,9 +1111,7 @@ package SPDM is
                                                             Hash_Size      => Hash_Size,
                                                             Signature_Size => Signature_Size)
             then null;
-         Measurements_Response : Measurements_Response
-                                    (Signature_Size => Signature_Size,
-                                     Message_Size   => Message_Size - (Code'Last - Message'First + 1))
+         Measurements_Response : Measurements_Response (Signature_Size => Signature_Size)
             then null;
          Error_Response : Error_Response
             then null;

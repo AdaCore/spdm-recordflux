@@ -4,4 +4,3 @@ Hash_Size: 48
 Signature_Size: 96
 Handshake_In_The_Clear: True
 Exchange_Data_Size: 96
-Message_Size: 1840

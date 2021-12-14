@@ -11,6 +11,7 @@ package SPDM_Responder is
       Final => End_Session
    is
       Request : SPDM::Request;
+      Response : SPDM::Response;
       Supported_Versions : SPDM::Version_Number_Entries;
    begin
       state Init
@@ -33,116 +34,169 @@ package SPDM_Responder is
       begin
          Transport'Read (Request);
       transition
-         goto Version
+         goto Prepare_Version
             --  FIXME: [161] After receiving a GET_VERSION request, the Responder shall cancel all previous requests
             --  from the same Requester. All active sessions between the Requester and the Responder are terminated,
             --  i.e., information (such as session keys, session IDs) for those sessions should not be used anymore.
             --  Additionally, this message shall clear or reset the previously Negotiated State, if any,
             --  in both the Requester and its corresponding Responder.
             if Request'Valid and Request.Code = SPDM::Get_Version
-         goto Capabilities
+         goto Prepare_Capabilities
             if Request'Valid and Request.Code = SPDM::Get_Capabilities
          goto Error_Unsupported_Request
             if Request'Valid
          goto Error_Invalid_Request
       end Receive;
 
-      state Version
+      state Prepare_Version
       is
       begin
-         Transport'Write
-            (SPDM::Response'(Major_Version                               => 1,
-                             Minor_Version                               => 0,
-                             Code                                        => SPDM::Version,
-                             Version_Response_Param_1                    => 0,
-                             Version_Response_Param_2                    => 0,
-                             Version_Response_Reserved                   => 0,
-                             Version_Response_Version_Number_Entry_Count => 1,
-                             Version_Response_Version_Number_Entries     => Supported_Versions));
+         Response := SPDM::Response'(Meas_Cap                                    => SPDM::Meas_Unsupported,
+                                     Hash_Type                                   => SPDM::No_Measurement,
+                                     Hash_Size                                   => 64,
+                                     Signature_Size                              => 512,
+                                     Exchange_Data_Size                          => 512,
+                                     Handshake_In_The_Clear                      => False,
+                                     Major_Version                               => 1,
+                                     Minor_Version                               => 0,
+                                     Code                                        => SPDM::Version,
+                                     Version_Response_Param_1                    => 0,
+                                     Version_Response_Param_2                    => 0,
+                                     Version_Response_Reserved                   => 0,
+                                     Version_Response_Version_Number_Entry_Count => 1,
+                                     Version_Response_Version_Number_Entries     => Supported_Versions);
       transition
-         goto Receive
+         goto Send_Version
       exception
          goto Error_Unspecified
-      end Version;
+      end Prepare_Version;
 
-      state Capabilities
+      state Send_Version
       is
       begin
-         Transport'Write
-            (SPDM::Response'(Major_Version                                    => 1,
-                             Minor_Version                                    => 1,
-                             Code                                             => SPDM::Capabilities,
-                             Capabilities_Response_Param_1                    => 0,
-                             Capabilities_Response_Param_2                    => 0,
-                             Capabilities_Response_Reserved_1                 => 0,
-                             Capabilities_Response_CT_Exponent                => 10,
-                             Capabilities_Response_Reserved_2                 => 0,
-                             Capabilities_Response_MAC_Cap                    => True,
-                             Capabilities_Response_Encrypt_Cap                => True,
-                             Capabilities_Response_Meas_Fresh_Cap             => False,
-                             Capabilities_Response_Meas_Cap                   => SPDM::Meas_Plain,
-                             Capabilities_Response_Chal_Cap                   => False,
-                             Capabilities_Response_Cert_Cap                   => False,  --  Supported in WP 2.3.7
-                             Capabilities_Response_Cache_Cap                  => False,
-                             Capabilities_Response_Handshake_In_The_Clear_Cap => True,
-                             Capabilities_Response_Key_Upd_Cap                => False,  --  Supported in WP 2.3.8
-                             Capabilities_Response_Hbeat_Cap                  => False,
-                             Capabilities_Response_Encap_Cap                  => False,
-                             Capabilities_Response_PSK_Cap                    => SPDM::PSK_Resp_Unsupported,
-                             Capabilities_Response_Key_Ex_Cap                 => True,
-                             Capabilities_Response_Mut_Auth_Cap               => False,
-                             Capabilities_Response_Reserved_4                 => 0,
-                             Capabilities_Response_Pub_Key_ID_Cap             => False));
+         Transport'Write (Response);
       transition
          goto Receive
+      end Send_Version;
+
+      state Prepare_Capabilities
+      is
+      begin
+         Response :=
+            SPDM::Response'(Meas_Cap                                         => SPDM::Meas_Unsupported,
+                            Hash_Type                                        => SPDM::No_Measurement,
+                            Hash_Size                                        => 64,
+                            Signature_Size                                   => 512,
+                            Exchange_Data_Size                               => 512,
+                            Handshake_In_The_Clear                           => False,
+                            Major_Version                                    => 1,
+                            Minor_Version                                    => 1,
+                            Code                                             => SPDM::Capabilities,
+                            Capabilities_Response_Param_1                    => 0,
+                            Capabilities_Response_Param_2                    => 0,
+                            Capabilities_Response_Reserved_1                 => 0,
+                            Capabilities_Response_CT_Exponent                => 10,
+                            Capabilities_Response_Reserved_2                 => 0,
+                            Capabilities_Response_MAC_Cap                    => True,
+                            Capabilities_Response_Encrypt_Cap                => True,
+                            Capabilities_Response_Meas_Fresh_Cap             => False,
+                            Capabilities_Response_Meas_Cap                   => SPDM::Meas_Plain,
+                            Capabilities_Response_Chal_Cap                   => False,
+                            Capabilities_Response_Cert_Cap                   => False,  --  Supported in WP 2.3.7
+                            Capabilities_Response_Cache_Cap                  => False,
+                            Capabilities_Response_Handshake_In_The_Clear_Cap => True,
+                            Capabilities_Response_Key_Upd_Cap                => False,  --  Supported in WP 2.3.8
+                            Capabilities_Response_Hbeat_Cap                  => False,
+                            Capabilities_Response_Encap_Cap                  => False,
+                            Capabilities_Response_PSK_Cap                    => SPDM::PSK_Resp_Unsupported,
+                            Capabilities_Response_Key_Ex_Cap                 => True,
+                            Capabilities_Response_Mut_Auth_Cap               => False,
+                            Capabilities_Response_Reserved_4                 => 0,
+                            Capabilities_Response_Pub_Key_ID_Cap             => False);
+      transition
+         goto Send_Capabilities
       exception
          goto Error_Unspecified
-      end Capabilities;
+      end Prepare_Capabilities;
+
+      state Send_Capabilities
+      is
+      begin
+         Transport'Write (Response);
+      transition
+         goto Receive
+      end Send_Capabilities;
 
       state Error_Unsupported_Request
       is
       begin
-         Transport'Write
-            (SPDM::Response'(Major_Version                        => 1,
-                             Minor_Version                        => 1,
-                             Code                                 => SPDM::Error,
-                             Error_Response_Error_Code            => SPDM::Unsupported_Request,
-                             Error_Response_Request_Response_Code => Request.Code));
+         Response :=
+            SPDM::Response'(Meas_Cap                             => SPDM::Meas_Unsupported,
+                            Hash_Type                            => SPDM::No_Measurement,
+                            Hash_Size                            => 64,
+                            Signature_Size                       => 512,
+                            Exchange_Data_Size                   => 512,
+                            Handshake_In_The_Clear               => False,
+                            Major_Version                        => 1,
+                            Minor_Version                        => 1,
+                            Code                                 => SPDM::Error,
+                            Error_Response_Error_Code            => SPDM::Unsupported_Request,
+                            Error_Response_Request_Response_Code => Request.Code);
       transition
-         goto End_Session
+         goto Send_Error
       exception
-         goto Error_Unspecified
+         goto End_Session
       end Error_Unsupported_Request;
 
       state Error_Invalid_Request
       is
       begin
-         Transport'Write
-            (SPDM::Response'(Major_Version                  => 1,
-                             Minor_Version                  => 1,
-                             Code                           => SPDM::Error,
-                             Error_Response_Error_Code      => SPDM::Invalid_Request,
-                             Error_Response_Zero_Error_Data => 0));
+         Response :=
+            SPDM::Response'(Meas_Cap                       => SPDM::Meas_Unsupported,
+                            Hash_Type                      => SPDM::No_Measurement,
+                            Hash_Size                      => 64,
+                            Signature_Size                 => 512,
+                            Exchange_Data_Size             => 512,
+                            Handshake_In_The_Clear         => False,
+                            Major_Version                  => 1,
+                            Minor_Version                  => 1,
+                            Code                           => SPDM::Error,
+                            Error_Response_Error_Code      => SPDM::Invalid_Request,
+                            Error_Response_Zero_Error_Data => 0);
       transition
-         goto End_Session
+         goto Send_Error
       exception
-         goto Error_Unspecified
+         goto End_Session
       end Error_Invalid_Request;
 
       state Error_Unspecified
       is
       begin
-         Transport'Write
-            (SPDM::Response'(Major_Version                  => 1,
-                             Minor_Version                  => 1,
-                             Code                           => SPDM::Error,
-                             Error_Response_Error_Code      => SPDM::Unspecified,
-                             Error_Response_Zero_Error_Data => 0));
+         Response :=
+            SPDM::Response'(Meas_Cap                       => SPDM::Meas_Unsupported,
+                            Hash_Type                      => SPDM::No_Measurement,
+                            Hash_Size                      => 64,
+                            Signature_Size                 => 512,
+                            Exchange_Data_Size             => 512,
+                            Handshake_In_The_Clear         => False,
+                            Major_Version                  => 1,
+                            Minor_Version                  => 1,
+                            Code                           => SPDM::Error,
+                            Error_Response_Error_Code      => SPDM::Unspecified,
+                            Error_Response_Zero_Error_Data => 0);
       transition
-         goto End_Session
+         goto Send_Error
       exception
          goto End_Session
       end Error_Unspecified;
+
+      state Send_Error
+      is
+      begin
+         Transport'Write (Response);
+      transition
+         goto End_Session
+      end Send_Error;
 
       state End_Session is null state;
    end Session;

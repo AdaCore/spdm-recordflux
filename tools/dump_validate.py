@@ -118,7 +118,6 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
                         "Signature_Size: 96\n"
                         "Handshake_In_The_Clear: True\n"
                         "Exchange_Data_Size: 96\n"
-                        f"Message_Size: {8 * len(m[1])}\n"
                     )
 
 if __name__ == "__main__":
