@@ -12,7 +12,7 @@ project SPDM is
    for Runtime ("Ada") use "zfp-cortex-m4";
 
    package Compiler is
-      Common_Args := ("-g", "-Ofast");
+      Common_Args := ("-ffunction-sections", "-fdata-sections", "-Os", "-flto");
       for Default_Switches ("Ada") use Common_Args & "-gnatn2";
       for Default_Switches ("C") use Common_Args;
    end Compiler;
