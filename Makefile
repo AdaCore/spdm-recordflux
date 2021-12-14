@@ -87,9 +87,18 @@ build/spdm_$(GITREV).tar.gz: build/spdm_$(GITREV).tar
 	gzip -f $^
 
 test_package: build/spdm_$(GITREV).tar
+	# NATIVE_GNAT_PATH must be set
+	test -n "$(NATIVE_GNAT_PATH)"
+	# CROSS_GNAT_PATH must be set
+	test -n "$(CROSS_GNAT_PATH)"
 	mkdir -p $(TMPDIR)/package_test
 	tar -xvf $^ --directory $(TMPDIR)/package_test
-	make -C $(TMPDIR)/package_test check test
+	PATH="$(NATIVE_GNAT_PATH):$(PATH)" make -C $(TMPDIR)/package_test
+	virtualenv -p python3 $(TMPDIR)/package_test_venv
+	$(TMPDIR)/package_test_venv/bin/pip3 install contrib/RecordFlux[devel]
+	PATH="$(TMPDIR)/package_test_venv/bin:$(CROSS_GNAT_PATH):$(PATH)" make -C $(TMPDIR)/package_test lib
+	# static library must exist
+	test -f $(TMPDIR)/package_test/build/lib/libspdm.a
 
 clean:
 	rm -rf build
