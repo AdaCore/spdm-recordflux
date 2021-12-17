@@ -20,7 +20,8 @@ is
    Length     : RFLX.RFLX_Builtin_Types.Length;
 
    package Responder is new RFLX.SPDM_Responder.Session
-      (Platform_Config_CT_Exponent => SPDM_Platform_Interface.Config_CT_Exponent);
+      (Platform_Config_CT_Exponent => SPDM_Platform_Interface.Config_CT_Exponent,
+       Platform_Config_CAP_MAC     => SPDM_Platform_Interface.Config_CAP_MAC);
    package TCP_Channel is new Channel (Connection);
 begin
    Server.Listen (Listener, 2324, Connection);

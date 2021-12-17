@@ -3,3 +3,7 @@
 unsigned char spdm_platform_config_ct_exponent(void) {
     return 10;
 }
+
+unsigned char spdm_platform_config_cap_mac(void) {
+    return 1;
+}
