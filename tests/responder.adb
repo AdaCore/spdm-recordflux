@@ -7,6 +7,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada.Command_Line;
 with GNAT.Traceback.Symbolic;
+with SPDM_Platform_Interface;
 
 procedure Responder
 is
@@ -18,7 +19,8 @@ is
    Buffer     : RFLX.RFLX_Types.Bytes (RFLX.RFLX_Types.Index'First .. RFLX.RFLX_Types.Index'First + 4095);
    Length     : RFLX.RFLX_Builtin_Types.Length;
 
-   package Responder is new RFLX.SPDM_Responder.Session;
+   package Responder is new RFLX.SPDM_Responder.Session
+      (Platform_Config_CT_Exponent => SPDM_Platform_Interface.Config_CT_Exponent);
    package TCP_Channel is new Channel (Connection);
 begin
    Server.Listen (Listener, 2324, Connection);

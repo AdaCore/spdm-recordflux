@@ -6,6 +6,7 @@ package SPDM_Responder is
 
    generic
       Transport : Channel with Readable, Writable;
+      with function Platform_Config_CT_Exponent return SPDM::CT_Exponent;
    session Session with
       Initial => Init,
       Final => End_Session
@@ -81,7 +82,9 @@ package SPDM_Responder is
 
       state Prepare_Capabilities
       is
+         CT_Exponent : SPDM::CT_Exponent;
       begin
+         CT_Exponent := Platform_Config_CT_Exponent;
          Response :=
             SPDM::Response'(Meas_Cap                                         => SPDM::Meas_Unsupported,
                             Hash_Type                                        => SPDM::No_Measurement,
@@ -95,7 +98,7 @@ package SPDM_Responder is
                             Capabilities_Response_Param_1                    => 0,
                             Capabilities_Response_Param_2                    => 0,
                             Capabilities_Response_Reserved_1                 => 0,
-                            Capabilities_Response_CT_Exponent                => 10,
+                            Capabilities_Response_CT_Exponent                => CT_Exponent,
                             Capabilities_Response_Reserved_2                 => 0,
                             Capabilities_Response_MAC_Cap                    => True,
                             Capabilities_Response_Encrypt_Cap                => True,
