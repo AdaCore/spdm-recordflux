@@ -7,7 +7,10 @@ package SPDM_Responder is
    generic
       Transport : Channel with Readable, Writable;
       with function Platform_Config_CT_Exponent return SPDM::CT_Exponent;
-      with function Platform_Config_CAP_MAC return Boolean;
+      with function Platform_Config_Cap_MAC return Boolean;
+      with function Platform_Config_Cap_Encrypt return Boolean;
+      with function Platform_Config_Cap_Meas_Fresh return Boolean;
+      with function Platform_Config_Cap_Meas return SPDM::Meas_Cap;
    session Session with
       Initial => Init,
       Final => End_Session
@@ -83,11 +86,18 @@ package SPDM_Responder is
 
       state Prepare_Capabilities
       is
-         CT_Exponent : SPDM::CT_Exponent;
-         CAP_MAC     : Boolean;
+         CT_Exponent    : SPDM::CT_Exponent;
+         Cap_MAC        : Boolean;
+         Cap_Encrypt    : Boolean;
+         Cap_Meas_Fresh : Boolean;
+         Cap_Meas       : SPDM::Meas_Cap;
       begin
-         CT_Exponent := Platform_Config_CT_Exponent;
-         CAP_MAC     := Platform_Config_CAP_MAC;
+         CT_Exponent    := Platform_Config_CT_Exponent;
+         Cap_MAC        := Platform_Config_Cap_MAC;
+         Cap_Encrypt    := Platform_Config_Cap_Encrypt;
+         Cap_Meas_Fresh := Platform_Config_Cap_Meas_Fresh;
+         Cap_Meas       := Platform_Config_Cap_Meas;
+
          Response :=
             SPDM::Response'(Meas_Cap                                         => SPDM::Meas_Unsupported,
                             Hash_Type                                        => SPDM::No_Measurement,
@@ -103,10 +113,10 @@ package SPDM_Responder is
                             Capabilities_Response_Reserved_1                 => 0,
                             Capabilities_Response_CT_Exponent                => CT_Exponent,
                             Capabilities_Response_Reserved_2                 => 0,
-                            Capabilities_Response_MAC_Cap                    => CAP_MAC,
-                            Capabilities_Response_Encrypt_Cap                => True,
-                            Capabilities_Response_Meas_Fresh_Cap             => False,
-                            Capabilities_Response_Meas_Cap                   => SPDM::Meas_Plain,
+                            Capabilities_Response_MAC_Cap                    => Cap_MAC,
+                            Capabilities_Response_Encrypt_Cap                => Cap_Encrypt,
+                            Capabilities_Response_Meas_Fresh_Cap             => Cap_Meas_Fresh,
+                            Capabilities_Response_Meas_Cap                   => Cap_Meas,
                             Capabilities_Response_Chal_Cap                   => False,
                             Capabilities_Response_Cert_Cap                   => False,  --  Supported in WP 2.3.7
                             Capabilities_Response_Cache_Cap                  => False,
