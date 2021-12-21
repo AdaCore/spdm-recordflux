@@ -20,11 +20,22 @@ is
    Length     : RFLX.RFLX_Builtin_Types.Length;
 
    package Responder is new RFLX.SPDM_Responder.Session
-      (Platform_Config_CT_Exponent    => SPDM_Platform_Interface.Config_CT_Exponent,
-       Platform_Config_Cap_MAC        => SPDM_Platform_Interface.Config_Cap_MAC,
-       Platform_Config_Cap_Encrypt    => SPDM_Platform_Interface.Config_Cap_Encrypt,
-       Platform_Config_Cap_Meas_Fresh => SPDM_Platform_Interface.Config_Cap_Meas_Fresh,
-       Platform_Config_Cap_Meas       => SPDM_Platform_Interface.Config_Cap_Meas);
+      (Platform_Config_CT_Exponent                => SPDM_Platform_Interface.Config_CT_Exponent,
+       Platform_Config_Cap_MAC                    => SPDM_Platform_Interface.Config_Cap_MAC,
+       Platform_Config_Cap_Encrypt                => SPDM_Platform_Interface.Config_Cap_Encrypt,
+       Platform_Config_Cap_Meas_Fresh             => SPDM_Platform_Interface.Config_Cap_Meas_Fresh,
+       Platform_Config_Cap_Meas                   => SPDM_Platform_Interface.Config_Cap_Meas,
+       Platform_Config_Cap_Chal                   => SPDM_Platform_Interface.Config_Cap_Chal,
+       Platform_Config_Cap_Cert                   => SPDM_Platform_Interface.Config_Cap_Cert,
+       Platform_Config_Cap_Cache                  => SPDM_Platform_Interface.Config_Cap_Cache,
+       Platform_Config_Cap_Handshake_In_The_Clear => SPDM_Platform_Interface.Config_Cap_Handshake_In_The_Clear,
+       Platform_Config_Cap_Key_Upd                => SPDM_Platform_Interface.Config_Cap_Key_Upd,
+       Platform_Config_Cap_Hbeat                  => SPDM_Platform_Interface.Config_Cap_Hbeat,
+       Platform_Config_Cap_Encap                  => SPDM_Platform_Interface.Config_Cap_Encap,
+       Platform_Config_Cap_PSK                    => SPDM_Platform_Interface.Config_Cap_PSK,
+       Platform_Config_Cap_Key_Ex                 => SPDM_Platform_Interface.Config_Cap_Key_Ex,
+       Platform_Config_Cap_Mut_Auth               => SPDM_Platform_Interface.Config_Cap_Mut_Auth,
+       Platform_Config_Cap_Pub_Key_ID             => SPDM_Platform_Interface.Config_Cap_Pub_Key_ID);
    package TCP_Channel is new Channel (Connection);
 begin
    Server.Listen (Listener, 2324, Connection);

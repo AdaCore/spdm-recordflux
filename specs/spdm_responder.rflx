@@ -11,6 +11,17 @@ package SPDM_Responder is
       with function Platform_Config_Cap_Encrypt return Boolean;
       with function Platform_Config_Cap_Meas_Fresh return Boolean;
       with function Platform_Config_Cap_Meas return SPDM::Meas_Cap;
+      with function Platform_Config_Cap_Chal return Boolean;
+      with function Platform_Config_Cap_Cert return Boolean;
+      with function Platform_Config_Cap_Cache return Boolean;
+      with function Platform_Config_Cap_Handshake_In_The_Clear return Boolean;
+      with function Platform_Config_Cap_Key_Upd return Boolean;
+      with function Platform_Config_Cap_Hbeat return Boolean;
+      with function Platform_Config_Cap_Encap return Boolean;
+      with function Platform_Config_Cap_PSK return SPDM::PSK_Resp_Cap;
+      with function Platform_Config_Cap_Key_Ex return Boolean;
+      with function Platform_Config_Cap_Mut_Auth return Boolean;
+      with function Platform_Config_Cap_Pub_Key_ID return Boolean;
    session Session with
       Initial => Init,
       Final => End_Session
@@ -86,17 +97,39 @@ package SPDM_Responder is
 
       state Prepare_Capabilities
       is
-         CT_Exponent    : SPDM::CT_Exponent;
-         Cap_MAC        : Boolean;
-         Cap_Encrypt    : Boolean;
-         Cap_Meas_Fresh : Boolean;
-         Cap_Meas       : SPDM::Meas_Cap;
+         CT_Exponent                : SPDM::CT_Exponent;
+         Cap_MAC                    : Boolean;
+         Cap_Encrypt                : Boolean;
+         Cap_Meas_Fresh             : Boolean;
+         Cap_Meas                   : SPDM::Meas_Cap;
+         Cap_Chal                   : Boolean;
+         Cap_Cert                   : Boolean;
+         Cap_Cache                  : Boolean;
+         Cap_Handshake_In_The_Clear : Boolean;
+         Cap_Key_Upd                : Boolean;
+         Cap_Hbeat                  : Boolean;
+         Cap_Encap                  : Boolean;
+         Cap_PSK                    : SPDM::PSK_Resp_Cap;
+         Cap_Key_Ex                 : Boolean;
+         Cap_Mut_Auth               : Boolean;
+         Cap_Pub_Key_ID             : Boolean;
       begin
-         CT_Exponent    := Platform_Config_CT_Exponent;
-         Cap_MAC        := Platform_Config_Cap_MAC;
-         Cap_Encrypt    := Platform_Config_Cap_Encrypt;
-         Cap_Meas_Fresh := Platform_Config_Cap_Meas_Fresh;
-         Cap_Meas       := Platform_Config_Cap_Meas;
+         CT_Exponent                := Platform_Config_CT_Exponent;
+         Cap_MAC                    := Platform_Config_Cap_MAC;
+         Cap_Encrypt                := Platform_Config_Cap_Encrypt;
+         Cap_Meas_Fresh             := Platform_Config_Cap_Meas_Fresh;
+         Cap_Meas                   := Platform_Config_Cap_Meas;
+         Cap_Chal                   := Platform_Config_Cap_Chal;
+         Cap_Cert                   := Platform_Config_Cap_Cert;
+         Cap_Cache                  := Platform_Config_Cap_Cache;
+         Cap_Handshake_In_The_Clear := Platform_Config_Cap_Handshake_In_The_Clear;
+         Cap_Key_Upd                := Platform_Config_Cap_Key_Upd;
+         Cap_Hbeat                  := Platform_Config_Cap_Hbeat;
+         Cap_Encap                  := Platform_Config_Cap_Encap;
+         Cap_PSK                    := Platform_Config_Cap_PSK;
+         Cap_Key_Ex                 := Platform_Config_Cap_Key_Ex;
+         Cap_Mut_Auth               := Platform_Config_Cap_Mut_Auth;
+         Cap_Pub_Key_ID             := Platform_Config_Cap_Pub_Key_ID;
 
          Response :=
             SPDM::Response'(Meas_Cap                                         => SPDM::Meas_Unsupported,
@@ -117,18 +150,18 @@ package SPDM_Responder is
                             Capabilities_Response_Encrypt_Cap                => Cap_Encrypt,
                             Capabilities_Response_Meas_Fresh_Cap             => Cap_Meas_Fresh,
                             Capabilities_Response_Meas_Cap                   => Cap_Meas,
-                            Capabilities_Response_Chal_Cap                   => False,
-                            Capabilities_Response_Cert_Cap                   => False,  --  Supported in WP 2.3.7
-                            Capabilities_Response_Cache_Cap                  => False,
-                            Capabilities_Response_Handshake_In_The_Clear_Cap => True,
-                            Capabilities_Response_Key_Upd_Cap                => False,  --  Supported in WP 2.3.8
-                            Capabilities_Response_Hbeat_Cap                  => False,
-                            Capabilities_Response_Encap_Cap                  => False,
-                            Capabilities_Response_PSK_Cap                    => SPDM::PSK_Resp_Unsupported,
-                            Capabilities_Response_Key_Ex_Cap                 => True,
-                            Capabilities_Response_Mut_Auth_Cap               => False,
+                            Capabilities_Response_Chal_Cap                   => Cap_Chal,
+                            Capabilities_Response_Cert_Cap                   => Cap_Cert,
+                            Capabilities_Response_Cache_Cap                  => Cap_Cache,
+                            Capabilities_Response_Handshake_In_The_Clear_Cap => Cap_Handshake_In_The_Clear,
+                            Capabilities_Response_Key_Upd_Cap                => Cap_Key_Upd,
+                            Capabilities_Response_Hbeat_Cap                  => Cap_Hbeat,
+                            Capabilities_Response_Encap_Cap                  => Cap_Encap,
+                            Capabilities_Response_PSK_Cap                    => Cap_PSK,
+                            Capabilities_Response_Key_Ex_Cap                 => Cap_Key_Ex,
+                            Capabilities_Response_Mut_Auth_Cap               => Cap_Mut_Auth,
                             Capabilities_Response_Reserved_4                 => 0,
-                            Capabilities_Response_Pub_Key_ID_Cap             => False);
+                            Capabilities_Response_Pub_Key_ID_Cap             => Cap_Pub_Key_ID);
       transition
          goto Send_Capabilities
       exception
