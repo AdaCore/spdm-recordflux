@@ -89,7 +89,7 @@ build/spdm_$(GITREV).tar: .git/logs/HEAD
 	git diff --summary --exit-code
 	git diff --summary --exit-code --cached
 	mkdir -p build
-	git ls-files --recurse-submodules | grep -v -e "^.git\|/\.git" > $(FILE_LIST)
+	git ls-files --recurse-submodules | grep -v -e "^.git\|/\.git" | grep -v -e "^contrib/RecordFlux/examples/specs/tests/data" > $(FILE_LIST)
 	tar cvf build/spdm_$(GITREV).tar -T $(FILE_LIST)
 	git rev-parse HEAD > $(TMPDIR)/commit
 	tar rvf build/spdm_$(GITREV).tar --directory $(TMPDIR) commit
@@ -105,6 +105,9 @@ test_package: build/spdm_$(GITREV).tar
 	test -n "$(NATIVE_GNAT_PATH)"
 	# CROSS_GNAT_PATH must be set
 	test -n "$(CROSS_GNAT_PATH)"
+	# Check for file with charcaters incompatible with Perforce
+	# https://www.perforce.com/manuals/p4guide/Content/P4Guide/syntax.syntax.restrictions.html
+	test -z "$$(tar -tf $^ | grep -e '\([@#]\|\.\.\.\|%[0-9]\)')"
 	mkdir -p $(TMPDIR)/package_test
 	tar -xvf $^ --directory $(TMPDIR)/package_test
 	PATH="$(NATIVE_GNAT_PATH):$(PATH)" make -C $(TMPDIR)/package_test
