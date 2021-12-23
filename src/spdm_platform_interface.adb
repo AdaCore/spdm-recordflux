@@ -189,4 +189,91 @@ package body SPDM_Platform_Interface is
       Result := C_Interface > 0;
    end Config_Cap_Pub_Key_ID;
 
+   procedure Select_Measurement_Hash_Algo
+                (Result           : out RFLX.SPDM.Measurement_Hash_Algo;
+                 TPM_ALG_SHA256   :     Boolean;
+                 TPM_ALG_SHA_384  :     Boolean;
+                 TPM_ALG_SHA_512  :     Boolean;
+                 TPM_ALG_SHA3_256 :     Boolean;
+                 TPM_ALG_SHA3_384 :     Boolean;
+                 TPM_ALG_SHA3_512 :     Boolean)
+   is
+   begin
+      --  FIXME
+      Result := RFLX.SPDM.MH_TPM_ALG_SHA3_256;
+   end Select_Measurement_Hash_Algo;
+
+   procedure Select_Base_Asym_Algo
+                (Result                      : out RFLX.SPDM.Base_Asym_Sel;
+                 TPM_ALG_ECDSA_ECC_NIST_P384 :     Boolean;
+                 TPM_ALG_RSAPSS_4096         :     Boolean;
+                 TPM_ALG_RSASSA_4096         :     Boolean;
+                 TPM_ALG_ECDSA_ECC_NIST_P256 :     Boolean;
+                 TPM_ALG_RSAPSS_3072         :     Boolean;
+                 TPM_ALG_RSASSA_3072         :     Boolean;
+                 TPM_ALG_RSAPSS_2048         :     Boolean;
+                 TPM_ALG_RSASSA_2048         :     Boolean;
+                 TPM_ALG_ECDSA_ECC_NIST_P521 :     Boolean)
+   is
+   begin
+      --  FIXME
+      Result := RFLX.SPDM.BA_Unsupported;
+   end Select_Base_Asym_Algo;
+
+   procedure Select_Base_Hash_Algo
+                (Result           : out RFLX.SPDM.Base_Hash_Sel;
+                 TPM_ALG_SHA256   :     Boolean;
+                 TPM_ALG_SHA_384  :     Boolean;
+                 TPM_ALG_SHA_512  :     Boolean;
+                 TPM_ALG_SHA3_256 :     Boolean;
+                 TPM_ALG_SHA3_384 :     Boolean;
+                 TPM_ALG_SHA3_512 :     Boolean)
+   is
+   begin
+      --  FIXME
+      Result := RFLX.SPDM.BH_TPM_ALG_SHA3_512;
+   end Select_Base_Hash_Algo;
+
+   procedure Select_DHE
+      (Result        : out RFLX.SPDM_Responder.DHE_Algo;
+       Req_SecP521r1 :     Boolean;
+       Req_SecP384r1 :     Boolean;
+       Req_SecP256r1 :     Boolean;
+       Req_FFDHE4096 :     Boolean;
+       Req_FFDHE3072 :     Boolean;
+       Req_FFDHE2048 :     Boolean)
+   is
+   begin
+      -- FIXME
+      Result := RFLX.SPDM_Responder.DA_SecP384r1;
+   end Select_DHE;
+
+   procedure Select_AEAD
+      (Result                : out RFLX.SPDM_Responder.AEAD_Algo;
+       Req_ChaCha20_Poly1305 :     Boolean;
+       Req_AES_256_GCM       :     Boolean;
+       Req_AES_128_GCM       :     Boolean)
+   is
+   begin
+      -- FIXME
+      Result := RFLX.SPDM_Responder.AA_AES_256_GCM;
+   end Select_AEAD;
+
+   procedure Select_RBAA
+      (Result                          : out RFLX.SPDM_Responder.RBAA_Algo;
+       Req_TPM_ALG_ECDSA_ECC_NIST_P384 :     Boolean;
+       Req_TPM_ALG_RSAPSS_4096         :     Boolean;
+       Req_TPM_ALG_RSASSA_4096         :     Boolean;
+       Req_TPM_ALG_ECDSA_ECC_NIST_P256 :     Boolean;
+       Req_TPM_ALG_RSAPSS_3072         :     Boolean;
+       Req_TPM_ALG_RSASSA_3072         :     Boolean;
+       Req_TPM_ALG_RSAPSS_2048         :     Boolean;
+       Req_TPM_ALG_RSASSA_2048         :     Boolean;
+       Req_TPM_ALG_ECDSA_ECC_NIST_P521 :     Boolean)
+   is
+   begin
+      -- FIXME
+      Result := RFLX.SPDM_Responder.RA_TPM_ALG_RSAPSS_3072;
+   end Select_RBAA;
+
 end SPDM_Platform_Interface;

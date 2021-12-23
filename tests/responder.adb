@@ -19,23 +19,31 @@ is
    Buffer     : RFLX.RFLX_Types.Bytes (RFLX.RFLX_Types.Index'First .. RFLX.RFLX_Types.Index'First + 4095);
    Length     : RFLX.RFLX_Builtin_Types.Length;
 
+   package SPI renames SPDM_Platform_Interface;
+
    package Responder is new RFLX.SPDM_Responder.Session
-      (Platform_Config_CT_Exponent                => SPDM_Platform_Interface.Config_CT_Exponent,
-       Platform_Config_Cap_MAC                    => SPDM_Platform_Interface.Config_Cap_MAC,
-       Platform_Config_Cap_Encrypt                => SPDM_Platform_Interface.Config_Cap_Encrypt,
-       Platform_Config_Cap_Meas_Fresh             => SPDM_Platform_Interface.Config_Cap_Meas_Fresh,
-       Platform_Config_Cap_Meas                   => SPDM_Platform_Interface.Config_Cap_Meas,
-       Platform_Config_Cap_Chal                   => SPDM_Platform_Interface.Config_Cap_Chal,
-       Platform_Config_Cap_Cert                   => SPDM_Platform_Interface.Config_Cap_Cert,
-       Platform_Config_Cap_Cache                  => SPDM_Platform_Interface.Config_Cap_Cache,
-       Platform_Config_Cap_Handshake_In_The_Clear => SPDM_Platform_Interface.Config_Cap_Handshake_In_The_Clear,
-       Platform_Config_Cap_Key_Upd                => SPDM_Platform_Interface.Config_Cap_Key_Upd,
-       Platform_Config_Cap_Hbeat                  => SPDM_Platform_Interface.Config_Cap_Hbeat,
-       Platform_Config_Cap_Encap                  => SPDM_Platform_Interface.Config_Cap_Encap,
-       Platform_Config_Cap_PSK                    => SPDM_Platform_Interface.Config_Cap_PSK,
-       Platform_Config_Cap_Key_Ex                 => SPDM_Platform_Interface.Config_Cap_Key_Ex,
-       Platform_Config_Cap_Mut_Auth               => SPDM_Platform_Interface.Config_Cap_Mut_Auth,
-       Platform_Config_Cap_Pub_Key_ID             => SPDM_Platform_Interface.Config_Cap_Pub_Key_ID);
+      (Plat_Cfg_CT_Exponent               => SPI.Config_CT_Exponent,
+       Plat_Cfg_Cap_MAC                   => SPI.Config_Cap_MAC,
+       Plat_Cfg_Cap_Encrypt               => SPI.Config_Cap_Encrypt,
+       Plat_Cfg_Cap_Meas_Fresh            => SPI.Config_Cap_Meas_Fresh,
+       Plat_Cfg_Cap_Meas                  => SPI.Config_Cap_Meas,
+       Plat_Cfg_Cap_Chal                  => SPI.Config_Cap_Chal,
+       Plat_Cfg_Cap_Cert                  => SPI.Config_Cap_Cert,
+       Plat_Cfg_Cap_Cache                 => SPI.Config_Cap_Cache,
+       Plat_Cfg_Cap_Handshake_In_The_Clear=> SPI.Config_Cap_Handshake_In_The_Clear,
+       Plat_Cfg_Cap_Key_Upd               => SPI.Config_Cap_Key_Upd,
+       Plat_Cfg_Cap_Hbeat                 => SPI.Config_Cap_Hbeat,
+       Plat_Cfg_Cap_Encap                 => SPI.Config_Cap_Encap,
+       Plat_Cfg_Cap_PSK                   => SPI.Config_Cap_PSK,
+       Plat_Cfg_Cap_Key_Ex                => SPI.Config_Cap_Key_Ex,
+       Plat_Cfg_Cap_Mut_Auth              => SPI.Config_Cap_Mut_Auth,
+       Plat_Cfg_Cap_Pub_Key_ID            => SPI.Config_Cap_Pub_Key_ID,
+       Plat_Cfg_Sel_Measurement_Hash_Algo => SPI.Select_Measurement_Hash_Algo,
+       Plat_Cfg_Sel_Base_Asym_Algo        => SPI.Select_Base_Asym_Algo,
+       Plat_Cfg_Sel_Base_Hash_Algo        => SPI.Select_Base_Hash_Algo,
+       Plat_Cfg_Sel_DHE                   => SPI.Select_DHE,
+       Plat_Cfg_Sel_AEAD                  => SPI.Select_AEAD,
+       Plat_Cfg_Sel_RBAA                  => SPI.Select_RBAA);
    package TCP_Channel is new Channel (Connection);
 begin
    Server.Listen (Listener, 2324, Connection);

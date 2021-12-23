@@ -4,48 +4,117 @@ package SPDM_Responder is
 
    --  FIXME: Update transcript hash
 
+   type DHE_Algo is
+      (DA_SecP521r1,
+       DA_SecP384r1,
+       DA_SecP256r1,
+       DA_FFDHE4096,
+       DA_FFDHE3072,
+       DA_FFDHE2048) with Size => 8;
+
+   type AEAD_Algo is
+      (AA_ChaCha20_Poly1305,
+       AA_AES_256_GCM,
+       AA_AES_128_GCM) with Size => 8;
+
+   type RBAA_Algo is
+      (RA_TPM_ALG_ECDSA_ECC_NIST_P384,
+       RA_TPM_ALG_RSAPSS_4096,
+       RA_TPM_ALG_RSASSA_4096,
+       RA_TPM_ALG_ECDSA_ECC_NIST_P256,
+       RA_TPM_ALG_RSAPSS_3072,
+       RA_TPM_ALG_RSASSA_3072,
+       RA_TPM_ALG_RSAPSS_2048,
+       RA_TPM_ALG_RSASSA_2048,
+       RA_TPM_ALG_ECDSA_ECC_NIST_P521) with Size => 8;
+
    generic
       Transport : Channel with Readable, Writable;
-      with function Platform_Config_CT_Exponent return SPDM::CT_Exponent;
-      with function Platform_Config_Cap_MAC return Boolean;
-      with function Platform_Config_Cap_Encrypt return Boolean;
-      with function Platform_Config_Cap_Meas_Fresh return Boolean;
-      with function Platform_Config_Cap_Meas return SPDM::Meas_Cap;
-      with function Platform_Config_Cap_Chal return Boolean;
-      with function Platform_Config_Cap_Cert return Boolean;
-      with function Platform_Config_Cap_Cache return Boolean;
-      with function Platform_Config_Cap_Handshake_In_The_Clear return Boolean;
-      with function Platform_Config_Cap_Key_Upd return Boolean;
-      with function Platform_Config_Cap_Hbeat return Boolean;
-      with function Platform_Config_Cap_Encap return Boolean;
-      with function Platform_Config_Cap_PSK return SPDM::PSK_Resp_Cap;
-      with function Platform_Config_Cap_Key_Ex return Boolean;
-      with function Platform_Config_Cap_Mut_Auth return Boolean;
-      with function Platform_Config_Cap_Pub_Key_ID return Boolean;
+      with function Plat_Cfg_CT_Exponent return SPDM::CT_Exponent;
+      with function Plat_Cfg_Cap_MAC return Boolean;
+      with function Plat_Cfg_Cap_Encrypt return Boolean;
+      with function Plat_Cfg_Cap_Meas_Fresh return Boolean;
+      with function Plat_Cfg_Cap_Meas return SPDM::Meas_Cap;
+      with function Plat_Cfg_Cap_Chal return Boolean;
+      with function Plat_Cfg_Cap_Cert return Boolean;
+      with function Plat_Cfg_Cap_Cache return Boolean;
+      with function Plat_Cfg_Cap_Handshake_In_The_Clear return Boolean;
+      with function Plat_Cfg_Cap_Key_Upd return Boolean;
+      with function Plat_Cfg_Cap_Hbeat return Boolean;
+      with function Plat_Cfg_Cap_Encap return Boolean;
+      with function Plat_Cfg_Cap_PSK return SPDM::PSK_Resp_Cap;
+      with function Plat_Cfg_Cap_Key_Ex return Boolean;
+      with function Plat_Cfg_Cap_Mut_Auth return Boolean;
+      with function Plat_Cfg_Cap_Pub_Key_ID return Boolean;
+      with function Plat_Cfg_Sel_Measurement_Hash_Algo (TPM_ALG_SHA256   : Boolean;
+                                                        TPM_ALG_SHA_384  : Boolean;
+                                                        TPM_ALG_SHA_512  : Boolean;
+                                                        TPM_ALG_SHA3_256 : Boolean;
+                                                        TPM_ALG_SHA3_384 : Boolean;
+                                                        TPM_ALG_SHA3_512 : Boolean) return SPDM::Measurement_Hash_Algo;
+      with function Plat_Cfg_Sel_Base_Asym_Algo (TPM_ALG_ECDSA_ECC_NIST_P384 : Boolean;
+                                                 TPM_ALG_RSAPSS_4096         : Boolean;
+                                                 TPM_ALG_RSASSA_4096         : Boolean;
+                                                 TPM_ALG_ECDSA_ECC_NIST_P256 : Boolean;
+                                                 TPM_ALG_RSAPSS_3072         : Boolean;
+                                                 TPM_ALG_RSASSA_3072         : Boolean;
+                                                TPM_ALG_RSAPSS_2048         : Boolean;
+                                                 TPM_ALG_RSASSA_2048         : Boolean;
+                                                 TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM::Base_Asym_Sel;
+      with function Plat_Cfg_Sel_Base_Hash_Algo (TPM_ALG_SHA256   : Boolean;
+                                                 TPM_ALG_SHA_384  : Boolean;
+                                                 TPM_ALG_SHA_512  : Boolean;
+                                                 TPM_ALG_SHA3_256 : Boolean;
+                                                 TPM_ALG_SHA3_384 : Boolean;
+                                                 TPM_ALG_SHA3_512 : Boolean) return SPDM::Base_Hash_Sel;
+      with function Plat_Cfg_Sel_DHE
+         (Req_SecP521r1 : Boolean;
+          Req_SecP384r1 : Boolean;
+          Req_SecP256r1 : Boolean;
+          Req_FFDHE4096 : Boolean;
+          Req_FFDHE3072 : Boolean;
+          Req_FFDHE2048 : Boolean) return SPDM_Responder::DHE_Algo;
+
+      with function Plat_Cfg_Sel_AEAD
+         (Req_ChaCha20_Poly1305 : Boolean;
+          Req_AES_256_GCM       : Boolean;
+          Req_AES_128_GCM       : Boolean) return SPDM_Responder::AEAD_Algo;
+
+      with function Plat_Cfg_Sel_RBAA
+         (Req_TPM_ALG_ECDSA_ECC_NIST_P384 : Boolean;
+          Req_TPM_ALG_RSAPSS_4096         : Boolean;
+          Req_TPM_ALG_RSASSA_4096         : Boolean;
+          Req_TPM_ALG_ECDSA_ECC_NIST_P256 : Boolean;
+          Req_TPM_ALG_RSAPSS_3072         : Boolean;
+          Req_TPM_ALG_RSASSA_3072         : Boolean;
+          Req_TPM_ALG_RSAPSS_2048         : Boolean;
+          Req_TPM_ALG_RSASSA_2048         : Boolean;
+          Req_TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM_Responder::RBAA_Algo;
+
    session Session with
       Initial => Init,
       Final => End_Session
    is
       Request : SPDM::Request;
       Response : SPDM::Response;
-      Supported_Versions : SPDM::Version_Number_Entries;
+      Supp_Versions : SPDM::Version_Number_Entries;
    begin
       state Init
       is
       begin
-         Supported_Versions'Append
+         Supp_Versions'Append
             (SPDM::Version_Number_Entry'(Alpha                 => 0,
                                          Update_Version_Number => 0,
                                          Minor_Version         => 1,
                                          Major_Version         => 1));
          --  FIXME: Reset all state
       transition
-         goto Receive
+         goto Receive_Get_Version
       exception
          goto Error_Unspecified
       end Init;
 
-      state Receive
+      state Receive_Get_Version
       is
       begin
          Transport'Read (Request);
@@ -57,12 +126,10 @@ package SPDM_Responder is
             --  Additionally, this message shall clear or reset the previously Negotiated State, if any,
             --  in both the Requester and its corresponding Responder.
             if Request'Valid and Request.Code = SPDM::Get_Version
-         goto Prepare_Capabilities
-            if Request'Valid and Request.Code = SPDM::Get_Capabilities
          goto Error_Unsupported_Request
             if Request'Valid
          goto Error_Invalid_Request
-      end Receive;
+      end Receive_Get_Version;
 
       state Prepare_Version
       is
@@ -80,7 +147,7 @@ package SPDM_Responder is
                                      Version_Response_Param_2                    => 0,
                                      Version_Response_Reserved                   => 0,
                                      Version_Response_Version_Number_Entry_Count => 1,
-                                     Version_Response_Version_Number_Entries     => Supported_Versions);
+                                     Version_Response_Version_Number_Entries     => Supp_Versions);
       transition
          goto Send_Version
       exception
@@ -92,8 +159,20 @@ package SPDM_Responder is
       begin
          Transport'Write (Response);
       transition
-         goto Receive
+         goto Receive_Get_Capabilities
       end Send_Version;
+
+      state Receive_Get_Capabilities
+      is
+      begin
+         Transport'Read (Request);
+      transition
+         goto Prepare_Capabilities
+            if Request'Valid and Request.Code = SPDM::Get_Capabilities
+         goto Error_Unsupported_Request
+            if Request'Valid
+         goto Error_Invalid_Request
+      end Receive_Get_Capabilities;
 
       state Prepare_Capabilities
       is
@@ -114,22 +193,22 @@ package SPDM_Responder is
          Cap_Mut_Auth               : Boolean;
          Cap_Pub_Key_ID             : Boolean;
       begin
-         CT_Exponent                := Platform_Config_CT_Exponent;
-         Cap_MAC                    := Platform_Config_Cap_MAC;
-         Cap_Encrypt                := Platform_Config_Cap_Encrypt;
-         Cap_Meas_Fresh             := Platform_Config_Cap_Meas_Fresh;
-         Cap_Meas                   := Platform_Config_Cap_Meas;
-         Cap_Chal                   := Platform_Config_Cap_Chal;
-         Cap_Cert                   := Platform_Config_Cap_Cert;
-         Cap_Cache                  := Platform_Config_Cap_Cache;
-         Cap_Handshake_In_The_Clear := Platform_Config_Cap_Handshake_In_The_Clear;
-         Cap_Key_Upd                := Platform_Config_Cap_Key_Upd;
-         Cap_Hbeat                  := Platform_Config_Cap_Hbeat;
-         Cap_Encap                  := Platform_Config_Cap_Encap;
-         Cap_PSK                    := Platform_Config_Cap_PSK;
-         Cap_Key_Ex                 := Platform_Config_Cap_Key_Ex;
-         Cap_Mut_Auth               := Platform_Config_Cap_Mut_Auth;
-         Cap_Pub_Key_ID             := Platform_Config_Cap_Pub_Key_ID;
+         CT_Exponent                := Plat_Cfg_CT_Exponent;
+         Cap_MAC                    := Plat_Cfg_Cap_MAC;
+         Cap_Encrypt                := Plat_Cfg_Cap_Encrypt;
+         Cap_Meas_Fresh             := Plat_Cfg_Cap_Meas_Fresh;
+         Cap_Meas                   := Plat_Cfg_Cap_Meas;
+         Cap_Chal                   := Plat_Cfg_Cap_Chal;
+         Cap_Cert                   := Plat_Cfg_Cap_Cert;
+         Cap_Cache                  := Plat_Cfg_Cap_Cache;
+         Cap_Handshake_In_The_Clear := Plat_Cfg_Cap_Handshake_In_The_Clear;
+         Cap_Key_Upd                := Plat_Cfg_Cap_Key_Upd;
+         Cap_Hbeat                  := Plat_Cfg_Cap_Hbeat;
+         Cap_Encap                  := Plat_Cfg_Cap_Encap;
+         Cap_PSK                    := Plat_Cfg_Cap_PSK;
+         Cap_Key_Ex                 := Plat_Cfg_Cap_Key_Ex;
+         Cap_Mut_Auth               := Plat_Cfg_Cap_Mut_Auth;
+         Cap_Pub_Key_ID             := Plat_Cfg_Cap_Pub_Key_ID;
 
          Response :=
             SPDM::Response'(Meas_Cap                                         => SPDM::Meas_Unsupported,
@@ -173,8 +252,234 @@ package SPDM_Responder is
       begin
          Transport'Write (Response);
       transition
-         goto Receive
+         goto Receive_Negotiate_Algorithms
       end Send_Capabilities;
+
+      state Receive_Negotiate_Algorithms
+      is
+      begin
+         Transport'Read (Request);
+      transition
+         goto Prepare_Algorithms
+            if Request'Valid and Request.Code = SPDM::Negotiate_Algorithms
+         goto Error_Unsupported_Request
+            if Request'Valid
+         goto Error_Invalid_Request
+      end Receive_Negotiate_Algorithms;
+
+      state Prepare_Algorithms
+      is
+         Measurement_Hash_Algo : SPDM::Measurement_Hash_Algo;
+         Base_Hash_Sel         : SPDM::Base_Hash_Sel;
+         Base_Asym_Sel         : SPDM::Base_Asym_Sel;
+         Ext_Asym              : SPDM::Ext_Algs;
+         Ext_Hash              : SPDM::Ext_Algs;
+         Resp_Alg_Structs      : SPDM::Resp_Alg_Structs;
+         No_Ext_Algs           : SPDM::Ext_Algs;
+         DHE_Algo              : SPDM_Responder::DHE_Algo;
+         AEAD_Algo             : SPDM_Responder::AEAD_Algo;
+         RBAA_Algo             : SPDM_Responder::RBAA_Algo;
+
+         Sel_SecP521r1 : Boolean;
+         Sel_SecP384r1 : Boolean;
+         Sel_SecP256r1 : Boolean;
+         Sel_FFDHE4096 : Boolean;
+         Sel_FFDHE3072 : Boolean;
+         Sel_FFDHE2048 : Boolean;
+
+         Sel_ChaCha20_Poly1305 : Boolean;
+         Sel_AES_256_GCM       : Boolean;
+         Sel_AES_128_GCM       : Boolean;
+
+         Sel_TPM_ALG_ECDSA_ECC_NIST_P384 : Boolean;
+         Sel_TPM_ALG_RSAPSS_4096         : Boolean;
+         Sel_TPM_ALG_RSASSA_4096         : Boolean;
+         Sel_TPM_ALG_ECDSA_ECC_NIST_P256 : Boolean;
+         Sel_TPM_ALG_RSAPSS_3072         : Boolean;
+         Sel_TPM_ALG_RSASSA_3072         : Boolean;
+         Sel_TPM_ALG_RSAPSS_2048         : Boolean;
+         Sel_TPM_ALG_RSASSA_2048         : Boolean;
+         Sel_TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean;
+
+      begin
+         Measurement_Hash_Algo := Plat_Cfg_Sel_Measurement_Hash_Algo
+                                     (Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA_256,
+                                      Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA_384,
+                                      Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA_512,
+                                      Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA3_256,
+                                      Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA3_384,
+                                      Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA3_512);
+
+         Base_Asym_Sel := Plat_Cfg_Sel_Base_Asym_Algo
+                             (Request.Negotiate_Algorithms_Request_Base_Asym_Algo_TPM_ALG_ECDSA_ECC_NIST_P384,
+                              Request.Negotiate_Algorithms_Request_Base_Asym_Algo_TPM_ALG_RSAPSS_4096,
+                              Request.Negotiate_Algorithms_Request_Base_Asym_Algo_TPM_ALG_RSASSA_4096,
+                              Request.Negotiate_Algorithms_Request_Base_Asym_Algo_TPM_ALG_ECDSA_ECC_NIST_P256,
+                              Request.Negotiate_Algorithms_Request_Base_Asym_Algo_TPM_ALG_RSAPSS_3072,
+                              Request.Negotiate_Algorithms_Request_Base_Asym_Algo_TPM_ALG_RSASSA_3072,
+                              Request.Negotiate_Algorithms_Request_Base_Asym_Algo_TPM_ALG_RSAPSS_2048,
+                              Request.Negotiate_Algorithms_Request_Base_Asym_Algo_TPM_ALG_RSASSA_2048,
+                              Request.Negotiate_Algorithms_Request_Base_Asym_Algo_TPM_ALG_ECDSA_ECC_NIST_P521);
+
+         Base_Hash_Sel := Plat_Cfg_Sel_Base_Hash_Algo
+                             (Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA_256,
+                              Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA_384,
+                              Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA_512,
+                              Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA3_256,
+                              Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA3_384,
+                              Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA3_512);
+
+         --  DHE algorithm response
+
+         DHE_Algo := Plat_Cfg_Sel_DHE
+            (False,  -- Req_SecP521r1
+             False,  -- Req_SecP384r1
+             False,  -- Req_SecP256r1
+             False,  -- Req_FFDHE4096
+             False,  -- Req_FFDHE3072
+             False); -- Req_FFDHE2048
+
+         Sel_SecP521r1 := DHE_Algo = DA_SecP521r1;
+         Sel_SecP384r1 := DHE_Algo = DA_SecP384r1;
+         Sel_SecP256r1 := DHE_Algo = DA_SecP256r1;
+         Sel_FFDHE4096 := DHE_Algo = DA_FFDHE4096;
+         Sel_FFDHE3072 := DHE_Algo = DA_FFDHE3072;
+         Sel_FFDHE2048 := DHE_Algo = DA_FFDHE2048;
+
+         Resp_Alg_Structs'Append (
+            SPDM::Alg_Struct'(
+               Alg_Type        => SPDM::DHE,
+               Fixed_Alg_Count => 2,
+               Ext_Alg_Count   => 0,
+               DHE_Reserved_1  => 0,
+               DHE_SecP521r1   => Sel_SecP521r1,
+               DHE_SecP384r1   => Sel_SecP384r1,
+               DHE_SecP256r1   => Sel_SecP256r1,
+               DHE_FFDHE4096   => Sel_FFDHE4096,
+               DHE_FFDHE3072   => Sel_FFDHE3072,
+               DHE_FFDHE2048   => Sel_FFDHE2048,
+               DHE_Reserved_2  => 0,
+               Alg_External    => No_Ext_Algs)
+         );
+
+         --  AEAD algorithm response
+
+         AEAD_Algo := Plat_Cfg_Sel_AEAD
+            (False,  -- Req_ChaCha20_Poly1305
+             False,  -- Req_AES_256_GCM
+             False); -- Req_AES_128_GCM
+
+         Sel_ChaCha20_Poly1305 := AEAD_Algo = AA_ChaCha20_Poly1305;
+         Sel_AES_256_GCM       := AEAD_Algo = AA_AES_256_GCM;
+         Sel_AES_128_GCM       := AEAD_Algo = AA_AES_128_GCM;
+
+         Resp_Alg_Structs'Append (
+            SPDM::Alg_Struct'(
+               Alg_Type               => SPDM::AEAD_Cipher_Suite,
+               Fixed_Alg_Count        => 2,
+               Ext_Alg_Count          => 0,
+               AEAD_Reserved_1        => 0,
+               AEAD_ChaCha20_Poly1305 => Sel_ChaCha20_Poly1305,
+               AEAD_AES_256_GCM       => Sel_AES_256_GCM,
+               AEAD_AES_128_GCM       => Sel_AES_128_GCM,
+               AEAD_Reserved_2        => 0,
+               Alg_External           => No_Ext_Algs)
+         );
+
+         --  Asymetric key signature algorithm response
+
+         RBAA_Algo := Plat_Cfg_Sel_RBAA
+            (False,  -- Req_TPM_ALG_ECDSA_ECC_NIST_P384
+             False,  -- Req_TPM_ALG_RSAPSS_4096
+             False,  -- Req_TPM_ALG_RSASSA_4096
+             False,  -- Req_TPM_ALG_ECDSA_ECC_NIST_P256
+             False,  -- Req_TPM_ALG_RSAPSS_3072
+             False,  -- Req_TPM_ALG_RSASSA_3072
+             False,  -- Req_TPM_ALG_RSAPSS_2048
+             False,  -- Req_TPM_ALG_RSASSA_2048
+             False); -- Req_TPM_ALG_ECDSA_ECC_NIST_P521
+
+         Sel_TPM_ALG_ECDSA_ECC_NIST_P384 := RBAA_Algo = RA_TPM_ALG_ECDSA_ECC_NIST_P384;
+         Sel_TPM_ALG_RSAPSS_4096         := RBAA_Algo = RA_TPM_ALG_RSAPSS_4096;
+         Sel_TPM_ALG_RSASSA_4096         := RBAA_Algo = RA_TPM_ALG_RSASSA_4096;
+         Sel_TPM_ALG_ECDSA_ECC_NIST_P256 := RBAA_Algo = RA_TPM_ALG_ECDSA_ECC_NIST_P256;
+         Sel_TPM_ALG_RSAPSS_3072         := RBAA_Algo = RA_TPM_ALG_RSAPSS_3072;
+         Sel_TPM_ALG_RSASSA_3072         := RBAA_Algo = RA_TPM_ALG_RSASSA_3072;
+         Sel_TPM_ALG_RSAPSS_2048         := RBAA_Algo = RA_TPM_ALG_RSAPSS_2048;
+         Sel_TPM_ALG_RSASSA_2048         := RBAA_Algo = RA_TPM_ALG_RSASSA_2048;
+         Sel_TPM_ALG_ECDSA_ECC_NIST_P521 := RBAA_Algo = RA_TPM_ALG_ECDSA_ECC_NIST_P521;
+
+         Resp_Alg_Structs'Append (
+            SPDM::Alg_Struct'(
+               Alg_Type                         => SPDM::Req_Base_Asym_Alg,
+               Fixed_Alg_Count                  => 2,
+               Ext_Alg_Count                    => 0,
+               RBAA_TPM_ALG_ECDSA_ECC_NIST_P384 => Sel_TPM_ALG_ECDSA_ECC_NIST_P384,
+               RBAA_TPM_ALG_RSAPSS_4096         => Sel_TPM_ALG_RSAPSS_4096,
+               RBAA_TPM_ALG_RSASSA_4096         => Sel_TPM_ALG_RSASSA_4096,
+               RBAA_TPM_ALG_ECDSA_ECC_NIST_P256 => Sel_TPM_ALG_ECDSA_ECC_NIST_P256,
+               RBAA_TPM_ALG_RSAPSS_3072         => Sel_TPM_ALG_RSAPSS_3072,
+               RBAA_TPM_ALG_RSASSA_3072         => Sel_TPM_ALG_RSASSA_3072,
+               RBAA_TPM_ALG_RSAPSS_2048         => Sel_TPM_ALG_RSAPSS_2048,
+               RBAA_TPM_ALG_RSASSA_2048         => Sel_TPM_ALG_RSASSA_2048,
+               RBAA_Reserved_1                  => 0,
+               RBAA_TPM_ALG_ECDSA_ECC_NIST_P521 => Sel_TPM_ALG_ECDSA_ECC_NIST_P521,
+               Alg_External                     => No_Ext_Algs)
+         );
+
+         --  Key schedule response (currently static)
+         Resp_Alg_Structs'Append (
+            SPDM::Alg_Struct'(
+               Alg_Type                         => SPDM::Key_Schedule,
+               Fixed_Alg_Count                  => 2,
+               Ext_Alg_Count                    => 0,
+               KS_Reserved_1                    => 0,
+               KS_SPDM                          => True,
+               KS_Reserved_2                    => 0,
+               Alg_External                     => No_Ext_Algs)
+         );
+
+         Response :=
+            SPDM::Response'(Meas_Cap                                          => SPDM::Meas_Unsupported,
+                            Hash_Type                                         => SPDM::No_Measurement,
+                            Hash_Length                                       => 64,
+                            Signature_Length                                  => 512,
+                            Exchange_Data_Length                              => 512,
+                            Handshake_In_The_Clear                            => False,
+                            Major_Version                                     => 1,
+                            Minor_Version                                     => 1,
+                            Code                                              => SPDM::Algorithms,
+                            Algorithms_Response_Resp_Alg_Struct_Count         => 4,
+                            Algorithms_Response_Param_2                       => 0,
+                            Algorithms_Response_Length_1                      => 52,
+                            Algorithms_Response_Length_2                      => 0,
+                            Algorithms_Response_Measurement_Specification_Sel => SPDM::DMTF,
+                            Algorithms_Response_Reserved_1                    => 0,
+                            Algorithms_Response_Measurement_Hash_Algo         => Measurement_Hash_Algo,
+                            Algorithms_Response_Base_Asym_Sel                 => Base_Asym_Sel,
+                            Algorithms_Response_Base_Hash_Sel                 => Base_Hash_Sel,
+                            Algorithms_Response_Reserved_2                    => 0,
+                            Algorithms_Response_Reserved_3                    => 0,
+                            Algorithms_Response_Ext_Asym_Sel_Count            => 0,
+                            Algorithms_Response_Ext_Hash_Sel_Count            => 0,
+                            Algorithms_Response_Reserved_4                    => 0,
+                            Algorithms_Response_Ext_Asym                      => Ext_Asym,
+                            Algorithms_Response_Ext_Hash                      => Ext_Hash,
+                            Algorithms_Response_Resp_Alg_Structs              => Resp_Alg_Structs);
+      transition
+         goto Send_Algorithms
+      exception
+         goto Error_Unspecified
+      end Prepare_Algorithms;
+
+      state Send_Algorithms
+      is
+      begin
+         Transport'Write (Response);
+      transition
+         --  FIXME
+         goto Receive_Get_Version
+      end Send_Algorithms;
 
       state Error_Unsupported_Request
       is
