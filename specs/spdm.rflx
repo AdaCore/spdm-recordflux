@@ -552,7 +552,7 @@ package SPDM is
          Ext_Hash : Ext_Algs
             with Size => 32 * Ext_Hash_Count
             then Req_Alg_Structs
-               --  ISSUE: Componolit/SPDM#104
+               --  ISSUE: Componolit/RecordFlux#104
                --  Length is the total length of the message, we have to subtract the common header
                --  consisting of the Version and the Request/Response code of the Request/Response.
                with Size => 8 * (Length_2 * 256 + Length_1) - 16 - (Ext_Hash'Last - Req_Alg_Struct_Count'First + 1)
@@ -841,11 +841,9 @@ package SPDM is
                   and (Registry_ID = Reg_IANA
                        or Registry_ID = Reg_HD_Base_T);
          Vendor_ID_Double : Vendor_ID_Double
-            then Opaque_Error_Data
-               with Size => Message'Last - Vendor_ID_Double'Last;
+            then Opaque_Error_Data;
          Vendor_ID_Quad : Vendor_ID_Quad
-            then Opaque_Error_Data
-               with Size => Message'Last - Vendor_ID_Quad'Last;
+            then Opaque_Error_Data;
          Opaque_Error_Data : Opaque;
       end message;
 

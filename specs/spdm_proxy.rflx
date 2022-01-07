@@ -4,8 +4,7 @@ package SPDM_Proxy is
 
    type Packet is
       message
-         Data : Opaque
-            with Size => Message'Size;
+         Data : Opaque;
       end message;
 
    generic
