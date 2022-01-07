@@ -5,7 +5,7 @@ FILE_LIST := $(shell mktemp)
 GITREV := $(shell git rev-parse --short HEAD 2>/dev/null || echo local)
 
 ifdef LOCAL_RFLX
-RFLX = $(shell which rflx)
+RFLX = $(shell command -v rflx)
 else
 RFLX = $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx
 endif
@@ -51,13 +51,15 @@ build/certificates:
 test_validate: test_validate_libspdm test_validate_static
 
 test_validate_libspdm: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump build/certificates | $(RFLX)
-	mkdir -p $(TMPDIR)/spdm
+	mkdir -p $(TMPDIR)/spdm build
+	rm -f build/validate_libspdm_request.log build/validate_libspdm_response.log
 	tools/run_emu.sh $(TMPDIR)/test_validate.pcap
 	PATH="build/spdm_dump/bin:$(PATH)" tools/dump_validate.py -f $(TMPDIR)/test_validate.pcap -l $(TMPDIR)/test_validate.pcap.log -o $(TMPDIR)/spdm
-	$(RFLX) --no-verification --max-errors=1 validate -o $(TMPDIR)/validate_libspdm_request.log -v $(TMPDIR)/spdm/Request/valid specs/spdm.rflx SPDM::Request
-	$(RFLX) --no-verification --max-errors=1 validate -o $(TMPDIR)/validate_libspdm_response.log -v $(TMPDIR)/spdm/Response/valid specs/spdm.rflx SPDM::Response
+	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_libspdm_request.log -v $(TMPDIR)/spdm/Request/valid specs/spdm.rflx SPDM::Request
+	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_libspdm_response.log -v $(TMPDIR)/spdm/Response/valid specs/spdm.rflx SPDM::Response
 
 test_validate_static: | $(RFLX)
+	mkdir -p build
 	rm -f build/validate_static_request.log build/validate_static_response.log
 	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_request.log -v tests/data/spdm/Request/valid specs/spdm.rflx SPDM::Request
 	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_response.log -v tests/data/spdm/Response/valid specs/spdm.rflx SPDM::Response
