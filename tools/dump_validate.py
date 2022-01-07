@@ -105,12 +105,12 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
     for m_type, messages in packets.items():
         valid = out_dir / m_type / "valid"
         os.makedirs(str(valid), exist_ok=True)
-        for m in messages:
-            if m[0] in unsupported_messages:
+        for message_name, message_data in messages:
+            if message_name in unsupported_messages:
                 continue
-            basename = valid / f"{sha1(m[1]).hexdigest()}_{m[0]}"
+            basename = valid / f"{sha1(message_data).hexdigest()}_{message_name}"
             with (basename.with_suffix(".raw")).open("wb") as message:
-                message.write(m[1])
+                message.write(message_data)
             with (basename.with_suffix(".yaml")).open("w") as config:
                 if m_type == "Request":
                     config.write(
