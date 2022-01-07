@@ -14,9 +14,9 @@ package SPDM is
    -- calculated.
    type Index is range 1 .. 2 ** 8 - 1 with Size => 8;
 
-   type Signature_Size is range 48 .. 512 with Size => 10;
-   type Exchange_Data_Size is range 96 .. 512 with Size => 10;
-   type Hash_Size is range 32 .. 64 with Size => 7;
+   type Signature_Length is range 48 .. 512 with Size => 10;
+   type Exchange_Data_Length is range 96 .. 512 with Size => 10;
+   type Hash_Length is range 32 .. 64 with Size => 7;
 
    -- ISSUE: Componolit/RecordFlux#601
    -- [33] Unless otherwise specified, reserved numeric and bit fields shall be written as
@@ -335,8 +335,8 @@ package SPDM is
       message
          Index : Index;
          Measurement_Specification : Measurement_Specification;
-         Measurement_Size_1 : Length;
-         Measurement_Size_2 : Length
+         Measurement_Length_1 : Length;
+         Measurement_Length_2 : Length
             then DMTF_Spec_Measurement_Value_Representation
                if Measurement_Specification = DMTF;
          DMTF_Spec_Measurement_Value_Representation : DMTF_Spec_Measurement_Value_Representation;
@@ -345,15 +345,16 @@ package SPDM is
          --  be derived from the measurement hash algorithm that the ALGORITHM response message
          --  returns.
          --  FIXME: What does "shall be derived" mean - equals the hash length?
-         DMTF_Spec_Measurement_Value_Size_1 : Length;
-         DMTF_Spec_Measurement_Value_Size_2 : Length;
+         DMTF_Spec_Measurement_Value_Length_1 : Length;
+         DMTF_Spec_Measurement_Value_Length_2 : Length;
          DMTF_Spec_Measurement_Value : Opaque
-            with Size => 8 * (DMTF_Spec_Measurement_Value_Size_2 * 256 + DMTF_Spec_Measurement_Value_Size_1)
+            with Size => 8 * (DMTF_Spec_Measurement_Value_Length_2 * 256
+                              + DMTF_Spec_Measurement_Value_Length_1)
             -- ISSUE: Componolit/RecordFlux#104
             then null
                -- ISSUE: Componolit/RecordFlux#104
-               if 8 * (Measurement_Size_2 * 256 + Measurement_Size_1)
-                  = DMTF_Spec_Measurement_Value'Last - Measurement_Size_2'Last;
+               if 8 * (Measurement_Length_2 * 256 + Measurement_Length_1)
+                  = DMTF_Spec_Measurement_Value'Last - Measurement_Length_2'Last;
       end message;
 
    type Measurement_Record is sequence of Measurement_Block;
@@ -362,7 +363,7 @@ package SPDM is
 
    type Block_Count is range 0 .. 2 ** 8 - 1 with Size => 8;
 
-   type Measurements_Response (Signature_Size : Signature_Size) is
+   type Measurements_Response (Signature_Length : Signature_Length) is
       message
          Number_Of_Indices : Measurement_Count;
          Reserved_1 : Reserved_4;
@@ -384,11 +385,11 @@ package SPDM is
             -- ISSUE: Componolit/RecordFlux#104
             with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1)
             then Signature
-               if Opaque_Data'Last + 8 * Signature_Size = Message'Last
+               if Opaque_Data'Last + 8 * Signature_Length = Message'Last
             then null
                if Opaque_Data'Last = Message'Last;
          Signature : Opaque
-            with Size => 8 * Signature_Size;
+            with Size => 8 * Signature_Length;
       end message;
 
    -- [201] Extended Algorithm field format
@@ -642,19 +643,19 @@ package SPDM is
          Param_2 : Reserved_8;
       end message;
 
-   type Digests_Response (Hash_Size : Hash_Size) is
+   type Digests_Response (Hash_Length : Hash_Length) is
       message
          Param_1 : Reserved_8;
          Slot_Mask : Slot_Mask;
          Digests_Data : Opaque
-            with Size => 8 * Hash_Size * (Slot_Mask_Slot_0_Present
-                                          + Slot_Mask_Slot_1_Present
-                                          + Slot_Mask_Slot_2_Present
-                                          + Slot_Mask_Slot_3_Present
-                                          + Slot_Mask_Slot_4_Present
-                                          + Slot_Mask_Slot_5_Present
-                                          + Slot_Mask_Slot_6_Present
-                                          + Slot_Mask_Slot_7_Present);
+            with Size => 8 * Hash_Length * (Slot_Mask_Slot_0_Present
+                                            + Slot_Mask_Slot_1_Present
+                                            + Slot_Mask_Slot_2_Present
+                                            + Slot_Mask_Slot_3_Present
+                                            + Slot_Mask_Slot_4_Present
+                                            + Slot_Mask_Slot_5_Present
+                                            + Slot_Mask_Slot_6_Present
+                                            + Slot_Mask_Slot_7_Present);
       end message;
 
    -- 10.8 GET_CERTIFICATE request and CERTIFICATE response messages
@@ -715,17 +716,17 @@ package SPDM is
             with Size => 8 * 32;
       end message;
 
-   type Challenge_Auth_Response (Meas_Cap       : Meas_Cap;
-                                 Hash_Type      : Measurement_Summary_Hash_Type;
-                                 Hash_Size      : Hash_Size;
-                                 Signature_Size : Signature_Size) is
+   type Challenge_Auth_Response (Meas_Cap         : Meas_Cap;
+                                 Hash_Type        : Measurement_Summary_Hash_Type;
+                                 Hash_Length      : Hash_Length;
+                                 Signature_Length : Signature_Length) is
       message
          Basic_Mut_Auth_Req : Boolean;
          Reserved           : Reserved_3;
          Slot               : Narrow_Slot;
          Slot_Mask          : Slot_Mask;
          Cert_Chain_Hash    : Opaque
-            with Size => 8 * Hash_Size;
+            with Size => 8 * Hash_Length;
          Nonce : Opaque
             with Size => 8 * 32
             --  [256] MeasurementSummaryHash:
@@ -736,7 +737,7 @@ package SPDM is
             then Measurement_Summary_Hash
                if Meas_Cap /= Meas_Unsupported and Hash_Type /= No_Measurement;
          Measurement_Summary_Hash : Opaque
-            with Size => 8 * Hash_Size;
+            with Size => 8 * Hash_Length;
          Opaque_Length_1 : Length;
          Opaque_Length_2 : Length
             then Opaque_Data
@@ -744,7 +745,7 @@ package SPDM is
          Opaque_Data : Opaque
             with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1);
          Signature : Opaque
-            with Size => 8 * Signature_Size;
+            with Size => 8 * Signature_Length;
       end message;
 
    -- 10.12 ERROR response message
@@ -860,7 +861,7 @@ package SPDM is
 
    type Session_ID is mod 2 ** 16;
 
-   type Key_Exchange_Request (Exchange_Data_Size : Exchange_Data_Size) is
+   type Key_Exchange_Request (Exchange_Data_Length : Exchange_Data_Length) is
       message
          Measurement_Summary_Hash_Type : Measurement_Summary_Hash_Type;
          Slot : Slot;
@@ -869,7 +870,7 @@ package SPDM is
          Random_Data : Opaque
             with Size => 8 * 32;
          Exchange_Data : Opaque
-            with Size => 8 * Exchange_Data_Size;
+            with Size => 8 * Exchange_Data_Length;
          Opaque_Data_Length_1 : Length;
          Opaque_Data_Length_2 : Length;
          Opaque_Data : Opaque
@@ -878,9 +879,9 @@ package SPDM is
 
    type Heartbeat_Period is mod 2 ** 8;
 
-   type Key_Exchange_Response (Exchange_Data_Size     : Exchange_Data_Size;
-                               Hash_Size              : Hash_Size;
-                               Signature_Size         : Signature_Size;
+   type Key_Exchange_Response (Exchange_Data_Length   : Exchange_Data_Length;
+                               Hash_Length            : Hash_Length;
+                               Signature_Length       : Signature_Length;
                                Handshake_In_The_Clear : Boolean)
    is
       message
@@ -907,15 +908,15 @@ package SPDM is
          Random_Data : Opaque
             with Size => 8 * 32;
          Exchange_Data : Opaque
-            with Size => 8 * Exchange_Data_Size;
+            with Size => 8 * Exchange_Data_Length;
          Measurement_Summary_Hash : Opaque
-            with Size => 8 * Hash_Size;
+            with Size => 8 * Hash_Length;
          Opaque_Data_Length_1 : Length;
          Opaque_Data_Length_2 : Length;
          Opaque_Data : Opaque
             with Size => 8 * (Opaque_Data_Length_2 * 256 + Opaque_Data_Length_1);
          Signature : Opaque
-            with Size => 8 * Signature_Size
+            with Size => 8 * Signature_Length
             then Responder_Verify_Data
                if Handshake_In_The_Clear = False
             then null
@@ -923,13 +924,13 @@ package SPDM is
          -- [422] If both the Requester and Responder set HANDSHAKE_IN_THE_CLEAR_CAP to 1, then this
          --       field shall be absent.
          Responder_Verify_Data : Opaque
-            with Size => 8 * Hash_Size;
+            with Size => 8 * Hash_Length;
       end message;
 
    --  10.17 FINISH request and FINISH_RSP response messages
 
-   type Finish_Request (Signature_Size : Signature_Size;
-                        Hash_Size      : Hash_Size)
+   type Finish_Request (Signature_Length : Signature_Length;
+                        Hash_Length      : Hash_Length)
    is
       message
          Reserved : Reserved_7;
@@ -940,12 +941,12 @@ package SPDM is
             then Requester_Verify_Data
                if Signature_Included = False;
          Signature : Opaque
-            with Size => 8 * Signature_Size;
+            with Size => 8 * Signature_Length;
          Requester_Verify_Data : Opaque
-            with Size => 8 * Hash_Size;
+            with Size => 8 * Hash_Length;
       end message;
 
-   type Finish_Response (Hash_Size              : Hash_Size;
+   type Finish_Response (Hash_Length            : Hash_Length;
                          Handshake_In_The_Clear : Boolean)
    is
       message
@@ -958,7 +959,7 @@ package SPDM is
             then null
                if Handshake_In_The_Clear = False;
          Responder_Verify_Data : Opaque
-            with Size => 8 * Hash_Size;
+            with Size => 8 * Hash_Length;
       end message;
 
    --  10.21 KEY_UPDATE request and KEY_UPDATE_ACK response messages
@@ -996,9 +997,9 @@ package SPDM is
 
    -- 8.2 Generic SPDM message format
 
-   type Request (Hash_Size          : Hash_Size;
-                 Signature_Size     : Signature_Size;
-                 Exchange_Data_Size : Exchange_Data_Size) is
+   type Request (Hash_Length          : Hash_Length;
+                 Signature_Length     : Signature_Length;
+                 Exchange_Data_Length : Exchange_Data_Length) is
       message
          Major_Version : Major_Version
             then Minor_Version
@@ -1047,10 +1048,10 @@ package SPDM is
             then null;
          Respond_If_Ready_Request : Respond_If_Ready_Request
             then null;
-         Key_Exchange_Request : Key_Exchange_Request (Exchange_Data_Size => Exchange_Data_Size)
+         Key_Exchange_Request : Key_Exchange_Request (Exchange_Data_Length => Exchange_Data_Length)
             then null;
-         Finish_Request : Finish_Request (Signature_Size => Signature_Size,
-                                          Hash_Size      => Hash_Size)
+         Finish_Request : Finish_Request (Signature_Length => Signature_Length,
+                                          Hash_Length      => Hash_Length)
             then null;
          Key_Update_Request : Key_Update_Request
             then null;
@@ -1059,9 +1060,9 @@ package SPDM is
 
    type Response (Meas_Cap               : Meas_Cap;
                   Hash_Type              : Measurement_Summary_Hash_Type;
-                  Hash_Size              : Hash_Size;
-                  Signature_Size         : Signature_Size;
-                  Exchange_Data_Size     : Exchange_Data_Size;
+                  Hash_Length            : Hash_Length;
+                  Signature_Length       : Signature_Length;
+                  Exchange_Data_Length   : Exchange_Data_Length;
                   Handshake_In_The_Clear : Boolean)
    is
       message
@@ -1102,25 +1103,25 @@ package SPDM is
             then null;
          Algorithms_Response : Algorithms_Response
             then null;
-         Digests_Response : Digests_Response (Hash_Size => Hash_Size)
+         Digests_Response : Digests_Response (Hash_Length => Hash_Length)
             then null;
          Certificate_Response : Certificate_Response
             then null;
-         Challenge_Auth_Response : Challenge_Auth_Response (Meas_Cap       => Meas_Cap,
-                                                            Hash_Type      => Hash_Type,
-                                                            Hash_Size      => Hash_Size,
-                                                            Signature_Size => Signature_Size)
+         Challenge_Auth_Response : Challenge_Auth_Response (Meas_Cap         => Meas_Cap,
+                                                            Hash_Type        => Hash_Type,
+                                                            Hash_Length      => Hash_Length,
+                                                            Signature_Length => Signature_Length)
             then null;
-         Measurements_Response : Measurements_Response (Signature_Size => Signature_Size)
+         Measurements_Response : Measurements_Response (Signature_Length => Signature_Length)
             then null;
          Error_Response : Error_Response
             then null;
-         Key_Exchange_Response : Key_Exchange_Response (Exchange_Data_Size     => Exchange_Data_Size,
-                                                        Hash_Size              => Hash_Size,
-                                                        Signature_Size         => Signature_Size,
+         Key_Exchange_Response : Key_Exchange_Response (Exchange_Data_Length   => Exchange_Data_Length,
+                                                        Hash_Length            => Hash_Length,
+                                                        Signature_Length       => Signature_Length,
                                                         Handshake_In_The_Clear => Handshake_In_The_Clear)
             then null;
-         Finish_Response : Finish_Response (Hash_Size              => Hash_Size,
+         Finish_Response : Finish_Response (Hash_Length            => Hash_Length,
                                             Handshake_In_The_Clear => Handshake_In_The_Clear)
             then null;
          Key_Update_ACK_Response : Key_Update_Ack_Response

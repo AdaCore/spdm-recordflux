@@ -1,4 +1,4 @@
-Exchange_Data_Size: 96
-Signature_Size: 384
-Hash_Size: 48
+Exchange_Data_Length: 96
+Signature_Length: 384
+Hash_Length: 48
 

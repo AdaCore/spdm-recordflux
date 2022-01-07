@@ -106,18 +106,18 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
             with (basename.with_suffix(".yaml")).open("w") as config:
                 if m_type == "Request":
                     config.write(
-                        "Exchange_Data_Size: 96\n"
-                        "Signature_Size: 384\n"
-                        "Hash_Size: 48\n"
+                        "Exchange_Data_Length: 96\n"
+                        "Signature_Length: 384\n"
+                        "Hash_Length: 48\n"
                     )
                 elif m_type == "Response":
                     config.write(
                         "Meas_Cap: 2\n"
                         "Hash_Type: 1\n"
-                        "Hash_Size: 48\n"
-                        "Signature_Size: 96\n"
+                        "Hash_Length: 48\n"
+                        "Signature_Length: 96\n"
                         "Handshake_In_The_Clear: True\n"
-                        "Exchange_Data_Size: 96\n"
+                        "Exchange_Data_Length: 96\n"
                     )
 
 if __name__ == "__main__":
