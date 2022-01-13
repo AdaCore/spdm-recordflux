@@ -16,7 +16,7 @@ package SPDM is
 
    type Signature_Length is range 48 .. 512 with Size => 10;
    type Exchange_Data_Length is range 96 .. 512 with Size => 10;
-   type Hash_Length is range 32 .. 64 with Size => 7;
+   type Hash_Length is range 0 .. 64 with Size => 8;
 
    -- ISSUE: Componolit/RecordFlux#601
    -- [33] Unless otherwise specified, reserved numeric and bit fields shall be written as

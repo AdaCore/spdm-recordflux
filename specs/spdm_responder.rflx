@@ -28,6 +28,15 @@ package SPDM_Responder is
        RA_TPM_ALG_RSASSA_2048,
        RA_TPM_ALG_ECDSA_ECC_NIST_P521) with Size => 8;
 
+   type Digests_Length is range 0 .. 512 with Size => 16;
+
+   type Digests_Data is
+      message
+         Length : Digests_Length;
+         Value  : Opaque
+            with Size => 8 * Length;
+      end message;
+
    generic
       Transport : Channel with Readable, Writable;
       with function Plat_Cfg_CT_Exponent return SPDM::CT_Exponent;
@@ -58,7 +67,7 @@ package SPDM_Responder is
                                                  TPM_ALG_ECDSA_ECC_NIST_P256 : Boolean;
                                                  TPM_ALG_RSAPSS_3072         : Boolean;
                                                  TPM_ALG_RSASSA_3072         : Boolean;
-                                                TPM_ALG_RSAPSS_2048         : Boolean;
+                                                 TPM_ALG_RSAPSS_2048         : Boolean;
                                                  TPM_ALG_RSASSA_2048         : Boolean;
                                                  TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM::Base_Asym_Sel;
       with function Plat_Cfg_Sel_Base_Hash_Algo (TPM_ALG_SHA256   : Boolean;
@@ -91,13 +100,26 @@ package SPDM_Responder is
           Req_TPM_ALG_RSASSA_2048         : Boolean;
           Req_TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM_Responder::RBAA_Algo;
 
+      with function Plat_Cfg_Slot_0_Present return SPDM::Slot_Present;
+      with function Plat_Cfg_Slot_1_Present return SPDM::Slot_Present;
+      with function Plat_Cfg_Slot_2_Present return SPDM::Slot_Present;
+      with function Plat_Cfg_Slot_3_Present return SPDM::Slot_Present;
+      with function Plat_Cfg_Slot_4_Present return SPDM::Slot_Present;
+      with function Plat_Cfg_Slot_5_Present return SPDM::Slot_Present;
+      with function Plat_Cfg_Slot_6_Present return SPDM::Slot_Present;
+      with function Plat_Cfg_Slot_7_Present return SPDM::Slot_Present;
+
+      with function Plat_Get_Digests_Data (Algo : SPDM::Measurement_Hash_Algo) return Digests_Data;
+
    session Session with
       Initial => Init,
       Final => End_Session
    is
-      Request : SPDM::Request;
-      Response : SPDM::Response;
-      Supp_Versions : SPDM::Version_Number_Entries;
+      Request               : SPDM::Request;
+      Response              : SPDM::Response;
+      Supp_Versions         : SPDM::Version_Number_Entries;
+      Measurement_Hash_Algo : SPDM::Measurement_Hash_Algo;
+      Hash_Length           : SPDM::Hash_Length;
    begin
       state Init
       is
@@ -107,6 +129,7 @@ package SPDM_Responder is
                                          Update_Version_Number => 0,
                                          Minor_Version         => 1,
                                          Major_Version         => 1));
+         Hash_Length := 0;
          --  FIXME: Reset all state
       transition
          goto Receive_Get_Version
@@ -136,7 +159,7 @@ package SPDM_Responder is
       begin
          Response := SPDM::Response'(Meas_Cap                                    => SPDM::Meas_Unsupported,
                                      Hash_Type                                   => SPDM::No_Measurement,
-                                     Hash_Length                                 => 64,
+                                     Hash_Length                                 => 0,
                                      Signature_Length                            => 512,
                                      Exchange_Data_Length                        => 512,
                                      Handshake_In_The_Clear                      => False,
@@ -213,7 +236,7 @@ package SPDM_Responder is
          Response :=
             SPDM::Response'(Meas_Cap                                         => SPDM::Meas_Unsupported,
                             Hash_Type                                        => SPDM::No_Measurement,
-                            Hash_Length                                      => 64,
+                            Hash_Length                                      => 0,
                             Signature_Length                                 => 512,
                             Exchange_Data_Length                             => 512,
                             Handshake_In_The_Clear                           => False,
@@ -269,7 +292,6 @@ package SPDM_Responder is
 
       state Prepare_Algorithms
       is
-         Measurement_Hash_Algo : SPDM::Measurement_Hash_Algo;
          Base_Hash_Sel         : SPDM::Base_Hash_Sel;
          Base_Asym_Sel         : SPDM::Base_Asym_Sel;
          Ext_Asym              : SPDM::Ext_Algs;
@@ -310,6 +332,7 @@ package SPDM_Responder is
          Key_Schedule_List      : SPDM::Req_Alg_Structs;
          Key_Schedule           : SPDM::Alg_Struct;
       begin
+
          DHE_List := [for A in Request.Negotiate_Algorithms_Request_Req_Alg_Structs
                       if A.Alg_Type = SPDM::DHE => A];
          DHE := DHE_List'Head;
@@ -466,7 +489,7 @@ package SPDM_Responder is
          Response :=
             SPDM::Response'(Meas_Cap                                          => SPDM::Meas_Unsupported,
                             Hash_Type                                         => SPDM::No_Measurement,
-                            Hash_Length                                       => 64,
+                            Hash_Length                                       => 0,
                             Signature_Length                                  => 512,
                             Exchange_Data_Length                              => 512,
                             Handshake_In_The_Clear                            => False,
@@ -491,19 +514,125 @@ package SPDM_Responder is
                             Algorithms_Response_Ext_Hash                      => Ext_Hash,
                             Algorithms_Response_Resp_Alg_Structs              => Resp_Alg_Structs);
       transition
-         goto Send_Algorithms
+         --  ISSUE: Componolit/RecordFlux#907
+         --  This cannot be done more elegantly right now
+         goto Set_Hash_Len_32
+            if Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA_256
+               or Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA3_256
+         goto Set_Hash_Len_48
+            if Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA_384
+               or Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA3_384
+         goto Set_Hash_Len_64
+            if Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA_512
+               or Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA3_512
+         goto Error_Invalid_Request
       exception
          goto Error_Unspecified
       end Prepare_Algorithms;
+
+      --  ISSUE: Componolit/RecordFlux#907
+      state Set_Hash_Len_32
+      is
+      begin
+         Hash_Length := 32;
+      transition
+         goto Send_Algorithms
+      end Set_Hash_Len_32;
+
+      --  ISSUE: Componolit/RecordFlux#907
+      state Set_Hash_Len_48
+      is
+      begin
+         Hash_Length := 48;
+      transition
+         goto Send_Algorithms
+      end Set_Hash_Len_48;
+
+      --  ISSUE: Componolit/RecordFlux#907
+      state Set_Hash_Len_64
+      is
+      begin
+         Hash_Length := 64;
+      transition
+         goto Send_Algorithms
+      end Set_Hash_Len_64;
 
       state Send_Algorithms
       is
       begin
          Transport'Write (Response);
       transition
-         --  FIXME
-         goto Receive_Get_Version
+         goto Receive_Get_Digests
       end Send_Algorithms;
+
+      state Receive_Get_Digests
+      is
+      begin
+         Transport'Read (Request);
+      transition
+         goto Prepare_Digests
+            if Request'Valid and Request.Code = SPDM::Get_Digests
+         goto Error_Unsupported_Request
+            if Request'Valid
+         goto Error_Invalid_Request
+      end Receive_Get_Digests;
+
+      state Prepare_Digests
+      is
+         Slot_0_Present : SPDM::Slot_Present;
+         Slot_1_Present : SPDM::Slot_Present;
+         Slot_2_Present : SPDM::Slot_Present;
+         Slot_3_Present : SPDM::Slot_Present;
+         Slot_4_Present : SPDM::Slot_Present;
+         Slot_5_Present : SPDM::Slot_Present;
+         Slot_6_Present : SPDM::Slot_Present;
+         Slot_7_Present : SPDM::Slot_Present;
+         Digests_Data   : Digests_Data;
+      begin
+         Slot_0_Present := Plat_Cfg_Slot_0_Present;
+         Slot_1_Present := Plat_Cfg_Slot_1_Present;
+         Slot_2_Present := Plat_Cfg_Slot_2_Present;
+         Slot_3_Present := Plat_Cfg_Slot_3_Present;
+         Slot_4_Present := Plat_Cfg_Slot_4_Present;
+         Slot_5_Present := Plat_Cfg_Slot_5_Present;
+         Slot_6_Present := Plat_Cfg_Slot_6_Present;
+         Slot_7_Present := Plat_Cfg_Slot_7_Present;
+
+         Digests_Data := Plat_Get_Digests_Data (Measurement_Hash_Algo);
+
+         Response := SPDM::Response'(Meas_Cap                                    => SPDM::Meas_Unsupported,
+                                     Hash_Type                                   => SPDM::No_Measurement,
+                                     Hash_Length                                 => Hash_Length,
+                                     Signature_Length                            => 512,
+                                     Exchange_Data_Length                        => 512,
+                                     Handshake_In_The_Clear                      => False,
+                                     Major_Version                               => 1,
+                                     Minor_Version                               => 1,
+                                     Code                                        => SPDM::Digests,
+                                     Digests_Response_Param_1                    => 0,
+                                     Digests_Response_Slot_Mask_Slot_7_Present   => Slot_7_Present,
+                                     Digests_Response_Slot_Mask_Slot_6_Present   => Slot_6_Present,
+                                     Digests_Response_Slot_Mask_Slot_5_Present   => Slot_5_Present,
+                                     Digests_Response_Slot_Mask_Slot_4_Present   => Slot_4_Present,
+                                     Digests_Response_Slot_Mask_Slot_3_Present   => Slot_3_Present,
+                                     Digests_Response_Slot_Mask_Slot_2_Present   => Slot_2_Present,
+                                     Digests_Response_Slot_Mask_Slot_1_Present   => Slot_1_Present,
+                                     Digests_Response_Slot_Mask_Slot_0_Present   => Slot_0_Present,
+                                     Digests_Response_Digests_Data               => Digests_Data.Value);
+      transition
+         goto Send_Digests
+      exception
+         goto Error_Unspecified
+      end Prepare_Digests;
+
+      state Send_Digests
+      is
+      begin
+         Transport'Write (Response);
+      transition
+         -- FIXME
+         goto Receive_Get_Version
+      end Send_Digests;
 
       state Error_Unsupported_Request
       is

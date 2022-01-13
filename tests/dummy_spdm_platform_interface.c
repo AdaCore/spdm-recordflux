@@ -27,7 +27,7 @@ unsigned char spdm_platform_config_cap_chal(void) {
 
 unsigned char spdm_platform_config_cap_cert(void) {
     //  Supported in WP 2.3.7
-    return 0;
+    return 1;
 }
 
 unsigned char spdm_platform_config_cap_cache(void) {

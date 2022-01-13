@@ -1,3 +1,5 @@
+with Ada.Text_IO;
+with RFLX.RFLX_Builtin_Types;
 with Interfaces.C;
 
 package body SPDM_Platform_Interface is
@@ -275,5 +277,86 @@ package body SPDM_Platform_Interface is
       -- FIXME
       Result := RFLX.SPDM_Responder.RA_TPM_ALG_RSAPSS_3072;
    end Select_RBAA;
+
+   --  Slots present on the platform
+   procedure Config_Slot_0_Present (Result : out RFLX.SPDM.Slot_Present)
+   is
+   begin
+      Result := 1;
+   end Config_Slot_0_Present;
+
+   procedure Config_Slot_1_Present (Result : out RFLX.SPDM.Slot_Present)
+   is
+   begin
+      Result := 1;
+   end Config_Slot_1_Present;
+
+   procedure Config_Slot_2_Present (Result : out RFLX.SPDM.Slot_Present)
+   is
+   begin
+      Result := 1;
+   end Config_Slot_2_Present;
+
+   procedure Config_Slot_3_Present (Result : out RFLX.SPDM.Slot_Present)
+   is
+   begin
+      Result := 0;
+   end Config_Slot_3_Present;
+
+   procedure Config_Slot_4_Present (Result : out RFLX.SPDM.Slot_Present)
+   is
+   begin
+      Result := 0;
+   end Config_Slot_4_Present;
+
+   procedure Config_Slot_5_Present (Result : out RFLX.SPDM.Slot_Present)
+   is
+   begin
+      Result := 0;
+   end Config_Slot_5_Present;
+
+   procedure Config_Slot_6_Present (Result : out RFLX.SPDM.Slot_Present)
+   is
+   begin
+      Result := 0;
+   end Config_Slot_6_Present;
+
+   procedure Config_Slot_7_Present (Result : out RFLX.SPDM.Slot_Present)
+   is
+   begin
+      Result := 0;
+   end Config_Slot_7_Present;
+
+   procedure Get_Digests_Data (Plat_Get_Digests_Data : out RFLX.SPDM_Responder.Digests_Data.Structure;
+                               Algorithm             :     RFLX.SPDM.Measurement_Hash_Algo)
+   is
+      Tmp   : RFLX.SPDM.Slot_Present;
+      Len   : Natural := 0;
+      Slots : Natural := 0;
+      use type RFLX.SPDM_Responder.Digests_Length;
+   begin
+      Len := (case Algorithm is
+              when RFLX.SPDM.MH_TPM_ALG_SHA3_512 | RFLX.SPDM.MH_TPM_ALG_SHA_512 => 64,
+              when RFLX.SPDM.MH_TPM_ALG_SHA3_384 | RFLX.SPDM.MH_TPM_ALG_SHA_384 => 48,
+              when RFLX.SPDM.MH_TPM_ALG_SHA3_256 | RFLX.SPDM.MH_TPM_ALG_SHA_256 => 32,
+              when RFLX.SPDM.Raw_Bit_Streams_Only                               =>  0);
+      Config_Slot_0_Present (Tmp);
+      Slots := Slots + Natural (Tmp);
+      Config_Slot_1_Present (Tmp);
+      Slots := Slots + Natural (Tmp);
+      Config_Slot_2_Present (Tmp);
+      Slots := Slots + Natural (Tmp);
+      Config_Slot_3_Present (Tmp);
+      Slots := Slots + Natural (Tmp);
+      Config_Slot_4_Present (Tmp);
+      Slots := Slots + Natural (Tmp);
+      Config_Slot_5_Present (Tmp);
+      Slots := Slots + Natural (Tmp);
+      Config_Slot_6_Present (Tmp);
+      Slots := Slots + Natural (Tmp);
+      Config_Slot_7_Present (Tmp);
+      Slots := Slots + Natural (Tmp);
+      Plat_Get_Digests_Data := (RFLX.SPDM_Responder.Digests_Length (Len * Slots), (others => 16#42#));
+   end Get_Digests_Data;
 
 end SPDM_Platform_Interface;

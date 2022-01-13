@@ -1,5 +1,5 @@
 with RFLX.SPDM;
-with RFLX.SPDM_Responder;
+with RFLX.SPDM_Responder.Digests_Data;
 
 package SPDM_Platform_Interface is
 
@@ -50,6 +50,16 @@ package SPDM_Platform_Interface is
 
    --  Retrieve PUB_KEY_ID_CAP
    procedure Config_Cap_Pub_Key_ID (Result : out Boolean);
+
+   --  Slots present on the platform
+   procedure Config_Slot_0_Present (Result : out RFLX.SPDM.Slot_Present);
+   procedure Config_Slot_1_Present (Result : out RFLX.SPDM.Slot_Present);
+   procedure Config_Slot_2_Present (Result : out RFLX.SPDM.Slot_Present);
+   procedure Config_Slot_3_Present (Result : out RFLX.SPDM.Slot_Present);
+   procedure Config_Slot_4_Present (Result : out RFLX.SPDM.Slot_Present);
+   procedure Config_Slot_5_Present (Result : out RFLX.SPDM.Slot_Present);
+   procedure Config_Slot_6_Present (Result : out RFLX.SPDM.Slot_Present);
+   procedure Config_Slot_7_Present (Result : out RFLX.SPDM.Slot_Present);
 
    --  Select a measurement hash algorithm based on receive proposal
    procedure Select_Measurement_Hash_Algo
@@ -110,5 +120,8 @@ package SPDM_Platform_Interface is
        Req_TPM_ALG_RSAPSS_2048         :     Boolean;
        Req_TPM_ALG_RSASSA_2048         :     Boolean;
        Req_TPM_ALG_ECDSA_ECC_NIST_P521 :     Boolean);
+
+   procedure Get_Digests_Data (Plat_Get_Digests_Data : out RFLX.SPDM_Responder.Digests_Data.Structure;
+                               Algorithm             :     RFLX.SPDM.Measurement_Hash_Algo);
 
 end SPDM_Platform_Interface;

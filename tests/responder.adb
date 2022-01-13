@@ -38,12 +38,21 @@ is
        Plat_Cfg_Cap_Key_Ex                => SPI.Config_Cap_Key_Ex,
        Plat_Cfg_Cap_Mut_Auth              => SPI.Config_Cap_Mut_Auth,
        Plat_Cfg_Cap_Pub_Key_ID            => SPI.Config_Cap_Pub_Key_ID,
+       Plat_Cfg_Slot_0_Present            => SPI.Config_Slot_0_Present,
+       Plat_Cfg_Slot_1_Present            => SPI.Config_Slot_1_Present,
+       Plat_Cfg_Slot_2_Present            => SPI.Config_Slot_2_Present,
+       Plat_Cfg_Slot_3_Present            => SPI.Config_Slot_3_Present,
+       Plat_Cfg_Slot_4_Present            => SPI.Config_Slot_4_Present,
+       Plat_Cfg_Slot_5_Present            => SPI.Config_Slot_5_Present,
+       Plat_Cfg_Slot_6_Present            => SPI.Config_Slot_6_Present,
+       Plat_Cfg_Slot_7_Present            => SPI.Config_Slot_7_Present,
        Plat_Cfg_Sel_Measurement_Hash_Algo => SPI.Select_Measurement_Hash_Algo,
        Plat_Cfg_Sel_Base_Asym_Algo        => SPI.Select_Base_Asym_Algo,
        Plat_Cfg_Sel_Base_Hash_Algo        => SPI.Select_Base_Hash_Algo,
        Plat_Cfg_Sel_DHE                   => SPI.Select_DHE,
        Plat_Cfg_Sel_AEAD                  => SPI.Select_AEAD,
-       Plat_Cfg_Sel_RBAA                  => SPI.Select_RBAA);
+       Plat_Cfg_Sel_RBAA                  => SPI.Select_RBAA,
+       Plat_Get_Digests_Data              => SPI.Get_Digests_Data);
    package TCP_Channel is new Channel (Connection);
 begin
    Server.Listen (Listener, 2324, Connection);
