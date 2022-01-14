@@ -9,7 +9,7 @@ project SPDM is
    for Object_Dir use "build/obj";
 
    for Target use "arm-eabi";
-   for Runtime ("Ada") use "zfp-cortex-m4";
+   for Runtime ("Ada") use "zfp-stm32f4";
 
    package Compiler is
       Common_Args := ("-ffunction-sections", "-fdata-sections", "-Os", "-flto");
