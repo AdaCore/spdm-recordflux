@@ -301,7 +301,31 @@ package SPDM_Responder is
          Sel_TPM_ALG_RSASSA_2048         : Boolean;
          Sel_TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean;
 
+         DHE_List               : SPDM::Req_Alg_Structs;
+         DHE                    : SPDM::Alg_Struct;
+         AEAD_Cipher_Suite_List : SPDM::Req_Alg_Structs;
+         AEAD_Cipher_Suite      : SPDM::Alg_Struct;
+         Req_Base_Asym_Alg_List : SPDM::Req_Alg_Structs;
+         Req_Base_Asym_Alg      : SPDM::Alg_Struct;
+         Key_Schedule_List      : SPDM::Req_Alg_Structs;
+         Key_Schedule           : SPDM::Alg_Struct;
       begin
+         DHE_List := [for A in Request.Negotiate_Algorithms_Request_Req_Alg_Structs
+                      if A.Alg_Type = SPDM::DHE => A];
+         DHE := DHE_List'Head;
+
+         AEAD_Cipher_Suite_List := [for A in Request.Negotiate_Algorithms_Request_Req_Alg_Structs
+                                    if A.Alg_Type = SPDM::AEAD_Cipher_Suite => A];
+         AEAD_Cipher_Suite := AEAD_Cipher_Suite_List'Head;
+
+         Req_Base_Asym_Alg_List := [for A in Request.Negotiate_Algorithms_Request_Req_Alg_Structs
+                                    if A.Alg_Type = SPDM::Req_Base_Asym_Alg => A];
+         Req_Base_Asym_Alg := Req_Base_Asym_Alg_List'Head;
+
+         Key_Schedule_List := [for A in Request.Negotiate_Algorithms_Request_Req_Alg_Structs
+                               if A.Alg_Type = SPDM::Key_Schedule => A];
+         Key_Schedule := Key_Schedule_List'Head;
+
          Measurement_Hash_Algo := Plat_Cfg_Sel_Measurement_Hash_Algo
                                      (Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA_256,
                                       Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA_384,
@@ -332,12 +356,12 @@ package SPDM_Responder is
          --  DHE algorithm response
 
          DHE_Algo := Plat_Cfg_Sel_DHE
-            (False,  -- Req_SecP521r1
-             False,  -- Req_SecP384r1
-             False,  -- Req_SecP256r1
-             False,  -- Req_FFDHE4096
-             False,  -- Req_FFDHE3072
-             False); -- Req_FFDHE2048
+            (DHE.DHE_SecP521r1,
+             DHE.DHE_SecP384r1,
+             DHE.DHE_SecP256r1,
+             DHE.DHE_FFDHE4096,
+             DHE.DHE_FFDHE3072,
+             DHE.DHE_FFDHE2048);
 
          Sel_SecP521r1 := DHE_Algo = DA_SecP521r1;
          Sel_SecP384r1 := DHE_Algo = DA_SecP384r1;
@@ -365,9 +389,9 @@ package SPDM_Responder is
          --  AEAD algorithm response
 
          AEAD_Algo := Plat_Cfg_Sel_AEAD
-            (False,  -- Req_ChaCha20_Poly1305
-             False,  -- Req_AES_256_GCM
-             False); -- Req_AES_128_GCM
+            (AEAD_Cipher_Suite.AEAD_ChaCha20_Poly1305,
+             AEAD_Cipher_Suite.AEAD_AES_256_GCM,
+             AEAD_Cipher_Suite.AEAD_AES_128_GCM);
 
          Sel_ChaCha20_Poly1305 := AEAD_Algo = AA_ChaCha20_Poly1305;
          Sel_AES_256_GCM       := AEAD_Algo = AA_AES_256_GCM;
@@ -389,15 +413,15 @@ package SPDM_Responder is
          --  Asymetric key signature algorithm response
 
          RBAA_Algo := Plat_Cfg_Sel_RBAA
-            (False,  -- Req_TPM_ALG_ECDSA_ECC_NIST_P384
-             False,  -- Req_TPM_ALG_RSAPSS_4096
-             False,  -- Req_TPM_ALG_RSASSA_4096
-             False,  -- Req_TPM_ALG_ECDSA_ECC_NIST_P256
-             False,  -- Req_TPM_ALG_RSAPSS_3072
-             False,  -- Req_TPM_ALG_RSASSA_3072
-             False,  -- Req_TPM_ALG_RSAPSS_2048
-             False,  -- Req_TPM_ALG_RSASSA_2048
-             False); -- Req_TPM_ALG_ECDSA_ECC_NIST_P521
+            (Req_Base_Asym_Alg.RBAA_TPM_ALG_ECDSA_ECC_NIST_P384,
+             Req_Base_Asym_Alg.RBAA_TPM_ALG_RSAPSS_4096,
+             Req_Base_Asym_Alg.RBAA_TPM_ALG_RSASSA_4096,
+             Req_Base_Asym_Alg.RBAA_TPM_ALG_ECDSA_ECC_NIST_P256,
+             Req_Base_Asym_Alg.RBAA_TPM_ALG_RSAPSS_3072,
+             Req_Base_Asym_Alg.RBAA_TPM_ALG_RSASSA_3072,
+             Req_Base_Asym_Alg.RBAA_TPM_ALG_RSAPSS_2048,
+             Req_Base_Asym_Alg.RBAA_TPM_ALG_RSASSA_2048,
+             Req_Base_Asym_Alg.RBAA_TPM_ALG_ECDSA_ECC_NIST_P521);
 
          Sel_TPM_ALG_ECDSA_ECC_NIST_P384 := RBAA_Algo = RA_TPM_ALG_ECDSA_ECC_NIST_P384;
          Sel_TPM_ALG_RSAPSS_4096         := RBAA_Algo = RA_TPM_ALG_RSAPSS_4096;
@@ -434,7 +458,7 @@ package SPDM_Responder is
                Fixed_Alg_Count                  => 2,
                Ext_Alg_Count                    => 0,
                KS_Reserved_1                    => 0,
-               KS_SPDM                          => True,
+               KS_SPDM                          => Key_Schedule.KS_SPDM,
                KS_Reserved_2                    => 0,
                Alg_External                     => No_Ext_Algs)
          );
