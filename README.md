@@ -16,7 +16,6 @@ To build and test the SPDM library you need the following prerequisites:
 	- GNU make
 	- cmake
 	- Python >= 3.7
-	- virtualenv
 	- pip
 
 ## Running the tests
@@ -50,11 +49,11 @@ cross toolchain, respectively.
 
 ### RecordFlux installation and code generation
 
-For the following step a Python virtualenv is recommended, but a user
+For the following step a Python virtual environment is recommended, but a user
 installation will also work:
 
 ```
-$ virtualenv -p python3 venv
+$ python3 -m venv venv
 $ . venv/bin/activate
 $ PATH=/path/to/your/NATIVE/gnat:$PATH pip install contrib/RecordFlux
 [this will take a while]
@@ -62,7 +61,7 @@ $ PATH=/path/to/your/NATIVE/gnat:$PATH pip install contrib/RecordFlux
 
 ### Cross-build the library
 
-If a virtualenv had been used in the previous step, it must be active now.
+If a virtual environment had been used in the previous step, it must be active now.
 
 ```
 $ LOCAL_RFLX=1 PATH=/path/to/your/CROSS/gnat:$PATH make lib
