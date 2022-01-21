@@ -14,8 +14,15 @@ all: check test
 
 lib: build/lib/libspdm.a
 
+example: build/example/main
+
 build/lib/libspdm.a: build/generated/rflx.ads
 	gprbuild -j0 -P spdm
+
+build/example/main: build/example/generated/rflx.ads
+	# CROSS_GNAT_PATH must be set
+	test -n "$(CROSS_GNAT_PATH)"
+	PATH="$(CROSS_GNAT_PATH):$(PATH)" gprbuild -P examples/build
 
 test: test_validate test_responder
 
@@ -39,6 +46,10 @@ build/spdm_emu/bin/spdm_%_emu: build/spdm_emu
 build/generated/rflx.ads: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx | $(RFLX)
 	mkdir -p build/generated
 	$(RFLX) --no-verification generate $^ --debug -d build/generated
+
+build/example/generated/rflx.ads: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx | $(RFLX)
+	mkdir -p build/example/generated
+	$(RFLX) --no-verification generate $^ -d build/example/generated
 
 build/tests/proxy build/tests/responder: build/generated/rflx.ads tests/tests.gpr tests/*.ad?
 	gprbuild -p tests/tests.gpr -s
