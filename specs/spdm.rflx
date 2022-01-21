@@ -6,12 +6,8 @@ package SPDM is
 
    -- Base types
 
-   type Length is mod 2 ** 8;
-   -- ISSUE: Componolit/RecordFlux#104
-   -- Length is defined as mod 2 ** 16. To support little endian
-   -- multiple 8 bit length fields will be used instead. If Length
-   -- is used in an expression, the little endian value needs to be
-   -- calculated.
+   type Length_16 is mod 2 ** 16;
+   type Length_24 is mod 2 ** 24;
    type Index is range 1 .. 2 ** 8 - 1 with Size => 8;
 
    type Signature_Length is range 48 .. 512 with Size => 10;
@@ -34,12 +30,6 @@ package SPDM is
    type Reserved_24 is range 0 .. 0 with Size => 24;
    type Reserved_32 is range 0 .. 0 with Size => 32;
    type Reserved_64 is range 0 .. 0 with Size => 64;
-
-   -- ISSUE: Componolit/RecordFlux#104
-   -- [35] Unless otherwise specified, for all SPDM specifications byte ordering of multi-byte
-   --      numeric fields or multi-byte bit fields is "Little Endian" (that is, the lowest byte
-   --      offset holds the least significant byte, and higher offsets hold the more significant
-   --      bytes).
 
    -- 2.5.1 Version encoding
 
@@ -335,8 +325,7 @@ package SPDM is
       message
          Index : Index;
          Measurement_Specification : Measurement_Specification;
-         Measurement_Length_1 : Length;
-         Measurement_Length_2 : Length
+         Measurement_Length : Length_16
             then DMTF_Spec_Measurement_Value_Representation
                if Measurement_Specification = DMTF;
          DMTF_Spec_Measurement_Value_Representation : DMTF_Spec_Measurement_Value_Representation;
@@ -345,17 +334,13 @@ package SPDM is
          --  be derived from the measurement hash algorithm that the ALGORITHM response message
          --  returns.
          --  FIXME: What does "shall be derived" mean - equals the hash length?
-         DMTF_Spec_Measurement_Value_Length_1 : Length;
-         DMTF_Spec_Measurement_Value_Length_2 : Length;
+         DMTF_Spec_Measurement_Value_Length : Length_16;
          DMTF_Spec_Measurement_Value : Opaque
-            with Size => 8 * (DMTF_Spec_Measurement_Value_Length_2 * 256
-                              + DMTF_Spec_Measurement_Value_Length_1)
-            -- ISSUE: Componolit/RecordFlux#104
+            with Size => 8 * DMTF_Spec_Measurement_Value_Length
             then null
-               -- ISSUE: Componolit/RecordFlux#104
-               if 8 * (Measurement_Length_2 * 256 + Measurement_Length_1)
-                  = DMTF_Spec_Measurement_Value'Last - Measurement_Length_2'Last;
-      end message;
+               if 8 * Measurement_Length = DMTF_Spec_Measurement_Value'Last - Measurement_Length'Last;
+      end message
+         with Byte_Order => Low_Order_First;
 
    type Measurement_Record is sequence of Measurement_Block;
 
@@ -369,28 +354,22 @@ package SPDM is
          Reserved_1 : Reserved_4;
          Slot_ID : Narrow_Slot;
          Number_Of_Blocks : Block_Count;
-         Measurement_Record_Length_1 : Length;
-         Measurement_Record_Length_2 : Length;
-         Measurement_Record_Length_3 : Length;
+         Measurement_Record_Length : Length_24;
          Measurement_Record : Measurement_Record
-            -- ISSUE: Componolit/RecordFlux#104
-            with Size => 8 * (Measurement_Record_Length_3 * 65536
-                              + Measurement_Record_Length_2 * 256
-                              + Measurement_Record_Length_1);
+            with Size => 8 * Measurement_Record_Length;
          Nonce : Opaque
             with Size => 8 * 32;
-         Opaque_Length_1 : Length;
-         Opaque_Length_2 : Length;
+         Opaque_Length : Length_16;
          Opaque_Data : Opaque
-            -- ISSUE: Componolit/RecordFlux#104
-            with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1)
+            with Size => 8 * Opaque_Length
             then Signature
                if Opaque_Data'Last + 8 * Signature_Length = Message'Last
             then null
                if Opaque_Data'Last = Message'Last;
          Signature : Opaque
             with Size => 8 * Signature_Length;
-      end message;
+      end message
+         with Byte_Order => Low_Order_First;
 
    -- [201] Extended Algorithm field format
 
@@ -428,7 +407,8 @@ package SPDM is
          Algorithm_ID_16 : Algorithm_ID_16
             then null;
          Algorithm_ID_32 : Algorithm_ID_32;
-      end message;
+      end message
+         with Byte_Order => Low_Order_First;
 
    type Ext_Algs is sequence of Ext_Alg;
 
@@ -504,10 +484,9 @@ package SPDM is
       message
          Req_Alg_Struct_Count : Alg_Struct_Count;
          Param_2 : Reserved_8;
-         Length_1 : Length;
-         Length_2 : Length
+         Length : Length_16
             then Measurement_Specification_Reserved
-               if Length_2 * 256 + Length_1 <= 128;
+               if Length <= 128;
          Measurement_Specification_Reserved : Reserved_7;
          Measurement_Specification_DMTF : Boolean;
          Reserved_1 : Reserved_8;
@@ -552,64 +531,58 @@ package SPDM is
          Ext_Hash : Ext_Algs
             with Size => 32 * Ext_Hash_Count
             then Req_Alg_Structs
-               --  ISSUE: Componolit/RecordFlux#104
                --  Length is the total length of the message, we have to subtract the common header
                --  consisting of the Version and the Request/Response code of the Request/Response.
-               with Size => 8 * (Length_2 * 256 + Length_1) - 16 - (Ext_Hash'Last - Req_Alg_Struct_Count'First + 1)
-               if 8 * (Length_2 * 256 + Length_1) >= 16 + (Ext_Hash'Last - Req_Alg_Struct_Count'First + 1);
+               with Size => 8 * Length - 16 - (Ext_Hash'Last - Req_Alg_Struct_Count'First + 1)
+               if 8 * Length >= 16 + (Ext_Hash'Last - Req_Alg_Struct_Count'First + 1);
          Req_Alg_Structs : Req_Alg_Structs;
          -- ISSUE: Componolit/RecordFlux#51
          -- The number of elements should also match Req_Alg_Struct_Count
-      end message;
+      end message
+         with Byte_Order => Low_Order_First;
 
    type Resp_Alg_Structs is sequence of Alg_Struct;
 
-   --  ISSUE: Componolit/RecordFlux#104
-   --  This should be little endian
    type Measurement_Hash_Algo is
-      (MH_Unsupported          => 16#00000000#,
-       MH_Raw_Bit_Streams_Only => 16#01000000#,
-       MH_TPM_ALG_SHA_256      => 16#02000000#,
-       MH_TPM_ALG_SHA_384      => 16#04000000#,
-       MH_TPM_ALG_SHA_512      => 16#08000000#,
-       MH_TPM_ALG_SHA3_256     => 16#10000000#,
-       MH_TPM_ALG_SHA3_384     => 16#20000000#,
-       MH_TPM_ALG_SHA3_512     => 16#40000000#)
+      (MH_Unsupported          =>  0,
+       MH_Raw_Bit_Streams_Only =>  1,
+       MH_TPM_ALG_SHA_256      =>  2,
+       MH_TPM_ALG_SHA_384      =>  4,
+       MH_TPM_ALG_SHA_512      =>  8,
+       MH_TPM_ALG_SHA3_256     => 16,
+       MH_TPM_ALG_SHA3_384     => 32,
+       MH_TPM_ALG_SHA3_512     => 64)
    with Size => 32;
 
-   --  ISSUE: Componolit/RecordFlux#104
-   --  This should be little endian
    type Base_Asym_Sel is
-      (BA_Unsupported                 => 16#00000000#,
-       BA_TPM_ALG_RSASSA_2048         => 16#01000000#,
-       BA_TPM_ALG_RSAPSS_2048         => 16#02000000#,
-       BA_TPM_ALG_RSASSA_3072         => 16#04000000#,
-       BA_TPM_ALG_RSAPSS_3072         => 16#08000000#,
-       BA_TPM_ALG_ECDSA_ECC_NIST_P256 => 16#10000000#,
-       BA_TPM_ALG_RSASSA_4096         => 16#20000000#,
-       BA_TPM_ALG_RSAPSS_4096         => 16#40000000#,
-       BA_TPM_ALG_ECDSA_ECC_NIST_P384 => 16#80000000#,
-       BA_TPM_ALG_ECDSA_ECC_NIST_P521 => 16#00010000#)
+      (BA_Unsupported                 =>   0,
+       BA_TPM_ALG_RSASSA_2048         =>   1,
+       BA_TPM_ALG_RSAPSS_2048         =>   2,
+       BA_TPM_ALG_RSASSA_3072         =>   4,
+       BA_TPM_ALG_RSAPSS_3072         =>   8,
+       BA_TPM_ALG_ECDSA_ECC_NIST_P256 =>  16,
+       BA_TPM_ALG_RSASSA_4096         =>  32,
+       BA_TPM_ALG_RSAPSS_4096         =>  64,
+       BA_TPM_ALG_ECDSA_ECC_NIST_P384 => 128,
+       BA_TPM_ALG_ECDSA_ECC_NIST_P521 => 256)
    with Size => 32;
 
-   --  ISSUE: Componolit/RecordFlux#104
-   --  This should be little endian
    type Base_Hash_Sel is
-      (BH_Unsupported      => 16#00000000#,
-       BH_TPM_ALG_SHA_256  => 16#01000000#,
-       BH_TPM_ALG_SHA_384  => 16#02000000#,
-       BH_TPM_ALG_SHA_512  => 16#04000000#,
-       BH_TPM_ALG_SHA3_256 => 16#08000000#,
-       BH_TPM_ALG_SHA3_384 => 16#10000000#,
-       BH_TPM_ALG_SHA3_512 => 16#20000000#)
+      (BH_Unsupported      =>  0,
+       BH_TPM_ALG_SHA_256  =>  1,
+       BH_TPM_ALG_SHA_384  =>  2,
+       BH_TPM_ALG_SHA_512  =>  4,
+       BH_TPM_ALG_SHA3_256 =>  8,
+       BH_TPM_ALG_SHA3_384 => 16,
+       BH_TPM_ALG_SHA3_512 => 32)
+
    with Size => 32;
 
    type Algorithms_Response is
       message
          Resp_Alg_Struct_Count : Alg_Struct_Count;
          Param_2 : Reserved_8;
-         Length_1 : Length;
-         Length_2 : Length;
+         Length : Length_16;
          Measurement_Specification_Sel : Measurement_Specification;
          Reserved_1 : Reserved_8;
          Measurement_Hash_Algo : Measurement_Hash_Algo;
@@ -629,12 +602,13 @@ package SPDM is
             then Resp_Alg_Structs
                --  Length is the total length of the message, we have to subtract the common header
                --  consisting of the Version and the Request/Response code of the Request/Response.
-               with Size => 8 * (Length_2 * 256 + Length_1) - 16 - (Ext_Hash'Last - Resp_Alg_Struct_Count'First + 1)
-               if 8 * (Length_2 * 256 + Length_1) >= 16 + (Ext_Hash'Last - Resp_Alg_Struct_Count'First + 1);
+               with Size => 8 * Length - 16 - (Ext_Hash'Last - Resp_Alg_Struct_Count'First + 1)
+               if 8 * Length >= 16 + (Ext_Hash'Last - Resp_Alg_Struct_Count'First + 1);
          Resp_Alg_Structs : Resp_Alg_Structs;
          -- ISSUE: Componolit/RecordFlux#51
          -- The number of elements should also match Resp_Alg_Struct_Count
-      end message;
+      end message
+         with Byte_Order => Low_Order_First;
 
    -- 10.7 GET_DIGESTS request and DIGESTS response messages
 
@@ -685,21 +659,20 @@ package SPDM is
          --     For non-first requests, Offset is the sum of PortionLength values in all previous
          --     GET_CERTIFICATE responses.
          Offset : Offset;
-         Length_1 : Length;
-         Length_2 : Length;
-      end message;
+         Length : Length_16;
+      end message
+         with Byte_Order => Low_Order_First;
 
    type Certificate_Response is
       message
          Slot : Slot;
          Param_2 : Reserved_8;
-         Portion_Length_1 : Length;
-         Portion_Length_2 : Length;
-         Remainder_Length_1 : Length;
-         Remainder_Length_2 : Length;
+         Portion_Length : Length_16;
+         Remainder_Length : Length_16;
          Cert_Chain : Opaque
-            with Size => 8 * (Portion_Length_2 * 256 + Portion_Length_1);
-      end message;
+            with Size => 8 * Portion_Length;
+      end message
+         with Byte_Order => Low_Order_First;
 
    -- 10.9 CHALLENGE request and CHALLENGE_AUTH response messages
 
@@ -733,21 +706,21 @@ package SPDM is
             --  [256] MeasurementSummaryHash:
             --  When the Responder does not support measurement or requested Param2=0
             --  (i.e. Hash_Type = No_Measurment), the field shall be absent.
-            then Opaque_Length_1
+            then Opaque_Length
                if Meas_Cap = Meas_Unsupported or Hash_Type = No_Measurement
             then Measurement_Summary_Hash
                if Meas_Cap /= Meas_Unsupported and Hash_Type /= No_Measurement;
          Measurement_Summary_Hash : Opaque
             with Size => 8 * Hash_Length;
-         Opaque_Length_1 : Length;
-         Opaque_Length_2 : Length
+         Opaque_Length : Length_16
             then Opaque_Data
-               if Opaque_Length_2 * 256 + Opaque_Length_1 <= 1024;
+               if Opaque_Length <= 1024;
          Opaque_Data : Opaque
-            with Size => 8 * (Opaque_Length_2 * 256 + Opaque_Length_1);
+            with Size => 8 * Opaque_Length;
          Signature : Opaque
             with Size => 8 * Signature_Length;
-      end message;
+      end message
+         with Byte_Order => Low_Order_First;
 
    -- 10.12 ERROR response message
 
@@ -846,7 +819,8 @@ package SPDM is
          Vendor_ID_Quad : Vendor_ID_Quad
             then Opaque_Error_Data;
          Opaque_Error_Data : Opaque;
-      end message;
+      end message
+         with Byte_Order => Low_Order_First;
 
    -- 10.13 RESPOND_IF_READY request message format
 
@@ -870,11 +844,11 @@ package SPDM is
             with Size => 8 * 32;
          Exchange_Data : Opaque
             with Size => 8 * Exchange_Data_Length;
-         Opaque_Data_Length_1 : Length;
-         Opaque_Data_Length_2 : Length;
+         Opaque_Data_Length : Length_16;
          Opaque_Data : Opaque
-            with Size => 8 * (Opaque_Data_Length_2 * 256 + Opaque_Data_Length_1);
-      end message;
+            with Size => 8 * Opaque_Data_Length;
+      end message
+         with Byte_Order => Low_Order_First;
 
    type Heartbeat_Period is mod 2 ** 8;
 
@@ -910,10 +884,9 @@ package SPDM is
             with Size => 8 * Exchange_Data_Length;
          Measurement_Summary_Hash : Opaque
             with Size => 8 * Hash_Length;
-         Opaque_Data_Length_1 : Length;
-         Opaque_Data_Length_2 : Length;
+         Opaque_Data_Length : Length_16;
          Opaque_Data : Opaque
-            with Size => 8 * (Opaque_Data_Length_2 * 256 + Opaque_Data_Length_1);
+            with Size => 8 * Opaque_Data_Length;
          Signature : Opaque
             with Size => 8 * Signature_Length
             then Responder_Verify_Data
@@ -924,7 +897,8 @@ package SPDM is
          --       field shall be absent.
          Responder_Verify_Data : Opaque
             with Size => 8 * Hash_Length;
-      end message;
+      end message
+         with Byte_Order => Low_Order_First;
 
    --  10.17 FINISH request and FINISH_RSP response messages
 
@@ -1055,7 +1029,8 @@ package SPDM is
          Key_Update_Request : Key_Update_Request
             then null;
          End_Session_Request : End_Session_Request;
-      end message;
+      end message
+         with Byte_Order => Low_Order_First;
 
    type Response (Meas_Cap               : Meas_Cap;
                   Hash_Type              : Measurement_Summary_Hash_Type;
@@ -1126,6 +1101,7 @@ package SPDM is
          Key_Update_ACK_Response : Key_Update_Ack_Response
             then null;
          End_Session_Response : End_Session_Response;
-      end message;
+      end message
+         with Byte_Order => Low_Order_First;
 
 end SPDM;
