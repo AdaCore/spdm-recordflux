@@ -13,7 +13,7 @@ project Tests is
 
    package Compiler is
       for Default_Switches ("Ada") use ("-g");
-      for Default_Switches ("C") use ("-W", "-Wall", "-Wextra", "-Werror");
+      for Default_Switches ("C") use ("-W", "-Wall", "-Wextra", "-Werror", "-Wstrict-prototypes", "-Wmissing-prototypes");
    end Compiler;
 
    package Binder is

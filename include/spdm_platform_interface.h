@@ -18,4 +18,60 @@ unsigned char spdm_platform_config_cap_key_ex(void);
 unsigned char spdm_platform_config_cap_mut_auth(void);
 unsigned char spdm_platform_config_cap_pub_key_id(void);
 
+unsigned char spdm_platform_select_measurement_hash_algo(unsigned char tpm_alg_sha_256,
+                                                         unsigned char tpm_alg_sha_384,
+                                                         unsigned char tpm_alg_sha_512,
+                                                         unsigned char tpm_alg_sha3_256,
+                                                         unsigned char tpm_alg_sha3_384,
+                                                         unsigned char tpm_alg_sha3_512);
+
+long spdm_platform_select_base_asym_algo(unsigned char tpm_alg_ecdsa_ecc_nist_p384,
+                                         unsigned char tpm_alg_rsapss_4096,
+                                         unsigned char tpm_alg_rsassa_4096,
+                                         unsigned char tpm_alg_ecdsa_ecc_nist_p256,
+                                         unsigned char tpm_alg_rsapss_3072,
+                                         unsigned char tpm_alg_rsassa_3072,
+                                         unsigned char tpm_alg_rsapss_2048,
+                                         unsigned char tpm_alg_rsassa_2048,
+                                         unsigned char tpm_alg_ecdsa_ecc_nist_p521);
+
+unsigned char spdm_platform_select_base_hash_algo(unsigned char tpm_alg_sha_256,
+                                                  unsigned char tpm_alg_sha_384,
+                                                  unsigned char tpm_alg_sha_512,
+                                                  unsigned char tpm_alg_sha3_256,
+                                                  unsigned char tpm_alg_sha3_384,
+                                                  unsigned char tpm_alg_sha3_512);
+
+unsigned char spdm_platform_select_dhe(unsigned char secp521r1,
+                                       unsigned char secp384r1,
+                                       unsigned char secp256r1,
+                                       unsigned char ffdhe4096,
+                                       unsigned char ffdhe3072,
+                                       unsigned char ffdhe2048);
+
+unsigned char spdm_platform_select_aead(unsigned char chacha20_poly1305,
+                                        unsigned char aes_256_gcm,
+                                        unsigned char aes_128_gcm);
+
+long spdm_platform_select_rbba(unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
+                               unsigned char ra_tpm_alg_rsapss_4096,
+                               unsigned char ra_tpm_alg_rsassa_4096,
+                               unsigned char ra_tpm_alg_ecdsa_ecc_nist_p256,
+                               unsigned char ra_tpm_alg_rsapss_3072,
+                               unsigned char ra_tpm_alg_rsassa_3072,
+                               unsigned char ra_tpm_alg_rsapss_2048,
+                               unsigned char ra_tpm_alg_rsassa_2048,
+                               unsigned char ra_tpm_alg_ecdsa_ecc_nist_p521);
+
+unsigned char spdm_platform_config_slot_0_present(void);
+unsigned char spdm_platform_config_slot_1_present(void);
+unsigned char spdm_platform_config_slot_2_present(void);
+unsigned char spdm_platform_config_slot_3_present(void);
+unsigned char spdm_platform_config_slot_4_present(void);
+unsigned char spdm_platform_config_slot_5_present(void);
+unsigned char spdm_platform_config_slot_6_present(void);
+unsigned char spdm_platform_config_slot_7_present(void);
+
+void spdm_platform_get_digests_data(char *data, long length);
+
 #endif // __SPDM_PLATFORM_INTERFACE__

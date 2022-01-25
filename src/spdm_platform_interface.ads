@@ -64,7 +64,7 @@ package SPDM_Platform_Interface is
    --  Select a measurement hash algorithm based on receive proposal
    procedure Select_Measurement_Hash_Algo
                 (Result           : out RFLX.SPDM.Measurement_Hash_Algo;
-                 TPM_ALG_SHA256   :     Boolean;
+                 TPM_ALG_SHA_256  :     Boolean;
                  TPM_ALG_SHA_384  :     Boolean;
                  TPM_ALG_SHA_512  :     Boolean;
                  TPM_ALG_SHA3_256 :     Boolean;
@@ -87,7 +87,7 @@ package SPDM_Platform_Interface is
    --  Select a hash algorithm based on receive proposal
    procedure Select_Base_Hash_Algo
                 (Result           : out RFLX.SPDM.Base_Hash_Sel;
-                 TPM_ALG_SHA256   :     Boolean;
+                 TPM_ALG_SHA_256  :     Boolean;
                  TPM_ALG_SHA_384  :     Boolean;
                  TPM_ALG_SHA_512  :     Boolean;
                  TPM_ALG_SHA3_256 :     Boolean;
@@ -95,31 +95,31 @@ package SPDM_Platform_Interface is
                  TPM_ALG_SHA3_512 :     Boolean);
 
    procedure Select_DHE
-      (Result        : out RFLX.SPDM_Responder.DHE_Algo;
-       Req_SecP521r1 :     Boolean;
-       Req_SecP384r1 :     Boolean;
-       Req_SecP256r1 :     Boolean;
-       Req_FFDHE4096 :     Boolean;
-       Req_FFDHE3072 :     Boolean;
-       Req_FFDHE2048 :     Boolean);
+      (Result    : out RFLX.SPDM_Responder.DHE_Algo;
+       SecP521r1 :     Boolean;
+       SecP384r1 :     Boolean;
+       SecP256r1 :     Boolean;
+       FFDHE4096 :     Boolean;
+       FFDHE3072 :     Boolean;
+       FFDHE2048 :     Boolean);
 
    procedure Select_AEAD
-      (Result                : out RFLX.SPDM_Responder.AEAD_Algo;
-       Req_ChaCha20_Poly1305 :     Boolean;
-       Req_AES_256_GCM       :     Boolean;
-       Req_AES_128_GCM       :     Boolean);
+      (Result            : out RFLX.SPDM_Responder.AEAD_Algo;
+       ChaCha20_Poly1305 :     Boolean;
+       AES_256_GCM       :     Boolean;
+       AES_128_GCM       :     Boolean);
 
    procedure Select_RBAA
-      (Result                          : out RFLX.SPDM_Responder.RBAA_Algo;
-       Req_TPM_ALG_ECDSA_ECC_NIST_P384 :     Boolean;
-       Req_TPM_ALG_RSAPSS_4096         :     Boolean;
-       Req_TPM_ALG_RSASSA_4096         :     Boolean;
-       Req_TPM_ALG_ECDSA_ECC_NIST_P256 :     Boolean;
-       Req_TPM_ALG_RSAPSS_3072         :     Boolean;
-       Req_TPM_ALG_RSASSA_3072         :     Boolean;
-       Req_TPM_ALG_RSAPSS_2048         :     Boolean;
-       Req_TPM_ALG_RSASSA_2048         :     Boolean;
-       Req_TPM_ALG_ECDSA_ECC_NIST_P521 :     Boolean);
+      (Result                      : out RFLX.SPDM_Responder.RBAA_Algo;
+       TPM_ALG_ECDSA_ECC_NIST_P384 :     Boolean;
+       TPM_ALG_RSAPSS_4096         :     Boolean;
+       TPM_ALG_RSASSA_4096         :     Boolean;
+       TPM_ALG_ECDSA_ECC_NIST_P256 :     Boolean;
+       TPM_ALG_RSAPSS_3072         :     Boolean;
+       TPM_ALG_RSASSA_3072         :     Boolean;
+       TPM_ALG_RSAPSS_2048         :     Boolean;
+       TPM_ALG_RSASSA_2048         :     Boolean;
+       TPM_ALG_ECDSA_ECC_NIST_P521 :     Boolean);
 
    procedure Get_Digests_Data (Plat_Get_Digests_Data : out RFLX.SPDM_Responder.Digests_Data.Structure;
                                Algorithm             :     RFLX.SPDM.Measurement_Hash_Algo);

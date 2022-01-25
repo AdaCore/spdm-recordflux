@@ -1,3 +1,4 @@
+with System;
 with Ada.Text_IO;
 with RFLX.RFLX_Builtin_Types;
 with Interfaces.C;
@@ -191,18 +192,49 @@ package body SPDM_Platform_Interface is
       Result := C_Interface > 0;
    end Config_Cap_Pub_Key_ID;
 
+   function C_Bool (Value : Boolean) return Interfaces.C.unsigned_char is
+      (if Value then 1 else 0);
+
    procedure Select_Measurement_Hash_Algo
                 (Result           : out RFLX.SPDM.Measurement_Hash_Algo;
-                 TPM_ALG_SHA256   :     Boolean;
+                 TPM_ALG_SHA_256  :     Boolean;
                  TPM_ALG_SHA_384  :     Boolean;
                  TPM_ALG_SHA_512  :     Boolean;
                  TPM_ALG_SHA3_256 :     Boolean;
                  TPM_ALG_SHA3_384 :     Boolean;
                  TPM_ALG_SHA3_512 :     Boolean)
    is
+      function C_Interface
+         (TPM_ALG_SHA_256  : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA_384  : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA_512  : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA3_256 : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA3_384 : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA3_512 : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char
+      with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_select_measurement_hash_algo";
+      Value : constant Interfaces.C.unsigned_char :=
+         C_Interface (TPM_ALG_SHA_256  => C_Bool (TPM_ALG_SHA_256),
+                      TPM_ALG_SHA_384  => C_Bool (TPM_ALG_SHA_384),
+                      TPM_ALG_SHA_512  => C_Bool (TPM_ALG_SHA_512),
+                      TPM_ALG_SHA3_256 => C_Bool (TPM_ALG_SHA3_256),
+                      TPM_ALG_SHA3_384 => C_Bool (TPM_ALG_SHA3_384),
+                      TPM_ALG_SHA3_512 => C_Bool (TPM_ALG_SHA3_512));
+      use type Interfaces.C.unsigned_char;
    begin
-      --  FIXME
-      Result := RFLX.SPDM.MH_TPM_ALG_SHA3_256;
+      --  Values could be used directly
+      --  ISSUE: Componolit/RecordFlux#913
+      Result := (case Value is
+                 when     32 => RFLX.SPDM.MH_TPM_ALG_SHA3_512,
+                 when     16 => RFLX.SPDM.MH_TPM_ALG_SHA3_384,
+                 when      8 => RFLX.SPDM.MH_TPM_ALG_SHA3_256,
+                 when      4 => RFLX.SPDM.MH_TPM_ALG_SHA_512,
+                 when      2 => RFLX.SPDM.MH_TPM_ALG_SHA_384,
+                 when      1 => RFLX.SPDM.MH_TPM_ALG_SHA_256,
+                 when      0 => RFLX.SPDM.Raw_Bit_Streams_Only,
+                 when others => raise Constraint_Error);
    end Select_Measurement_Hash_Algo;
 
    procedure Select_Base_Asym_Algo
@@ -217,114 +249,299 @@ package body SPDM_Platform_Interface is
                  TPM_ALG_RSASSA_2048         :     Boolean;
                  TPM_ALG_ECDSA_ECC_NIST_P521 :     Boolean)
    is
+      function C_Interface
+         (TPM_ALG_ECDSA_ECC_NIST_P384 : Interfaces.C.unsigned_char;
+          TPM_ALG_RSAPSS_4096         : Interfaces.C.unsigned_char;
+          TPM_ALG_RSASSA_4096         : Interfaces.C.unsigned_char;
+          TPM_ALG_ECDSA_ECC_NIST_P256 : Interfaces.C.unsigned_char;
+          TPM_ALG_RSAPSS_3072         : Interfaces.C.unsigned_char;
+          TPM_ALG_RSASSA_3072         : Interfaces.C.unsigned_char;
+          TPM_ALG_RSAPSS_2048         : Interfaces.C.unsigned_char;
+          TPM_ALG_RSASSA_2048         : Interfaces.C.unsigned_char;
+          TPM_ALG_ECDSA_ECC_NIST_P521 : Interfaces.C.unsigned_char) return Interfaces.C.long
+      with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_select_base_asym_algo";
+      Value : constant Interfaces.C.long :=
+         C_Interface (TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P384),
+                      TPM_ALG_RSAPSS_4096         => C_Bool (TPM_ALG_RSAPSS_4096),
+                      TPM_ALG_RSASSA_4096         => C_Bool (TPM_ALG_RSASSA_4096),
+                      TPM_ALG_ECDSA_ECC_NIST_P256 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P256),
+                      TPM_ALG_RSAPSS_3072         => C_Bool (TPM_ALG_RSAPSS_3072),
+                      TPM_ALG_RSASSA_3072         => C_Bool (TPM_ALG_RSASSA_3072),
+                      TPM_ALG_RSAPSS_2048         => C_Bool (TPM_ALG_RSAPSS_2048),
+                      TPM_ALG_RSASSA_2048         => C_Bool (TPM_ALG_RSASSA_2048),
+                      TPM_ALG_ECDSA_ECC_NIST_P521 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P521));
+      use type Interfaces.C.long;
    begin
-      --  FIXME
-      Result := RFLX.SPDM.BA_Unsupported;
+      --  Values could be used directly
+      --  ISSUE: Componolit/RecordFlux#913
+      Result := (case Value is
+                 when    256 => RFLX.SPDM.BA_TPM_ALG_ECDSA_ECC_NIST_P521,
+                 when    128 => RFLX.SPDM.BA_TPM_ALG_ECDSA_ECC_NIST_P384,
+                 when     64 => RFLX.SPDM.BA_TPM_ALG_RSAPSS_4096,
+                 when     32 => RFLX.SPDM.BA_TPM_ALG_RSASSA_4096,
+                 when     16 => RFLX.SPDM.BA_TPM_ALG_ECDSA_ECC_NIST_P256,
+                 when      8 => RFLX.SPDM.BA_TPM_ALG_RSAPSS_3072,
+                 when      4 => RFLX.SPDM.BA_TPM_ALG_RSASSA_3072,
+                 when      2 => RFLX.SPDM.BA_TPM_ALG_RSAPSS_2048,
+                 when      1 => RFLX.SPDM.BA_TPM_ALG_RSASSA_2048,
+                 when      0 => RFLX.SPDM.BA_Unsupported,
+                 when others => raise Constraint_Error);
    end Select_Base_Asym_Algo;
 
    procedure Select_Base_Hash_Algo
                 (Result           : out RFLX.SPDM.Base_Hash_Sel;
-                 TPM_ALG_SHA256   :     Boolean;
+                 TPM_ALG_SHA_256  :     Boolean;
                  TPM_ALG_SHA_384  :     Boolean;
                  TPM_ALG_SHA_512  :     Boolean;
                  TPM_ALG_SHA3_256 :     Boolean;
                  TPM_ALG_SHA3_384 :     Boolean;
                  TPM_ALG_SHA3_512 :     Boolean)
    is
+      function C_Interface
+         (TPM_ALG_SHA_256  : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA_384  : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA_512  : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA3_256 : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA3_384 : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA3_512 : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char
+      with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_select_base_hash_algo";
+      Value : constant Interfaces.C.unsigned_char :=
+         C_Interface (TPM_ALG_SHA_256  => C_Bool (TPM_ALG_SHA_256),
+                      TPM_ALG_SHA_384  => C_Bool (TPM_ALG_SHA_384),
+                      TPM_ALG_SHA_512  => C_Bool (TPM_ALG_SHA_512),
+                      TPM_ALG_SHA3_256 => C_Bool (TPM_ALG_SHA3_256),
+                      TPM_ALG_SHA3_384 => C_Bool (TPM_ALG_SHA3_384),
+                      TPM_ALG_SHA3_512 => C_Bool (TPM_ALG_SHA3_512));
+      use type Interfaces.C.unsigned_char;
    begin
-      --  FIXME
-      Result := RFLX.SPDM.BH_TPM_ALG_SHA3_512;
+      --  Values could be used directly
+      --  ISSUE: Componolit/RecordFlux#913
+      Result := (case Value is
+                 when     32 => RFLX.SPDM.BH_TPM_ALG_SHA_256,
+                 when     16 => RFLX.SPDM.BH_TPM_ALG_SHA_384,
+                 when      8 => RFLX.SPDM.BH_TPM_ALG_SHA_512,
+                 when      4 => RFLX.SPDM.BH_TPM_ALG_SHA3_256,
+                 when      2 => RFLX.SPDM.BH_TPM_ALG_SHA3_384,
+                 when      1 => RFLX.SPDM.BH_TPM_ALG_SHA3_512,
+                 when others => raise Constraint_Error);
    end Select_Base_Hash_Algo;
 
    procedure Select_DHE
-      (Result        : out RFLX.SPDM_Responder.DHE_Algo;
-       Req_SecP521r1 :     Boolean;
-       Req_SecP384r1 :     Boolean;
-       Req_SecP256r1 :     Boolean;
-       Req_FFDHE4096 :     Boolean;
-       Req_FFDHE3072 :     Boolean;
-       Req_FFDHE2048 :     Boolean)
+      (Result    : out RFLX.SPDM_Responder.DHE_Algo;
+       SecP521r1 :     Boolean;
+       SecP384r1 :     Boolean;
+       SecP256r1 :     Boolean;
+       FFDHE4096 :     Boolean;
+       FFDHE3072 :     Boolean;
+       FFDHE2048 :     Boolean)
    is
+      function C_Interface
+         (SecP521r1 : Interfaces.C.unsigned_char;
+          SecP384r1 : Interfaces.C.unsigned_char;
+          SecP256r1 : Interfaces.C.unsigned_char;
+          FFDHE4096 : Interfaces.C.unsigned_char;
+          FFDHE3072 : Interfaces.C.unsigned_char;
+          FFDHE2048 : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char
+      with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_select_dhe";
+      Value : constant Interfaces.C.unsigned_char :=
+         C_Interface (SecP521r1 => C_Bool (SecP521r1),
+                      SecP384r1 => C_Bool (SecP384r1),
+                      SecP256r1 => C_Bool (SecP256r1),
+                      FFDHE4096 => C_Bool (FFDHE4096),
+                      FFDHE3072 => C_Bool (FFDHE3072),
+                      FFDHE2048 => C_Bool (FFDHE2048));
+      use type Interfaces.C.unsigned_char;
    begin
-      -- FIXME
-      Result := RFLX.SPDM_Responder.DA_SecP384r1;
+      --  Values could be used directly
+      --  ISSUE: Componolit/RecordFlux#913
+      Result := (case Value is
+                 when     32 => RFLX.SPDM_Responder.DA_SecP521r1,
+                 when     16 => RFLX.SPDM_Responder.DA_SecP384r1,
+                 when      8 => RFLX.SPDM_Responder.DA_SecP256r1,
+                 when      4 => RFLX.SPDM_Responder.DA_FFDHE4096,
+                 when      2 => RFLX.SPDM_Responder.DA_FFDHE3072,
+                 when      1 => RFLX.SPDM_Responder.DA_FFDHE2048,
+                 when others => raise Constraint_Error);
    end Select_DHE;
 
    procedure Select_AEAD
-      (Result                : out RFLX.SPDM_Responder.AEAD_Algo;
-       Req_ChaCha20_Poly1305 :     Boolean;
-       Req_AES_256_GCM       :     Boolean;
-       Req_AES_128_GCM       :     Boolean)
+      (Result            : out RFLX.SPDM_Responder.AEAD_Algo;
+       ChaCha20_Poly1305 :     Boolean;
+       AES_256_GCM       :     Boolean;
+       AES_128_GCM       :     Boolean)
    is
+      function C_Interface
+         (AA_ChaCha20_Poly1305 : Interfaces.C.unsigned_char;
+          AA_AES_256_GCM       : Interfaces.C.unsigned_char;
+          AA_AES_128_GCM       : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char
+      with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_select_aead";
+      Value : constant Interfaces.C.unsigned_char :=
+         C_Interface (AA_ChaCha20_Poly1305 => C_Bool (ChaCha20_Poly1305),
+                      AA_AES_256_GCM       => C_Bool (AES_256_GCM),
+                      AA_AES_128_GCM       => C_Bool (AES_128_GCM));
+      use type Interfaces.C.unsigned_char;
    begin
-      -- FIXME
-      Result := RFLX.SPDM_Responder.AA_AES_256_GCM;
+      --  Values could be used directly
+      --  ISSUE: Componolit/RecordFlux#913
+      Result := (case Value is
+                 when      4 => RFLX.SPDM_Responder.AA_ChaCha20_Poly1305,
+                 when      2 => RFLX.SPDM_Responder.AA_AES_256_GCM,
+                 when      1 => RFLX.SPDM_Responder.AA_AES_128_GCM,
+                 when others => raise Constraint_Error);
    end Select_AEAD;
 
    procedure Select_RBAA
-      (Result                          : out RFLX.SPDM_Responder.RBAA_Algo;
-       Req_TPM_ALG_ECDSA_ECC_NIST_P384 :     Boolean;
-       Req_TPM_ALG_RSAPSS_4096         :     Boolean;
-       Req_TPM_ALG_RSASSA_4096         :     Boolean;
-       Req_TPM_ALG_ECDSA_ECC_NIST_P256 :     Boolean;
-       Req_TPM_ALG_RSAPSS_3072         :     Boolean;
-       Req_TPM_ALG_RSASSA_3072         :     Boolean;
-       Req_TPM_ALG_RSAPSS_2048         :     Boolean;
-       Req_TPM_ALG_RSASSA_2048         :     Boolean;
-       Req_TPM_ALG_ECDSA_ECC_NIST_P521 :     Boolean)
+      (Result                      : out RFLX.SPDM_Responder.RBAA_Algo;
+       TPM_ALG_ECDSA_ECC_NIST_P384 :     Boolean;
+       TPM_ALG_RSAPSS_4096         :     Boolean;
+       TPM_ALG_RSASSA_4096         :     Boolean;
+       TPM_ALG_ECDSA_ECC_NIST_P256 :     Boolean;
+       TPM_ALG_RSAPSS_3072         :     Boolean;
+       TPM_ALG_RSASSA_3072         :     Boolean;
+       TPM_ALG_RSAPSS_2048         :     Boolean;
+       TPM_ALG_RSASSA_2048         :     Boolean;
+       TPM_ALG_ECDSA_ECC_NIST_P521 :     Boolean)
    is
+      function C_Interface
+         (RA_TPM_ALG_ECDSA_ECC_NIST_P384 : Interfaces.C.unsigned_char;
+          RA_TPM_ALG_RSAPSS_4096         : Interfaces.C.unsigned_char;
+          RA_TPM_ALG_RSASSA_4096         : Interfaces.C.unsigned_char;
+          RA_TPM_ALG_ECDSA_ECC_NIST_P256 : Interfaces.C.unsigned_char;
+          RA_TPM_ALG_RSAPSS_3072         : Interfaces.C.unsigned_char;
+          RA_TPM_ALG_RSASSA_3072         : Interfaces.C.unsigned_char;
+          RA_TPM_ALG_RSAPSS_2048         : Interfaces.C.unsigned_char;
+          RA_TPM_ALG_RSASSA_2048         : Interfaces.C.unsigned_char;
+          RA_TPM_ALG_ECDSA_ECC_NIST_P521 : Interfaces.C.unsigned_char) return Interfaces.C.long
+      with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_select_rbba";
+      Value : constant Interfaces.C.long :=
+         C_Interface (RA_TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P384),
+                      RA_TPM_ALG_RSAPSS_4096         => C_Bool (TPM_ALG_RSAPSS_4096),
+                      RA_TPM_ALG_RSASSA_4096         => C_Bool (TPM_ALG_RSASSA_4096),
+                      RA_TPM_ALG_ECDSA_ECC_NIST_P256 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P256),
+                      RA_TPM_ALG_RSAPSS_3072         => C_Bool (TPM_ALG_RSAPSS_3072),
+                      RA_TPM_ALG_RSASSA_3072         => C_Bool (TPM_ALG_RSASSA_3072),
+                      RA_TPM_ALG_RSAPSS_2048         => C_Bool (TPM_ALG_RSAPSS_2048),
+                      RA_TPM_ALG_RSASSA_2048         => C_Bool (TPM_ALG_RSASSA_2048),
+                      RA_TPM_ALG_ECDSA_ECC_NIST_P521 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P521));
+      use type Interfaces.C.unsigned_char;
    begin
-      -- FIXME
-      Result := RFLX.SPDM_Responder.RA_TPM_ALG_RSAPSS_3072;
+      --  Values could be used directly
+      --  ISSUE: Componolit/RecordFlux#913
+      Result := (case Value is
+                 when    256 => RFLX.SPDM_Responder.RA_TPM_ALG_ECDSA_ECC_NIST_P384,
+                 when    128 => RFLX.SPDM_Responder.RA_TPM_ALG_RSAPSS_4096,
+                 when     64 => RFLX.SPDM_Responder.RA_TPM_ALG_RSASSA_4096,
+                 when     32 => RFLX.SPDM_Responder.RA_TPM_ALG_ECDSA_ECC_NIST_P256,
+                 when     16 => RFLX.SPDM_Responder.RA_TPM_ALG_RSAPSS_3072,
+                 when      8 => RFLX.SPDM_Responder.RA_TPM_ALG_RSASSA_3072,
+                 when      4 => RFLX.SPDM_Responder.RA_TPM_ALG_RSAPSS_2048,
+                 when      2 => RFLX.SPDM_Responder.RA_TPM_ALG_RSASSA_2048,
+                 when      1 => RFLX.SPDM_Responder.RA_TPM_ALG_ECDSA_ECC_NIST_P521,
+                 when others => raise Constraint_Error);
    end Select_RBAA;
 
    --  Slots present on the platform
    procedure Config_Slot_0_Present (Result : out RFLX.SPDM.Slot_Present)
    is
+      function C_Interface return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_slot_0_present";
+      use type Interfaces.C.unsigned_char;
    begin
-      Result := 1;
+      Result := RFLX.SPDM.Slot_Present (C_Interface);
    end Config_Slot_0_Present;
 
    procedure Config_Slot_1_Present (Result : out RFLX.SPDM.Slot_Present)
    is
+      function C_Interface return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_slot_1_present";
+      use type Interfaces.C.unsigned_char;
    begin
-      Result := 1;
+      Result := RFLX.SPDM.Slot_Present (C_Interface);
    end Config_Slot_1_Present;
 
    procedure Config_Slot_2_Present (Result : out RFLX.SPDM.Slot_Present)
    is
+      function C_Interface return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_slot_2_present";
+      use type Interfaces.C.unsigned_char;
    begin
-      Result := 1;
+      Result := RFLX.SPDM.Slot_Present (C_Interface);
    end Config_Slot_2_Present;
 
    procedure Config_Slot_3_Present (Result : out RFLX.SPDM.Slot_Present)
    is
+      function C_Interface return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_slot_3_present";
+      use type Interfaces.C.unsigned_char;
    begin
-      Result := 0;
+      Result := RFLX.SPDM.Slot_Present (C_Interface);
    end Config_Slot_3_Present;
 
    procedure Config_Slot_4_Present (Result : out RFLX.SPDM.Slot_Present)
    is
+      function C_Interface return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_slot_4_present";
+      use type Interfaces.C.unsigned_char;
    begin
-      Result := 0;
+      Result := RFLX.SPDM.Slot_Present (C_Interface);
    end Config_Slot_4_Present;
 
    procedure Config_Slot_5_Present (Result : out RFLX.SPDM.Slot_Present)
    is
+      function C_Interface return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_slot_5_present";
+      use type Interfaces.C.unsigned_char;
    begin
-      Result := 0;
+      Result := RFLX.SPDM.Slot_Present (C_Interface);
    end Config_Slot_5_Present;
 
    procedure Config_Slot_6_Present (Result : out RFLX.SPDM.Slot_Present)
    is
+      function C_Interface return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_slot_6_present";
+      use type Interfaces.C.unsigned_char;
    begin
-      Result := 0;
+      Result := RFLX.SPDM.Slot_Present (C_Interface);
    end Config_Slot_6_Present;
 
    procedure Config_Slot_7_Present (Result : out RFLX.SPDM.Slot_Present)
    is
+      function C_Interface return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_slot_7_present";
+      use type Interfaces.C.unsigned_char;
    begin
-      Result := 0;
+      Result := RFLX.SPDM.Slot_Present (C_Interface);
    end Config_Slot_7_Present;
 
    procedure Get_Digests_Data (Plat_Get_Digests_Data : out RFLX.SPDM_Responder.Digests_Data.Structure;
@@ -333,6 +550,12 @@ package body SPDM_Platform_Interface is
       Tmp   : RFLX.SPDM.Slot_Present;
       Len   : Natural := 0;
       Slots : Natural := 0;
+      procedure C_Interface (Data   : System.Address;
+                             Length : Interfaces.C.long) with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_get_digests_data";
+      use type Interfaces.C.unsigned_char;
       use type RFLX.SPDM_Responder.Digests_Length;
    begin
       Len := (case Algorithm is
@@ -356,7 +579,8 @@ package body SPDM_Platform_Interface is
       Slots := Slots + Natural (Tmp);
       Config_Slot_7_Present (Tmp);
       Slots := Slots + Natural (Tmp);
-      Plat_Get_Digests_Data := (RFLX.SPDM_Responder.Digests_Length (Len * Slots), (others => 16#42#));
+      Plat_Get_Digests_Data.Length := RFLX.SPDM_Responder.Digests_Length (Len * Slots);
+      C_Interface (Plat_Get_Digests_Data.Value'Address, Interfaces.C.long (Plat_Get_Digests_Data.Length));
    end Get_Digests_Data;
 
 end SPDM_Platform_Interface;
