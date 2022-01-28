@@ -567,40 +567,40 @@ package SPDM is
    --  ISSUE: Componolit/RecordFlux#104
    --  This should be little endian
    type Measurement_Hash_Algo is
-      (Raw_Bit_Streams_Only => 2147483648,
-       MH_TPM_ALG_SHA_256   => 1073741824,
-       MH_TPM_ALG_SHA_384   => 536870912,
-       MH_TPM_ALG_SHA_512   => 268435456,
-       MH_TPM_ALG_SHA3_256  => 134217728,
-       MH_TPM_ALG_SHA3_384  => 67108864,
-       MH_TPM_ALG_SHA3_512  => 33554432)
+      (Raw_Bit_Streams_Only => 16#01000000#,
+       MH_TPM_ALG_SHA_256   => 16#02000000#,
+       MH_TPM_ALG_SHA_384   => 16#04000000#,
+       MH_TPM_ALG_SHA_512   => 16#08000000#,
+       MH_TPM_ALG_SHA3_256  => 16#10000000#,
+       MH_TPM_ALG_SHA3_384  => 16#20000000#,
+       MH_TPM_ALG_SHA3_512  => 16#40000000#)
    with Size => 32;
 
    --  ISSUE: Componolit/RecordFlux#104
    --  This should be little endian
    type Base_Asym_Sel is
-      (BA_Unsupported                 => 2147483648,
-       BA_TPM_ALG_RSASSA_2048         => 1073741824,
-       BA_TPM_ALG_RSAPSS_2048         => 536870912,
-       BA_TPM_ALG_RSASSA_3072         => 268435456,
-       BA_TPM_ALG_RSAPSS_3072         => 134217728,
-       BA_TPM_ALG_ECDSA_ECC_NIST_P256 => 67108864,
-       BA_TPM_ALG_RSASSA_4096         => 33554432,
-       BA_TPM_ALG_RSAPSS_4096         => 16777216,
-       BA_TPM_ALG_ECDSA_ECC_NIST_P384 => 8388608,
-       BA_TPM_ALG_ECDSA_ECC_NIST_P521 => 4194304)
+      (BA_Unsupported                 => 16#00000000#,
+       BA_TPM_ALG_RSASSA_2048         => 16#01000000#,
+       BA_TPM_ALG_RSAPSS_2048         => 16#02000000#,
+       BA_TPM_ALG_RSASSA_3072         => 16#04000000#,
+       BA_TPM_ALG_RSAPSS_3072         => 16#08000000#,
+       BA_TPM_ALG_ECDSA_ECC_NIST_P256 => 16#10000000#,
+       BA_TPM_ALG_RSASSA_4096         => 16#20000000#,
+       BA_TPM_ALG_RSAPSS_4096         => 16#40000000#,
+       BA_TPM_ALG_ECDSA_ECC_NIST_P384 => 16#80000000#,
+       BA_TPM_ALG_ECDSA_ECC_NIST_P521 => 16#00010000#)
    with Size => 32;
 
    --  ISSUE: Componolit/RecordFlux#104
    --  This should be little endian
    type Base_Hash_Sel is
-      (BH_Unsupported      => 2147483648,
-       BH_TPM_ALG_SHA_256  => 1073741824,
-       BH_TPM_ALG_SHA_384  => 536870912,
-       BH_TPM_ALG_SHA_512  => 268435456,
-       BH_TPM_ALG_SHA3_256 => 134217728,
-       BH_TPM_ALG_SHA3_384 => 67108864,
-       BH_TPM_ALG_SHA3_512 => 33554432)
+      (BH_Unsupported      => 16#00000000#,
+       BH_TPM_ALG_SHA_256  => 16#01000000#,
+       BH_TPM_ALG_SHA_384  => 16#02000000#,
+       BH_TPM_ALG_SHA_512  => 16#04000000#,
+       BH_TPM_ALG_SHA3_256 => 16#08000000#,
+       BH_TPM_ALG_SHA3_384 => 16#10000000#,
+       BH_TPM_ALG_SHA3_512 => 16#20000000#)
    with Size => 32;
 
    type Algorithms_Response is

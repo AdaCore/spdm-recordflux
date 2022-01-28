@@ -55,7 +55,7 @@ package SPDM_Responder is
       with function Plat_Cfg_Cap_Key_Ex return Boolean;
       with function Plat_Cfg_Cap_Mut_Auth return Boolean;
       with function Plat_Cfg_Cap_Pub_Key_ID return Boolean;
-      with function Plat_Cfg_Sel_Measurement_Hash_Algo (TPM_ALG_SHA256   : Boolean;
+      with function Plat_Cfg_Sel_Measurement_Hash_Algo (TPM_ALG_SHA_256  : Boolean;
                                                         TPM_ALG_SHA_384  : Boolean;
                                                         TPM_ALG_SHA_512  : Boolean;
                                                         TPM_ALG_SHA3_256 : Boolean;
