@@ -11,10 +11,18 @@ jobs:
             fail-fast: false
         steps:
             - uses: actions/checkout@v2
-            - name: Install toolchain
-              uses: ada-actions/toolchain@ce2021
+            - uses: ada-actions/toolchain@ce2021
               with:
                   distrib: community
+                  target: native
+            - uses: ada-actions/toolchain@ce2021
+              with:
+                  distrib: community
+                  target: arm-elf
+            - uses: ada-actions/toolchain@ce2021
+              with:
+                  distrib: community
+                  target: riscv32-elf
             - name: Install dependencies
               run: |
                   git submodule update --init --recursive

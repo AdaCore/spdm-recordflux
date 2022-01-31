@@ -1,4 +1,4 @@
-.PHONY: all test check package test_package clean
+.PHONY: all test check package test_package test_arm test_riscv32 clean
 
 TMPDIR := $(shell mktemp -d)
 FILE_LIST := $(shell mktemp)
@@ -24,7 +24,7 @@ build/example/main: build/example/generated/rflx.ads
 	test -n "$(CROSS_GNAT_PATH)"
 	PATH="$(CROSS_GNAT_PATH):$(PATH)" gprbuild -P examples/build
 
-test: test_validate test_responder
+test: test_validate test_responder test_arm test_riscv32
 
 check: | $(RFLX)
 	$(RFLX) check specs/spdm_responder.rflx
@@ -116,6 +116,12 @@ test_package: build/spdm_$(GITREV).tar
 	PATH="$(TMPDIR)/package_test_venv/bin:$(CROSS_GNAT_PATH):$(PATH)" make -C $(TMPDIR)/package_test lib
 	# static library must exist
 	test -f $(TMPDIR)/package_test/build/lib/libspdm.a
+
+test_arm: build/generated/rflx.ads
+	gprbuild -j0 -P tests/arm.gpr
+
+test_riscv32: build/generated/rflx.ads
+	gprbuild -j0 -P tests/riscv32.gpr
 
 clean:
 	rm -rf build
