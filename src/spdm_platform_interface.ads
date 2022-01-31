@@ -51,16 +51,6 @@ package SPDM_Platform_Interface is
    --  Retrieve PUB_KEY_ID_CAP
    procedure Config_Cap_Pub_Key_ID (Result : out Boolean);
 
-   --  Slots present on the platform
-   procedure Config_Slot_0_Present (Result : out RFLX.SPDM.Slot_Present);
-   procedure Config_Slot_1_Present (Result : out RFLX.SPDM.Slot_Present);
-   procedure Config_Slot_2_Present (Result : out RFLX.SPDM.Slot_Present);
-   procedure Config_Slot_3_Present (Result : out RFLX.SPDM.Slot_Present);
-   procedure Config_Slot_4_Present (Result : out RFLX.SPDM.Slot_Present);
-   procedure Config_Slot_5_Present (Result : out RFLX.SPDM.Slot_Present);
-   procedure Config_Slot_6_Present (Result : out RFLX.SPDM.Slot_Present);
-   procedure Config_Slot_7_Present (Result : out RFLX.SPDM.Slot_Present);
-
    --  Select a measurement hash algorithm based on receive proposal
    procedure Select_Measurement_Hash_Algo
                 (Result           : out RFLX.SPDM.Measurement_Hash_Algo;

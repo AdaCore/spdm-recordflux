@@ -63,15 +63,6 @@ long spdm_platform_select_rbba(unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
                                unsigned char ra_tpm_alg_rsassa_2048,
                                unsigned char ra_tpm_alg_ecdsa_ecc_nist_p521);
 
-unsigned char spdm_platform_config_slot_0_present(void);
-unsigned char spdm_platform_config_slot_1_present(void);
-unsigned char spdm_platform_config_slot_2_present(void);
-unsigned char spdm_platform_config_slot_3_present(void);
-unsigned char spdm_platform_config_slot_4_present(void);
-unsigned char spdm_platform_config_slot_5_present(void);
-unsigned char spdm_platform_config_slot_6_present(void);
-unsigned char spdm_platform_config_slot_7_present(void);
-
-void spdm_platform_get_digests_data(char *data, long length);
+void spdm_platform_get_digests_data(char *data, long *length, unsigned char *slot_mask);
 
 #endif // __SPDM_PLATFORM_INTERFACE__

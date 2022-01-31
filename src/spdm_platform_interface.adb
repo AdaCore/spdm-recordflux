@@ -454,132 +454,35 @@ package body SPDM_Platform_Interface is
                  when others => raise Constraint_Error);
    end Select_RBAA;
 
-   --  Slots present on the platform
-   procedure Config_Slot_0_Present (Result : out RFLX.SPDM.Slot_Present)
-   is
-      function C_Interface return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_slot_0_present";
-      use type Interfaces.C.unsigned_char;
-   begin
-      Result := RFLX.SPDM.Slot_Present (C_Interface);
-   end Config_Slot_0_Present;
-
-   procedure Config_Slot_1_Present (Result : out RFLX.SPDM.Slot_Present)
-   is
-      function C_Interface return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_slot_1_present";
-      use type Interfaces.C.unsigned_char;
-   begin
-      Result := RFLX.SPDM.Slot_Present (C_Interface);
-   end Config_Slot_1_Present;
-
-   procedure Config_Slot_2_Present (Result : out RFLX.SPDM.Slot_Present)
-   is
-      function C_Interface return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_slot_2_present";
-      use type Interfaces.C.unsigned_char;
-   begin
-      Result := RFLX.SPDM.Slot_Present (C_Interface);
-   end Config_Slot_2_Present;
-
-   procedure Config_Slot_3_Present (Result : out RFLX.SPDM.Slot_Present)
-   is
-      function C_Interface return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_slot_3_present";
-      use type Interfaces.C.unsigned_char;
-   begin
-      Result := RFLX.SPDM.Slot_Present (C_Interface);
-   end Config_Slot_3_Present;
-
-   procedure Config_Slot_4_Present (Result : out RFLX.SPDM.Slot_Present)
-   is
-      function C_Interface return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_slot_4_present";
-      use type Interfaces.C.unsigned_char;
-   begin
-      Result := RFLX.SPDM.Slot_Present (C_Interface);
-   end Config_Slot_4_Present;
-
-   procedure Config_Slot_5_Present (Result : out RFLX.SPDM.Slot_Present)
-   is
-      function C_Interface return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_slot_5_present";
-      use type Interfaces.C.unsigned_char;
-   begin
-      Result := RFLX.SPDM.Slot_Present (C_Interface);
-   end Config_Slot_5_Present;
-
-   procedure Config_Slot_6_Present (Result : out RFLX.SPDM.Slot_Present)
-   is
-      function C_Interface return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_slot_6_present";
-      use type Interfaces.C.unsigned_char;
-   begin
-      Result := RFLX.SPDM.Slot_Present (C_Interface);
-   end Config_Slot_6_Present;
-
-   procedure Config_Slot_7_Present (Result : out RFLX.SPDM.Slot_Present)
-   is
-      function C_Interface return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_slot_7_present";
-      use type Interfaces.C.unsigned_char;
-   begin
-      Result := RFLX.SPDM.Slot_Present (C_Interface);
-   end Config_Slot_7_Present;
 
    procedure Get_Digests_Data (Plat_Get_Digests_Data : out RFLX.SPDM_Responder.Digests_Data.Structure;
                                Algorithm             :     RFLX.SPDM.Measurement_Hash_Algo)
    is
-      Tmp   : RFLX.SPDM.Slot_Present;
-      Len   : Natural := 0;
-      Slots : Natural := 0;
+      Slot_Mask : Interfaces.C.unsigned_char;
+      Length    : Interfaces.C.long;
+
       procedure C_Interface (Data   : System.Address;
-                             Length : Interfaces.C.long) with
+                             Length : System.Address;
+                             Slots  : System.Address) with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_get_digests_data";
       use type Interfaces.C.unsigned_char;
       use type RFLX.SPDM_Responder.Digests_Length;
    begin
-      Len := (case Algorithm is
-              when RFLX.SPDM.MH_TPM_ALG_SHA3_512 | RFLX.SPDM.MH_TPM_ALG_SHA_512 => 64,
-              when RFLX.SPDM.MH_TPM_ALG_SHA3_384 | RFLX.SPDM.MH_TPM_ALG_SHA_384 => 48,
-              when RFLX.SPDM.MH_TPM_ALG_SHA3_256 | RFLX.SPDM.MH_TPM_ALG_SHA_256 => 32,
-              when RFLX.SPDM.Raw_Bit_Streams_Only                               =>  0);
-      Config_Slot_0_Present (Tmp);
-      Slots := Slots + Natural (Tmp);
-      Config_Slot_1_Present (Tmp);
-      Slots := Slots + Natural (Tmp);
-      Config_Slot_2_Present (Tmp);
-      Slots := Slots + Natural (Tmp);
-      Config_Slot_3_Present (Tmp);
-      Slots := Slots + Natural (Tmp);
-      Config_Slot_4_Present (Tmp);
-      Slots := Slots + Natural (Tmp);
-      Config_Slot_5_Present (Tmp);
-      Slots := Slots + Natural (Tmp);
-      Config_Slot_6_Present (Tmp);
-      Slots := Slots + Natural (Tmp);
-      Config_Slot_7_Present (Tmp);
-      Slots := Slots + Natural (Tmp);
-      Plat_Get_Digests_Data.Length := RFLX.SPDM_Responder.Digests_Length (Len * Slots);
-      C_Interface (Plat_Get_Digests_Data.Value'Address, Interfaces.C.long (Plat_Get_Digests_Data.Length));
+      Length := Interfaces.C.long (Plat_Get_Digests_Data.Value'Length);
+      C_Interface (Data   => Plat_Get_Digests_Data.Value'Address,
+                   Length => Length'Address,
+                   Slots  => Slot_Mask'Address);
+      Plat_Get_Digests_Data.Length := RFLX.SPDM_Responder.Digests_Length (Length);
+      Plat_Get_Digests_Data.Slot_0_Present := RFLX.SPDM.Slot_Present (Slot_Mask and 16#01#);
+      Plat_Get_Digests_Data.Slot_1_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#02#) / 16#02#);
+      Plat_Get_Digests_Data.Slot_2_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#04#) / 16#04#);
+      Plat_Get_Digests_Data.Slot_3_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#08#) / 16#08#);
+      Plat_Get_Digests_Data.Slot_4_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#10#) / 16#10#);
+      Plat_Get_Digests_Data.Slot_5_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#20#) / 16#20#);
+      Plat_Get_Digests_Data.Slot_6_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#40#) / 16#40#);
+      Plat_Get_Digests_Data.Slot_7_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#80#) / 16#80#);
    end Get_Digests_Data;
 
 end SPDM_Platform_Interface;

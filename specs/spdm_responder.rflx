@@ -32,8 +32,16 @@ package SPDM_Responder is
 
    type Digests_Data is
       message
+         Slot_0_Present : SPDM::Slot_Present;
+         Slot_1_Present : SPDM::Slot_Present;
+         Slot_2_Present : SPDM::Slot_Present;
+         Slot_3_Present : SPDM::Slot_Present;
+         Slot_4_Present : SPDM::Slot_Present;
+         Slot_5_Present : SPDM::Slot_Present;
+         Slot_6_Present : SPDM::Slot_Present;
+         Slot_7_Present : SPDM::Slot_Present;
          Length : Digests_Length;
-         Value  : Opaque
+         Value : Opaque
             with Size => 8 * Length;
       end message;
 
@@ -99,15 +107,6 @@ package SPDM_Responder is
           Req_TPM_ALG_RSAPSS_2048         : Boolean;
           Req_TPM_ALG_RSASSA_2048         : Boolean;
           Req_TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM_Responder::RBAA_Algo;
-
-      with function Plat_Cfg_Slot_0_Present return SPDM::Slot_Present;
-      with function Plat_Cfg_Slot_1_Present return SPDM::Slot_Present;
-      with function Plat_Cfg_Slot_2_Present return SPDM::Slot_Present;
-      with function Plat_Cfg_Slot_3_Present return SPDM::Slot_Present;
-      with function Plat_Cfg_Slot_4_Present return SPDM::Slot_Present;
-      with function Plat_Cfg_Slot_5_Present return SPDM::Slot_Present;
-      with function Plat_Cfg_Slot_6_Present return SPDM::Slot_Present;
-      with function Plat_Cfg_Slot_7_Present return SPDM::Slot_Present;
 
       with function Plat_Get_Digests_Data (Algo : SPDM::Measurement_Hash_Algo) return Digests_Data;
 
@@ -579,6 +578,7 @@ package SPDM_Responder is
 
       state Prepare_Digests
       is
+         Digests_Data   : Digests_Data;
          Slot_0_Present : SPDM::Slot_Present;
          Slot_1_Present : SPDM::Slot_Present;
          Slot_2_Present : SPDM::Slot_Present;
@@ -587,18 +587,16 @@ package SPDM_Responder is
          Slot_5_Present : SPDM::Slot_Present;
          Slot_6_Present : SPDM::Slot_Present;
          Slot_7_Present : SPDM::Slot_Present;
-         Digests_Data   : Digests_Data;
       begin
-         Slot_0_Present := Plat_Cfg_Slot_0_Present;
-         Slot_1_Present := Plat_Cfg_Slot_1_Present;
-         Slot_2_Present := Plat_Cfg_Slot_2_Present;
-         Slot_3_Present := Plat_Cfg_Slot_3_Present;
-         Slot_4_Present := Plat_Cfg_Slot_4_Present;
-         Slot_5_Present := Plat_Cfg_Slot_5_Present;
-         Slot_6_Present := Plat_Cfg_Slot_6_Present;
-         Slot_7_Present := Plat_Cfg_Slot_7_Present;
-
          Digests_Data := Plat_Get_Digests_Data (Measurement_Hash_Algo);
+         Slot_0_Present := Digests_Data.Slot_0_Present;
+         Slot_1_Present := Digests_Data.Slot_1_Present;
+         Slot_2_Present := Digests_Data.Slot_2_Present;
+         Slot_3_Present := Digests_Data.Slot_3_Present;
+         Slot_4_Present := Digests_Data.Slot_4_Present;
+         Slot_5_Present := Digests_Data.Slot_5_Present;
+         Slot_6_Present := Digests_Data.Slot_6_Present;
+         Slot_7_Present := Digests_Data.Slot_7_Present;
 
          Response := SPDM::Response'(Meas_Cap                                    => SPDM::Meas_Unsupported,
                                      Hash_Type                                   => SPDM::No_Measurement,

@@ -69,6 +69,8 @@ unsigned char spdm_platform_config_cap_pub_key_id(void) {
     return 0;
 }
 
+static int measurement_hash_size = 0;
+
 unsigned char spdm_platform_select_measurement_hash_algo(unsigned char tpm_alg_sha_256,
                                                          unsigned char tpm_alg_sha_384,
                                                          unsigned char tpm_alg_sha_512,
@@ -76,12 +78,36 @@ unsigned char spdm_platform_select_measurement_hash_algo(unsigned char tpm_alg_s
                                                          unsigned char tpm_alg_sha3_384,
                                                          unsigned char tpm_alg_sha3_512)
 {
-    if (tpm_alg_sha3_512) return 32;
-    if (tpm_alg_sha3_384) return 16;
-    if (tpm_alg_sha3_256) return 8;
-    if (tpm_alg_sha_512) return 4;
-    if (tpm_alg_sha_384) return 2;
-    if (tpm_alg_sha_256) return 1;
+    if (tpm_alg_sha3_512) {
+        measurement_hash_size = 64;
+        return 32;
+    }
+
+    if (tpm_alg_sha3_384) {
+        measurement_hash_size = 48;
+        return 16;
+    }
+
+    if (tpm_alg_sha3_256) {
+        measurement_hash_size = 32;
+        return 8;
+    }
+
+    if (tpm_alg_sha_512) {
+        measurement_hash_size = 64;
+        return 4;
+    }
+
+    if (tpm_alg_sha_384) {
+        measurement_hash_size = 48;
+        return 2;
+    }
+
+    if (tpm_alg_sha_256) {
+        measurement_hash_size = 32;
+        return 1;
+    }
+
     errx(1, "No Measurement Hash Algo selected");
 }
 
@@ -175,49 +201,17 @@ long spdm_platform_select_rbba(unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
     errx(6, "Invalid RBBA selected");
 }
 
-unsigned char spdm_platform_config_slot_0_present()
+void spdm_platform_get_digests_data(char *data, long *length, unsigned char *slot_mask)
 {
-    return 1;
-}
+    for (long i = 0; i < *length; i++)
+    {
+        data[i] = 0x00;
+    }
 
-unsigned char spdm_platform_config_slot_1_present()
-{
-    return 1;
-}
+    *slot_mask = 7;
+    *length = 3 * measurement_hash_size;
 
-unsigned char spdm_platform_config_slot_2_present()
-{
-    return 1;
-}
-
-unsigned char spdm_platform_config_slot_3_present()
-{
-    return 0;
-}
-
-unsigned char spdm_platform_config_slot_4_present()
-{
-    return 0;
-}
-
-unsigned char spdm_platform_config_slot_5_present()
-{
-    return 1;
-}
-
-unsigned char spdm_platform_config_slot_6_present()
-{
-    return 0;
-}
-
-unsigned char spdm_platform_config_slot_7_present()
-{
-    return 0;
-}
-
-void spdm_platform_get_digests_data(char *data, long length)
-{
-    for (long i = 0; i < length; i++)
+    for (long i = 0; i < *length; i++)
     {
         data[i] = 0x42;
     }
