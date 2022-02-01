@@ -24,7 +24,7 @@ build/example/main: build/example/generated/rflx.ads
 	test -n "$(CROSS_GNAT_PATH)"
 	PATH="$(CROSS_GNAT_PATH):$(PATH)" gprbuild -P examples/build
 
-test: test_validate test_responder test_arm test_riscv32
+test: test_validate test_responder test_arm test_riscv32 test_riscv64
 
 check: | $(RFLX)
 	$(RFLX) check specs/spdm_responder.rflx
@@ -122,6 +122,9 @@ test_arm: build/example/generated/rflx.ads
 
 test_riscv32: build/example/generated/rflx.ads
 	gprbuild -j0 -P tests/embedded.gpr -XTARGET=riscv32
+
+test_riscv64: build/example/generated/rflx.ads
+	gprbuild -j0 -P tests/embedded.gpr -XTARGET=riscv64
 
 clean:
 	rm -rf build

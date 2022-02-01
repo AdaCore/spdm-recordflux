@@ -23,6 +23,10 @@ jobs:
               with:
                   distrib: community
                   target: riscv32-elf
+            - uses: ada-actions/toolchain@ce2021
+              with:
+                  distrib: community
+                  target: riscv64-elf
             - name: Install dependencies
               run: |
                   git submodule update --init --recursive

@@ -1,6 +1,6 @@
 project Embedded
 is
-   type Target_Type is ("arm", "riscv32");
+   type Target_Type is ("arm", "riscv32", "riscv64");
    Target_Arch : Target_Type := external ("TARGET");
 
    for Source_Dirs use ("../build/example/generated", "../examples");
@@ -12,6 +12,8 @@ is
          for Runtime ("Ada") use "zfp-stm32f4";
       when "riscv32" =>
          for Runtime ("Ada") use "zfp-rv32imac";
+      when "riscv64" =>
+         for Runtime ("Ada") use "zfp-rv64imac";
       when others =>
          null;
    end case;
