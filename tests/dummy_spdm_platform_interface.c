@@ -130,7 +130,9 @@ long spdm_platform_select_base_asym_algo(unsigned char tpm_alg_ecdsa_ecc_nist_p3
 {
     // FIXME: When anything but BA_Unsupported is announced, spdm-emu bails out with:
     // ASSERT: contrib/dmtf/spdm-emu/libspdm/os_stub/spdm_device_secret_lib_sample/cert.c(76): ((boolean)(0 == 1))
+    // Return 0 (i.e. BA_Unsupported) until this problem is resolved in spdm-emu.
     return 0;
+
     if (tpm_alg_ecdsa_ecc_nist_p521) return 256;
     if (tpm_alg_ecdsa_ecc_nist_p384) return 128;
     if (tpm_alg_ecdsa_ecc_nist_p256) return 16;
@@ -216,6 +218,9 @@ void spdm_platform_get_digests_data(char *data, long *length, unsigned char *slo
     }
 
     *slot_mask = 7;
+
+    // measurment_hash_size is a static variable set to the size of the currently
+    // selected hash in spdm_platform_select_measurement_hash_algo (in bytes)
     *length = 3 * measurement_hash_size;
 
     for (long i = 0; i < *length; i++)
