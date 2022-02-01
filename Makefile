@@ -52,9 +52,7 @@ build/example/generated/rflx.ads: specs/spdm.rflx specs/spdm_responder.rflx spec
 	$(RFLX) --no-verification generate $^ -d build/example/generated
 
 build/tests/proxy build/tests/responder: build/generated/rflx.ads tests/tests.gpr tests/*.ad?
-	# NATIVE_GNAT_PATH must be set
-	test -n "$(NATIVE_GNAT_PATH)"
-	PATH="$(NATIVE_GNAT_PATH):$(PATH)" gprbuild -p tests/tests.gpr -s
+	gprbuild -p tests/tests.gpr -s
 
 build/certificates:
 	mkdir -p build/certificates
