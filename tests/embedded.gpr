@@ -11,9 +11,9 @@ is
       when "arm" =>
          for Runtime ("Ada") use "zfp-stm32f4";
       when "riscv32" =>
-         for Runtime ("Ada") use "zfp-rv32imac";
+         for Runtime ("Ada") use "zfp-hifive1";
       when "riscv64" =>
-         for Runtime ("Ada") use "zfp-rv64imac";
+         for Runtime ("Ada") use "zfp-spike";
       when others =>
          null;
    end case;
