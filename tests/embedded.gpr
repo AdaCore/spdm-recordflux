@@ -36,8 +36,4 @@ is
       );
    end Linker;
 
-   package Ide is
-      null;
-   end Ide;
-
 end Embedded;
