@@ -118,10 +118,10 @@ test_package: build/spdm_$(GITREV).tar
 	test -f $(TMPDIR)/package_test/build/lib/libspdm.a
 
 test_arm: build/generated/rflx.ads
-	gprbuild -j0 -P tests/arm.gpr
+	gprbuild -j0 -P tests/embedded.gpr -XTARGET=arm
 
 test_riscv32: build/generated/rflx.ads
-	gprbuild -j0 -P tests/riscv32.gpr
+	gprbuild -j0 -P tests/embedded.gpr -XTARGET=riscv32
 
 clean:
 	rm -rf build
