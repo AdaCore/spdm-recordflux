@@ -63,12 +63,14 @@ package SPDM_Responder is
       with function Plat_Cfg_Cap_Key_Ex return Boolean;
       with function Plat_Cfg_Cap_Mut_Auth return Boolean;
       with function Plat_Cfg_Cap_Pub_Key_ID return Boolean;
-      with function Plat_Cfg_Sel_Measurement_Hash_Algo (TPM_ALG_SHA_256  : Boolean;
-                                                        TPM_ALG_SHA_384  : Boolean;
-                                                        TPM_ALG_SHA_512  : Boolean;
-                                                        TPM_ALG_SHA3_256 : Boolean;
-                                                        TPM_ALG_SHA3_384 : Boolean;
-                                                        TPM_ALG_SHA3_512 : Boolean) return SPDM::Measurement_Hash_Algo;
+      with function Plat_Cfg_Sel_Measurement_Hash_Algo
+         (TPM_ALG_SHA_256     : Boolean;
+          TPM_ALG_SHA_384     : Boolean;
+          TPM_ALG_SHA_512     : Boolean;
+          TPM_ALG_SHA3_256    : Boolean;
+          TPM_ALG_SHA3_384    : Boolean;
+          TPM_ALG_SHA3_512    : Boolean;
+          Raw_Bit_Streams_Only : Boolean) return SPDM::Measurement_Hash_Algo;
       with function Plat_Cfg_Sel_Base_Asym_Algo (TPM_ALG_ECDSA_ECC_NIST_P384 : Boolean;
                                                  TPM_ALG_RSAPSS_4096         : Boolean;
                                                  TPM_ALG_RSASSA_4096         : Boolean;
@@ -354,7 +356,8 @@ package SPDM_Responder is
                                       Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA_512,
                                       Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA3_256,
                                       Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA3_384,
-                                      Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA3_512);
+                                      Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA3_512,
+                                      False);
 
          Base_Asym_Sel := Plat_Cfg_Sel_Base_Asym_Algo
                              (Request.Negotiate_Algorithms_Request_Base_Asym_Algo_TPM_ALG_ECDSA_ECC_NIST_P384,

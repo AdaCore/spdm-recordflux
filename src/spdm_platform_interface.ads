@@ -53,13 +53,14 @@ package SPDM_Platform_Interface is
 
    --  Select a measurement hash algorithm based on receive proposal
    procedure Select_Measurement_Hash_Algo
-                (Result           : out RFLX.SPDM.Measurement_Hash_Algo;
-                 TPM_ALG_SHA_256  :     Boolean;
-                 TPM_ALG_SHA_384  :     Boolean;
-                 TPM_ALG_SHA_512  :     Boolean;
-                 TPM_ALG_SHA3_256 :     Boolean;
-                 TPM_ALG_SHA3_384 :     Boolean;
-                 TPM_ALG_SHA3_512 :     Boolean);
+                (Result               : out RFLX.SPDM.Measurement_Hash_Algo;
+                 TPM_ALG_SHA_256      :     Boolean;
+                 TPM_ALG_SHA_384      :     Boolean;
+                 TPM_ALG_SHA_512      :     Boolean;
+                 TPM_ALG_SHA3_256     :     Boolean;
+                 TPM_ALG_SHA3_384     :     Boolean;
+                 TPM_ALG_SHA3_512     :     Boolean;
+                 Raw_Bit_Streams_Only :     Boolean);
 
    --  Select an asymetric algorithm based on receive proposal
    procedure Select_Base_Asym_Algo

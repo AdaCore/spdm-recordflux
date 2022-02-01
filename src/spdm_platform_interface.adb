@@ -195,44 +195,48 @@ package body SPDM_Platform_Interface is
       (if Value then 1 else 0);
 
    procedure Select_Measurement_Hash_Algo
-                (Result           : out RFLX.SPDM.Measurement_Hash_Algo;
-                 TPM_ALG_SHA_256  :     Boolean;
-                 TPM_ALG_SHA_384  :     Boolean;
-                 TPM_ALG_SHA_512  :     Boolean;
-                 TPM_ALG_SHA3_256 :     Boolean;
-                 TPM_ALG_SHA3_384 :     Boolean;
-                 TPM_ALG_SHA3_512 :     Boolean)
+                (Result               : out RFLX.SPDM.Measurement_Hash_Algo;
+                 TPM_ALG_SHA_256      :     Boolean;
+                 TPM_ALG_SHA_384      :     Boolean;
+                 TPM_ALG_SHA_512      :     Boolean;
+                 TPM_ALG_SHA3_256     :     Boolean;
+                 TPM_ALG_SHA3_384     :     Boolean;
+                 TPM_ALG_SHA3_512     :     Boolean;
+                 Raw_Bit_Streams_Only :     Boolean)
    is
       function C_Interface
-         (TPM_ALG_SHA_256  : Interfaces.C.unsigned_char;
-          TPM_ALG_SHA_384  : Interfaces.C.unsigned_char;
-          TPM_ALG_SHA_512  : Interfaces.C.unsigned_char;
-          TPM_ALG_SHA3_256 : Interfaces.C.unsigned_char;
-          TPM_ALG_SHA3_384 : Interfaces.C.unsigned_char;
-          TPM_ALG_SHA3_512 : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char
+         (TPM_ALG_SHA_256      : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA_384      : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA_512      : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA3_256     : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA3_384     : Interfaces.C.unsigned_char;
+          TPM_ALG_SHA3_512     : Interfaces.C.unsigned_char;
+          Raw_Bit_Streams_Only : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char
       with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_measurement_hash_algo";
       Value : constant Interfaces.C.unsigned_char :=
-         C_Interface (TPM_ALG_SHA_256  => C_Bool (TPM_ALG_SHA_256),
-                      TPM_ALG_SHA_384  => C_Bool (TPM_ALG_SHA_384),
-                      TPM_ALG_SHA_512  => C_Bool (TPM_ALG_SHA_512),
-                      TPM_ALG_SHA3_256 => C_Bool (TPM_ALG_SHA3_256),
-                      TPM_ALG_SHA3_384 => C_Bool (TPM_ALG_SHA3_384),
-                      TPM_ALG_SHA3_512 => C_Bool (TPM_ALG_SHA3_512));
+         C_Interface (TPM_ALG_SHA_256      => C_Bool (TPM_ALG_SHA_256),
+                      TPM_ALG_SHA_384      => C_Bool (TPM_ALG_SHA_384),
+                      TPM_ALG_SHA_512      => C_Bool (TPM_ALG_SHA_512),
+                      TPM_ALG_SHA3_256     => C_Bool (TPM_ALG_SHA3_256),
+                      TPM_ALG_SHA3_384     => C_Bool (TPM_ALG_SHA3_384),
+                      TPM_ALG_SHA3_512     => C_Bool (TPM_ALG_SHA3_512),
+                      Raw_Bit_Streams_Only => C_Bool (Raw_Bit_Streams_Only));
       use type Interfaces.C.unsigned_char;
    begin
       --  Values could be used directly
       --  ISSUE: Componolit/RecordFlux#913
       Result := (case Value is
-                 when     32 => RFLX.SPDM.MH_TPM_ALG_SHA3_512,
-                 when     16 => RFLX.SPDM.MH_TPM_ALG_SHA3_384,
-                 when      8 => RFLX.SPDM.MH_TPM_ALG_SHA3_256,
-                 when      4 => RFLX.SPDM.MH_TPM_ALG_SHA_512,
-                 when      2 => RFLX.SPDM.MH_TPM_ALG_SHA_384,
-                 when      1 => RFLX.SPDM.MH_TPM_ALG_SHA_256,
-                 when      0 => RFLX.SPDM.Raw_Bit_Streams_Only,
+                 when     64 => RFLX.SPDM.MH_TPM_ALG_SHA3_512,
+                 when     32 => RFLX.SPDM.MH_TPM_ALG_SHA3_384,
+                 when     16 => RFLX.SPDM.MH_TPM_ALG_SHA3_256,
+                 when      8 => RFLX.SPDM.MH_TPM_ALG_SHA_512,
+                 when      4 => RFLX.SPDM.MH_TPM_ALG_SHA_384,
+                 when      2 => RFLX.SPDM.MH_TPM_ALG_SHA_256,
+                 when      1 => RFLX.SPDM.MH_Raw_Bit_Streams_Only,
+                 when      0 => RFLX.SPDM.MH_Unsupported,
                  when others => raise Constraint_Error);
    end Select_Measurement_Hash_Algo;
 

@@ -567,13 +567,14 @@ package SPDM is
    --  ISSUE: Componolit/RecordFlux#104
    --  This should be little endian
    type Measurement_Hash_Algo is
-      (Raw_Bit_Streams_Only => 16#01000000#,
-       MH_TPM_ALG_SHA_256   => 16#02000000#,
-       MH_TPM_ALG_SHA_384   => 16#04000000#,
-       MH_TPM_ALG_SHA_512   => 16#08000000#,
-       MH_TPM_ALG_SHA3_256  => 16#10000000#,
-       MH_TPM_ALG_SHA3_384  => 16#20000000#,
-       MH_TPM_ALG_SHA3_512  => 16#40000000#)
+      (MH_Unsupported          => 16#00000000#,
+       MH_Raw_Bit_Streams_Only => 16#01000000#,
+       MH_TPM_ALG_SHA_256      => 16#02000000#,
+       MH_TPM_ALG_SHA_384      => 16#04000000#,
+       MH_TPM_ALG_SHA_512      => 16#08000000#,
+       MH_TPM_ALG_SHA3_256     => 16#10000000#,
+       MH_TPM_ALG_SHA3_384     => 16#20000000#,
+       MH_TPM_ALG_SHA3_512     => 16#40000000#)
    with Size => 32;
 
    --  ISSUE: Componolit/RecordFlux#104

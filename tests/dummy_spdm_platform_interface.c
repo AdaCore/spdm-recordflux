@@ -76,39 +76,46 @@ unsigned char spdm_platform_select_measurement_hash_algo(unsigned char tpm_alg_s
                                                          unsigned char tpm_alg_sha_512,
                                                          unsigned char tpm_alg_sha3_256,
                                                          unsigned char tpm_alg_sha3_384,
-                                                         unsigned char tpm_alg_sha3_512)
+                                                         unsigned char tpm_alg_sha3_512,
+                                                         unsigned char raw_bit_streams_only)
 {
     if (tpm_alg_sha3_512) {
         measurement_hash_size = 64;
-        return 32;
+        return 64;
     }
 
     if (tpm_alg_sha3_384) {
         measurement_hash_size = 48;
-        return 16;
+        return 32;
     }
 
     if (tpm_alg_sha3_256) {
         measurement_hash_size = 32;
-        return 8;
+        return 16;
     }
 
     if (tpm_alg_sha_512) {
         measurement_hash_size = 64;
-        return 4;
+        return 8;
     }
 
     if (tpm_alg_sha_384) {
         measurement_hash_size = 48;
-        return 2;
+        return 4;
     }
 
     if (tpm_alg_sha_256) {
         measurement_hash_size = 32;
+        return 2;
+    }
+
+    if (raw_bit_streams_only) {
+        measurement_hash_size = 0;
         return 1;
     }
 
-    errx(1, "No Measurement Hash Algo selected");
+    // No mode set, unsupported
+    return 0;
 }
 
 long spdm_platform_select_base_asym_algo(unsigned char tpm_alg_ecdsa_ecc_nist_p384,

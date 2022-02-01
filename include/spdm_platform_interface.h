@@ -23,7 +23,8 @@ unsigned char spdm_platform_select_measurement_hash_algo(unsigned char tpm_alg_s
                                                          unsigned char tpm_alg_sha_512,
                                                          unsigned char tpm_alg_sha3_256,
                                                          unsigned char tpm_alg_sha3_384,
-                                                         unsigned char tpm_alg_sha3_512);
+                                                         unsigned char tpm_alg_sha3_512,
+                                                         unsigned char raw_bit_streams_only);
 
 long spdm_platform_select_base_asym_algo(unsigned char tpm_alg_ecdsa_ecc_nist_p384,
                                          unsigned char tpm_alg_rsapss_4096,
