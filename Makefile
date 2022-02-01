@@ -117,10 +117,10 @@ test_package: build/spdm_$(GITREV).tar
 	# static library must exist
 	test -f $(TMPDIR)/package_test/build/lib/libspdm.a
 
-test_arm: build/generated/rflx.ads
+test_arm: build/example/generated/rflx.ads
 	gprbuild -j0 -P tests/embedded.gpr -XTARGET=arm
 
-test_riscv32: build/generated/rflx.ads
+test_riscv32: build/example/generated/rflx.ads
 	gprbuild -j0 -P tests/embedded.gpr -XTARGET=riscv32
 
 clean:
