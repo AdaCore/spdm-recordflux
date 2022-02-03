@@ -1,4 +1,4 @@
-.PHONY: all test check package test_package test_arm test_riscv32 clean
+.PHONY: all test check package test_package test_cross clean
 
 TMPDIR := $(shell mktemp -d)
 FILE_LIST := $(shell mktemp)
@@ -14,6 +14,8 @@ all: check test
 
 lib: build/lib/libspdm.a
 
+test: test_validate test_responder test_cross
+
 build/lib/libspdm.a: build/generated/rflx.ads
 	gprbuild -j0 -P spdm
 
@@ -21,11 +23,7 @@ build/%/example/main: build/example/generated/rflx.ads build/example/generated/s
 	gprbuild -j0 -P examples/build.gpr -XTARGET=$*
 	test -f $@
 
-test_arm: build/arm/example/main
-test_riscv32: build/riscv32/example/main
-test_riscv64: build/riscv64/example/main
-
-test: test_validate test_responder test_arm test_riscv32 test_riscv64
+test_cross: build/arm/example/main build/riscv32/example/main build/riscv64/example/main
 
 check: | $(RFLX)
 	$(RFLX) check specs/spdm_responder.rflx
@@ -102,26 +100,20 @@ build/spdm_$(GITREV).tar.gz: build/spdm_$(GITREV).tar
 	gzip -f $^
 
 test_package: build/spdm_$(GITREV).tar
-	# NATIVE_GNAT_PATH must be set
-	test -n "$(NATIVE_GNAT_PATH)"
-	# CROSS_GNAT_PATH must be set
-	test -n "$(CROSS_GNAT_PATH)"
 	# Check for file with charcaters incompatible with Perforce
 	# https://www.perforce.com/manuals/p4guide/Content/P4Guide/syntax.syntax.restrictions.html
 	test -z "$$(tar -tf $^ | grep -e '\([@#]\|\.\.\.\|%[0-9]\)')"
 	mkdir -p $(TMPDIR)/package_test
 	tar -xvf $^ --directory $(TMPDIR)/package_test
-	PATH="$(NATIVE_GNAT_PATH):$(PATH)" make -C $(TMPDIR)/package_test
+	make -C $(TMPDIR)/package_test
 	python3 -m venv $(TMPDIR)/package_test_venv
 	$(TMPDIR)/package_test_venv/bin/pip3 install contrib/RecordFlux[devel]
-	PATH="$(TMPDIR)/package_test_venv/bin:$(CROSS_GNAT_PATH):$(PATH)" make -C $(TMPDIR)/package_test lib
+	PATH="$(TMPDIR)/package_test_venv/bin:$(PATH)" make -C $(TMPDIR)/package_test lib
 	# static library must exist
 	test -f $(TMPDIR)/package_test/build/lib/libspdm.a
 
 build/example/generated/spdm_platform_interface.adb: include/spdm_platform_interface.ads
-	# NATIVE_GNAT_PATH must be set
-	test -n "$(NATIVE_GNAT_PATH)"
-	PATH="$(NATIVE_GNAT_PATH):$(PATH)" gnatstub --output-dir=$(dir $@) --no-exception --force $<
+	gnatstub --output-dir=$(dir $@) --no-exception --force $<
 
 
 clean:
