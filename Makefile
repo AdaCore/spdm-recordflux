@@ -14,15 +14,16 @@ all: check test
 
 lib: build/lib/libspdm.a
 
-example: build/example/main
-
 build/lib/libspdm.a: build/generated/rflx.ads
 	gprbuild -j0 -P spdm
 
-build/example/main: build/example/generated/rflx.ads
-	# CROSS_GNAT_PATH must be set
-	test -n "$(CROSS_GNAT_PATH)"
-	PATH="$(CROSS_GNAT_PATH):$(PATH)" gprbuild -P examples/build
+build/%/example/main: build/example/generated/rflx.ads build/example/generated/spdm_platform_interface.adb
+	gprbuild -j0 -P examples/build.gpr -XTARGET=$*
+	test -f $@
+
+test_arm: build/arm/example/main
+test_riscv32: build/riscv32/example/main
+test_riscv64: build/riscv64/example/main
 
 test: test_validate test_responder test_arm test_riscv32 test_riscv64
 
@@ -117,14 +118,11 @@ test_package: build/spdm_$(GITREV).tar
 	# static library must exist
 	test -f $(TMPDIR)/package_test/build/lib/libspdm.a
 
-test_arm: build/example/generated/rflx.ads
-	gprbuild -j0 -P tests/embedded.gpr -XTARGET=arm
+build/example/generated/spdm_platform_interface.adb: include/spdm_platform_interface.ads
+	# NATIVE_GNAT_PATH must be set
+	test -n "$(NATIVE_GNAT_PATH)"
+	PATH="$(NATIVE_GNAT_PATH):$(PATH)" gnatstub --output-dir=$(dir $@) --no-exception --force $<
 
-test_riscv32: build/example/generated/rflx.ads
-	gprbuild -j0 -P tests/embedded.gpr -XTARGET=riscv32
-
-test_riscv64: build/example/generated/rflx.ads
-	gprbuild -j0 -P tests/embedded.gpr -XTARGET=riscv64
 
 clean:
 	rm -rf build

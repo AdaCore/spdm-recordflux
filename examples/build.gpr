@@ -1,19 +1,32 @@
 project Build
 is
-   for Source_Dirs use (".", "../build/example/generated", "../src");
-   for Object_Dir use "../build/example";
+   type Target_Type is ("arm", "riscv32", "riscv64");
+   Target_Arch : Target_Type := external ("TARGET");
+
+   for Source_Dirs use ("../build/example/generated", "../examples", "../include");
+   for Object_Dir use "../build/" & Target_Arch;
    for Create_Missing_Dirs use "True";
-   for Target use "arm-elf";
-   for Runtime ("Ada") use "light-cortex-m4";
+   for Target use Target_Arch & "-elf";
+   case Target_Arch is
+      when "arm" =>
+         for Runtime ("Ada") use "zfp-stm32f4";
+      when "riscv32" =>
+         for Runtime ("Ada") use "zfp-hifive1";
+      when "riscv64" =>
+         for Runtime ("Ada") use "zfp-spike";
+      when others =>
+         null;
+   end case;
    for Main use ("main.adb");
 
    package Builder is
       for Global_Compilation_Switches ("Ada") use (
          "-ffunction-sections",
          "-fdata-sections",
-         "-Os"
+         "-Os",
+         "-gnatp",
+         "-fno-inline"
       );
-      for Global_Configuration_Pragmas use "pragmas.adc";
    end Builder;
 
    package Linker is
