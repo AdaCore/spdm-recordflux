@@ -3,7 +3,8 @@ is
    type Target_Type is ("arm", "riscv32", "riscv64");
    Target_Arch : Target_Type := external ("TARGET");
 
-   for Source_Dirs use ("../build/example/generated", "../examples", "../include");
+   for Languages use ("Ada", "C");
+   for Source_Dirs use (".", "platform", "../build/example/generated", "../src", "../include");
    for Object_Dir use "../build/" & Target_Arch & "/example";
    for Create_Missing_Dirs use "True";
    for Target use Target_Arch & "-elf";
@@ -18,6 +19,10 @@ is
          null;
    end case;
    for Main use ("main.adb");
+
+   package Compiler is
+      for Default_Switches ("C") use ("-W", "-Wall", "-Wextra", "-Werror", "-Wstrict-prototypes", "-Wmissing-prototypes");
+   end Compiler;
 
    package Builder is
       for Global_Compilation_Switches ("Ada") use (

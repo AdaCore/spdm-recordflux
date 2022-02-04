@@ -1,5 +1,9 @@
 #include <stdio.h>
+#ifdef __linux__
 #include <err.h>
+#else
+#define errx(eval, format) return 0;
+#endif
 #include <../include/spdm_platform_interface.h>
 
 unsigned char spdm_platform_config_ct_exponent(void) {

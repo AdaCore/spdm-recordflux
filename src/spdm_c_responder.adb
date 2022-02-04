@@ -1,10 +1,16 @@
+with Interfaces.C;
 with System;
 with RFLX.RFLX_Builtin_Types;
-with Interfaces.C;
+with RFLX.SPDM_Responder.Digests_Data;
 
-package body SPDM_Platform_Interface is
+package body SPDM_C_Responder with
+   SPARK_Mode
+is
 
-   procedure Config_CT_Exponent (Result : out RFLX.SPDM.CT_Exponent)
+   overriding
+   procedure Plat_Cfg_CT_Exponent
+      (Ctx    : in out Context;
+       Result :    out RFLX.SPDM.CT_Exponent)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -12,9 +18,12 @@ package body SPDM_Platform_Interface is
          External_Name => "spdm_platform_config_ct_exponent";
    begin
       Result := RFLX.SPDM.CT_Exponent (C_Interface);
-   end Config_CT_Exponent;
+   end Plat_Cfg_CT_Exponent;
 
-   procedure Config_Cap_MAC (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_MAC
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -23,9 +32,12 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_MAC;
+   end Plat_Cfg_Cap_MAC;
 
-   procedure Config_Cap_Encrypt (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_Encrypt
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -34,9 +46,12 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_Encrypt;
+   end Plat_Cfg_Cap_Encrypt;
 
-   procedure Config_Cap_Meas_Fresh (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_Meas_Fresh
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -45,9 +60,12 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_Meas_Fresh;
+   end Plat_Cfg_Cap_Meas_Fresh;
 
-   procedure Config_Cap_Meas (Result : out RFLX.SPDM.Meas_Cap)
+   overriding
+   procedure Plat_Cfg_Cap_Meas
+      (Ctx    : in out Context;
+       Result :    out RFLX.SPDM.Meas_Cap)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -62,9 +80,12 @@ package body SPDM_Platform_Interface is
                  when 1      => RFLX.SPDM.Meas_Plain,
                  when 2      => RFLX.SPDM.MEas_Signed,
                  when others => raise Program_Error);
-   end Config_Cap_Meas;
+   end Plat_Cfg_Cap_Meas;
 
-   procedure Config_Cap_Chal (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_Chal
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -73,9 +94,12 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_Chal;
+   end Plat_Cfg_Cap_Chal;
 
-   procedure Config_Cap_Cert (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_Cert
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -84,9 +108,12 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_Cert;
+   end Plat_Cfg_Cap_Cert;
 
-   procedure Config_Cap_Cache (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_Cache
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -95,9 +122,12 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_Cache;
+   end Plat_Cfg_Cap_Cache;
 
-   procedure Config_Cap_Handshake_In_The_Clear (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_Handshake_In_The_Clear
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -106,9 +136,12 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_Handshake_In_The_Clear;
+   end Plat_Cfg_Cap_Handshake_In_The_Clear;
 
-   procedure Config_Cap_Key_Upd (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_Key_Upd
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -117,9 +150,12 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_Key_Upd;
+   end Plat_Cfg_Cap_Key_Upd;
 
-   procedure Config_Cap_Hbeat (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_Hbeat
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -128,9 +164,12 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_Hbeat;
+   end Plat_Cfg_Cap_Hbeat;
 
-   procedure Config_Cap_Encap (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_Encap
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -139,9 +178,12 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_Encap;
+   end Plat_Cfg_Cap_Encap;
 
-   procedure Config_Cap_PSK (Result : out RFLX.SPDM.PSK_Resp_Cap)
+   overriding
+   procedure Plat_Cfg_Cap_PSK
+      (Ctx    : in out Context;
+       Result :    out RFLX.SPDM.PSK_Resp_Cap)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -156,9 +198,12 @@ package body SPDM_Platform_Interface is
                  when 1 => RFLX.SPDM.PSK_Resp_Without_Context,
                  when 2 => RFLX.SPDM.PSK_Resp_With_Context,
                  when others => raise Program_Error);
-   end Config_Cap_PSK;
+   end Plat_Cfg_Cap_PSK;
 
-   procedure Config_Cap_Key_Ex (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_Key_Ex
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -167,9 +212,12 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_Key_Ex;
+   end Plat_Cfg_Cap_Key_Ex;
 
-   procedure Config_Cap_Mut_Auth (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_Mut_Auth
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -178,9 +226,12 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_Mut_Auth;
+   end Plat_Cfg_Cap_Mut_Auth;
 
-   procedure Config_Cap_Pub_Key_ID (Result : out Boolean)
+   overriding
+   procedure Plat_Cfg_Cap_Pub_Key_ID
+      (Ctx    : in out Context;
+       Result :    out Boolean)
    is
       function C_Interface return Interfaces.C.unsigned_char with
          Import        => True,
@@ -189,20 +240,22 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
    begin
       Result := C_Interface > 0;
-   end Config_Cap_Pub_Key_ID;
+   end Plat_Cfg_Cap_Pub_Key_ID;
 
    function C_Bool (Value : Boolean) return Interfaces.C.unsigned_char is
       (if Value then 1 else 0);
 
-   procedure Select_Measurement_Hash_Algo
-                (Result               : out RFLX.SPDM.Measurement_Hash_Algo;
-                 TPM_ALG_SHA_256      :     Boolean;
-                 TPM_ALG_SHA_384      :     Boolean;
-                 TPM_ALG_SHA_512      :     Boolean;
-                 TPM_ALG_SHA3_256     :     Boolean;
-                 TPM_ALG_SHA3_384     :     Boolean;
-                 TPM_ALG_SHA3_512     :     Boolean;
-                 Raw_Bit_Streams_Only :     Boolean)
+   overriding
+   procedure Plat_Cfg_Sel_Measurement_Hash_Algo
+      (Ctx                  : in out Context;
+       TPM_ALG_SHA_256      :        Boolean;
+       TPM_ALG_SHA_384      :        Boolean;
+       TPM_ALG_SHA_512      :        Boolean;
+       TPM_ALG_SHA3_256     :        Boolean;
+       TPM_ALG_SHA3_384     :        Boolean;
+       TPM_ALG_SHA3_512     :        Boolean;
+       Raw_Bit_Streams_Only :        Boolean;
+       Result               :    out RFLX.SPDM.Measurement_Hash_Algo)
    is
       function C_Interface
          (TPM_ALG_SHA_256      : Interfaces.C.unsigned_char;
@@ -238,19 +291,21 @@ package body SPDM_Platform_Interface is
                  when      1 => RFLX.SPDM.MH_Raw_Bit_Streams_Only,
                  when      0 => RFLX.SPDM.MH_Unsupported,
                  when others => raise Constraint_Error);
-   end Select_Measurement_Hash_Algo;
+   end Plat_Cfg_Sel_Measurement_Hash_Algo;
 
-   procedure Select_Base_Asym_Algo
-                (Result                      : out RFLX.SPDM.Base_Asym_Sel;
-                 TPM_ALG_ECDSA_ECC_NIST_P384 :     Boolean;
-                 TPM_ALG_RSAPSS_4096         :     Boolean;
-                 TPM_ALG_RSASSA_4096         :     Boolean;
-                 TPM_ALG_ECDSA_ECC_NIST_P256 :     Boolean;
-                 TPM_ALG_RSAPSS_3072         :     Boolean;
-                 TPM_ALG_RSASSA_3072         :     Boolean;
-                 TPM_ALG_RSAPSS_2048         :     Boolean;
-                 TPM_ALG_RSASSA_2048         :     Boolean;
-                 TPM_ALG_ECDSA_ECC_NIST_P521 :     Boolean)
+   overriding
+   procedure Plat_Cfg_Sel_Base_Asym_Algo
+      (Ctx                         : in out Context;
+       TPM_ALG_ECDSA_ECC_NIST_P384 :        Boolean;
+       TPM_ALG_RSAPSS_4096         :        Boolean;
+       TPM_ALG_RSASSA_4096         :        Boolean;
+       TPM_ALG_ECDSA_ECC_NIST_P256 :        Boolean;
+       TPM_ALG_RSAPSS_3072         :        Boolean;
+       TPM_ALG_RSASSA_3072         :        Boolean;
+       TPM_ALG_RSAPSS_2048         :        Boolean;
+       TPM_ALG_RSASSA_2048         :        Boolean;
+       TPM_ALG_ECDSA_ECC_NIST_P521 :        Boolean;
+       Result                      :    out RFLX.SPDM.Base_Asym_Sel)
    is
       function C_Interface
          (TPM_ALG_ECDSA_ECC_NIST_P384 : Interfaces.C.unsigned_char;
@@ -292,16 +347,18 @@ package body SPDM_Platform_Interface is
                  when      1 => RFLX.SPDM.BA_TPM_ALG_RSASSA_2048,
                  when      0 => RFLX.SPDM.BA_Unsupported,
                  when others => raise Constraint_Error);
-   end Select_Base_Asym_Algo;
+   end Plat_Cfg_Sel_Base_Asym_Algo;
 
-   procedure Select_Base_Hash_Algo
-                (Result           : out RFLX.SPDM.Base_Hash_Sel;
-                 TPM_ALG_SHA_256  :     Boolean;
-                 TPM_ALG_SHA_384  :     Boolean;
-                 TPM_ALG_SHA_512  :     Boolean;
-                 TPM_ALG_SHA3_256 :     Boolean;
-                 TPM_ALG_SHA3_384 :     Boolean;
-                 TPM_ALG_SHA3_512 :     Boolean)
+   overriding
+   procedure Plat_Cfg_Sel_Base_Hash_Algo
+      (Ctx              : in out Context;
+       TPM_ALG_SHA_256  :        Boolean;
+       TPM_ALG_SHA_384  :        Boolean;
+       TPM_ALG_SHA_512  :        Boolean;
+       TPM_ALG_SHA3_256 :        Boolean;
+       TPM_ALG_SHA3_384 :        Boolean;
+       TPM_ALG_SHA3_512 :        Boolean;
+       Result           :    out RFLX.SPDM.Base_Hash_Sel)
    is
       function C_Interface
          (TPM_ALG_SHA_256  : Interfaces.C.unsigned_char;
@@ -333,16 +390,18 @@ package body SPDM_Platform_Interface is
                  when      2 => RFLX.SPDM.BH_TPM_ALG_SHA3_384,
                  when      1 => RFLX.SPDM.BH_TPM_ALG_SHA3_512,
                  when others => raise Constraint_Error);
-   end Select_Base_Hash_Algo;
+   end Plat_Cfg_Sel_Base_Hash_Algo;
 
-   procedure Select_DHE
-      (Result    : out RFLX.SPDM_Responder.DHE_Algo;
-       SecP521r1 :     Boolean;
-       SecP384r1 :     Boolean;
-       SecP256r1 :     Boolean;
-       FFDHE4096 :     Boolean;
-       FFDHE3072 :     Boolean;
-       FFDHE2048 :     Boolean)
+   overriding
+   procedure Plat_Cfg_Sel_DHE
+      (Ctx           : in out Context;
+       Req_SecP521r1 :        Boolean;
+       Req_SecP384r1 :        Boolean;
+       Req_SecP256r1 :        Boolean;
+       Req_FFDHE4096 :        Boolean;
+       Req_FFDHE3072 :        Boolean;
+       Req_FFDHE2048 :        Boolean;
+       Result        :    out RFLX.SPDM_Responder.DHE_Algo)
    is
       function C_Interface
          (SecP521r1 : Interfaces.C.unsigned_char;
@@ -356,12 +415,12 @@ package body SPDM_Platform_Interface is
          Convention    => C,
          External_Name => "spdm_platform_select_dhe";
       Value : constant Interfaces.C.unsigned_char :=
-         C_Interface (SecP521r1 => C_Bool (SecP521r1),
-                      SecP384r1 => C_Bool (SecP384r1),
-                      SecP256r1 => C_Bool (SecP256r1),
-                      FFDHE4096 => C_Bool (FFDHE4096),
-                      FFDHE3072 => C_Bool (FFDHE3072),
-                      FFDHE2048 => C_Bool (FFDHE2048));
+         C_Interface (SecP521r1 => C_Bool (Req_SecP521r1),
+                      SecP384r1 => C_Bool (Req_SecP384r1),
+                      SecP256r1 => C_Bool (Req_SecP256r1),
+                      FFDHE4096 => C_Bool (Req_FFDHE4096),
+                      FFDHE3072 => C_Bool (Req_FFDHE3072),
+                      FFDHE2048 => C_Bool (Req_FFDHE2048));
       use type Interfaces.C.unsigned_char;
    begin
       --  Values could be used directly
@@ -374,13 +433,15 @@ package body SPDM_Platform_Interface is
                  when      2 => RFLX.SPDM_Responder.DA_FFDHE3072,
                  when      1 => RFLX.SPDM_Responder.DA_FFDHE2048,
                  when others => raise Constraint_Error);
-   end Select_DHE;
+   end Plat_Cfg_Sel_DHE;
 
-   procedure Select_AEAD
-      (Result            : out RFLX.SPDM_Responder.AEAD_Algo;
-       ChaCha20_Poly1305 :     Boolean;
-       AES_256_GCM       :     Boolean;
-       AES_128_GCM       :     Boolean)
+   overriding
+   procedure Plat_Cfg_Sel_AEAD
+      (Ctx                   : in out Context;
+       Req_ChaCha20_Poly1305 :        Boolean;
+       Req_AES_256_GCM       :        Boolean;
+       Req_AES_128_GCM       :        Boolean;
+       Result                :    out RFLX.SPDM_Responder.AEAD_Algo)
    is
       function C_Interface
          (AA_ChaCha20_Poly1305 : Interfaces.C.unsigned_char;
@@ -391,9 +452,9 @@ package body SPDM_Platform_Interface is
          Convention    => C,
          External_Name => "spdm_platform_select_aead";
       Value : constant Interfaces.C.unsigned_char :=
-         C_Interface (AA_ChaCha20_Poly1305 => C_Bool (ChaCha20_Poly1305),
-                      AA_AES_256_GCM       => C_Bool (AES_256_GCM),
-                      AA_AES_128_GCM       => C_Bool (AES_128_GCM));
+         C_Interface (AA_ChaCha20_Poly1305 => C_Bool (Req_ChaCha20_Poly1305),
+                      AA_AES_256_GCM       => C_Bool (Req_AES_256_GCM),
+                      AA_AES_128_GCM       => C_Bool (Req_AES_128_GCM));
       use type Interfaces.C.unsigned_char;
    begin
       --  Values could be used directly
@@ -403,19 +464,21 @@ package body SPDM_Platform_Interface is
                  when      2 => RFLX.SPDM_Responder.AA_AES_256_GCM,
                  when      1 => RFLX.SPDM_Responder.AA_AES_128_GCM,
                  when others => raise Constraint_Error);
-   end Select_AEAD;
+   end Plat_Cfg_Sel_AEAD;
 
-   procedure Select_RBAA
-      (Result                      : out RFLX.SPDM_Responder.RBAA_Algo;
-       TPM_ALG_ECDSA_ECC_NIST_P384 :     Boolean;
-       TPM_ALG_RSAPSS_4096         :     Boolean;
-       TPM_ALG_RSASSA_4096         :     Boolean;
-       TPM_ALG_ECDSA_ECC_NIST_P256 :     Boolean;
-       TPM_ALG_RSAPSS_3072         :     Boolean;
-       TPM_ALG_RSASSA_3072         :     Boolean;
-       TPM_ALG_RSAPSS_2048         :     Boolean;
-       TPM_ALG_RSASSA_2048         :     Boolean;
-       TPM_ALG_ECDSA_ECC_NIST_P521 :     Boolean)
+   overriding
+   procedure Plat_Cfg_Sel_RBAA
+      (Ctx                             : in out Context;
+       Req_TPM_ALG_ECDSA_ECC_NIST_P384 :        Boolean;
+       Req_TPM_ALG_RSAPSS_4096         :        Boolean;
+       Req_TPM_ALG_RSASSA_4096         :        Boolean;
+       Req_TPM_ALG_ECDSA_ECC_NIST_P256 :        Boolean;
+       Req_TPM_ALG_RSAPSS_3072         :        Boolean;
+       Req_TPM_ALG_RSASSA_3072         :        Boolean;
+       Req_TPM_ALG_RSAPSS_2048         :        Boolean;
+       Req_TPM_ALG_RSASSA_2048         :        Boolean;
+       Req_TPM_ALG_ECDSA_ECC_NIST_P521 :        Boolean;
+       Result                          :    out RFLX.SPDM_Responder.RBAA_Algo)
    is
       function C_Interface
          (RA_TPM_ALG_ECDSA_ECC_NIST_P384 : Interfaces.C.unsigned_char;
@@ -432,15 +495,15 @@ package body SPDM_Platform_Interface is
          Convention    => C,
          External_Name => "spdm_platform_select_rbba";
       Value : constant Interfaces.C.long :=
-         C_Interface (RA_TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P384),
-                      RA_TPM_ALG_RSAPSS_4096         => C_Bool (TPM_ALG_RSAPSS_4096),
-                      RA_TPM_ALG_RSASSA_4096         => C_Bool (TPM_ALG_RSASSA_4096),
-                      RA_TPM_ALG_ECDSA_ECC_NIST_P256 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P256),
-                      RA_TPM_ALG_RSAPSS_3072         => C_Bool (TPM_ALG_RSAPSS_3072),
-                      RA_TPM_ALG_RSASSA_3072         => C_Bool (TPM_ALG_RSASSA_3072),
-                      RA_TPM_ALG_RSAPSS_2048         => C_Bool (TPM_ALG_RSAPSS_2048),
-                      RA_TPM_ALG_RSASSA_2048         => C_Bool (TPM_ALG_RSASSA_2048),
-                      RA_TPM_ALG_ECDSA_ECC_NIST_P521 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P521));
+         C_Interface (RA_TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P384),
+                      RA_TPM_ALG_RSAPSS_4096         => C_Bool (Req_TPM_ALG_RSAPSS_4096),
+                      RA_TPM_ALG_RSASSA_4096         => C_Bool (Req_TPM_ALG_RSASSA_4096),
+                      RA_TPM_ALG_ECDSA_ECC_NIST_P256 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P256),
+                      RA_TPM_ALG_RSAPSS_3072         => C_Bool (Req_TPM_ALG_RSAPSS_3072),
+                      RA_TPM_ALG_RSASSA_3072         => C_Bool (Req_TPM_ALG_RSASSA_3072),
+                      RA_TPM_ALG_RSAPSS_2048         => C_Bool (Req_TPM_ALG_RSAPSS_2048),
+                      RA_TPM_ALG_RSASSA_2048         => C_Bool (Req_TPM_ALG_RSASSA_2048),
+                      RA_TPM_ALG_ECDSA_ECC_NIST_P521 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P521));
       use type Interfaces.C.unsigned_char;
    begin
       --  Values could be used directly
@@ -456,11 +519,13 @@ package body SPDM_Platform_Interface is
                  when      2 => RFLX.SPDM_Responder.RA_TPM_ALG_RSASSA_2048,
                  when      1 => RFLX.SPDM_Responder.RA_TPM_ALG_ECDSA_ECC_NIST_P521,
                  when others => raise Constraint_Error);
-   end Select_RBAA;
+   end Plat_Cfg_Sel_RBAA;
 
-
-   procedure Get_Digests_Data (Plat_Get_Digests_Data : out RFLX.SPDM_Responder.Digests_Data.Structure;
-                               Algorithm             :     RFLX.SPDM.Measurement_Hash_Algo)
+   overriding
+   procedure Plat_Get_Digests_Data
+      (Ctx    : in out Context;
+       Algo   :        RFLX.SPDM.Measurement_Hash_Algo;
+       Result :    out RFLX.SPDM_Responder.Digests_Data.Structure)
    is
       Slot_Mask : Interfaces.C.unsigned_char;
       Length    : Interfaces.C.long;
@@ -474,19 +539,19 @@ package body SPDM_Platform_Interface is
       use type Interfaces.C.unsigned_char;
       use type RFLX.SPDM_Responder.Digests_Length;
    begin
-      Length := Interfaces.C.long (Plat_Get_Digests_Data.Value'Length);
-      C_Interface (Data   => Plat_Get_Digests_Data.Value'Address,
+      Length := Interfaces.C.long (Result.Value'Length);
+      C_Interface (Data   => Result.Value'Address,
                    Length => Length'Address,
                    Slots  => Slot_Mask'Address);
-      Plat_Get_Digests_Data.Length := RFLX.SPDM_Responder.Digests_Length (Length);
-      Plat_Get_Digests_Data.Slot_0_Present := RFLX.SPDM.Slot_Present (Slot_Mask and 16#01#);
-      Plat_Get_Digests_Data.Slot_1_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#02#) / 16#02#);
-      Plat_Get_Digests_Data.Slot_2_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#04#) / 16#04#);
-      Plat_Get_Digests_Data.Slot_3_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#08#) / 16#08#);
-      Plat_Get_Digests_Data.Slot_4_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#10#) / 16#10#);
-      Plat_Get_Digests_Data.Slot_5_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#20#) / 16#20#);
-      Plat_Get_Digests_Data.Slot_6_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#40#) / 16#40#);
-      Plat_Get_Digests_Data.Slot_7_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#80#) / 16#80#);
-   end Get_Digests_Data;
+      Result.Length := RFLX.SPDM_Responder.Digests_Length (Length);
+      Result.Slot_0_Present := RFLX.SPDM.Slot_Present (Slot_Mask and 16#01#);
+      Result.Slot_1_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#02#) / 16#02#);
+      Result.Slot_2_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#04#) / 16#04#);
+      Result.Slot_3_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#08#) / 16#08#);
+      Result.Slot_4_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#10#) / 16#10#);
+      Result.Slot_5_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#20#) / 16#20#);
+      Result.Slot_6_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#40#) / 16#40#);
+      Result.Slot_7_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#80#) / 16#80#);
+   end Plat_Get_Digests_Data;
 
-end SPDM_Platform_Interface;
+end SPDM_C_Responder;

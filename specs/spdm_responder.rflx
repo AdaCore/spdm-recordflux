@@ -80,7 +80,7 @@ package SPDM_Responder is
                                                  TPM_ALG_RSAPSS_2048         : Boolean;
                                                  TPM_ALG_RSASSA_2048         : Boolean;
                                                  TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM::Base_Asym_Sel;
-      with function Plat_Cfg_Sel_Base_Hash_Algo (TPM_ALG_SHA256   : Boolean;
+      with function Plat_Cfg_Sel_Base_Hash_Algo (TPM_ALG_SHA_256  : Boolean;
                                                  TPM_ALG_SHA_384  : Boolean;
                                                  TPM_ALG_SHA_512  : Boolean;
                                                  TPM_ALG_SHA3_256 : Boolean;
