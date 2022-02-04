@@ -23,7 +23,7 @@ build/%/example/main: build/example/generated/rflx.ads build/example/generated/s
 	gprbuild -j0 -P examples/build.gpr -XTARGET=$*
 	test -f $@
 
-test_cross: build/arm/example/main build/riscv32/example/main build/riscv64/example/main
+test_cross: build/arm/example/main build/riscv64/example/main
 
 check: | $(RFLX)
 	$(RFLX) check specs/spdm_responder.rflx

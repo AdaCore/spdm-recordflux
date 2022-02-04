@@ -4,7 +4,7 @@ is
    Target_Arch : Target_Type := external ("TARGET");
 
    for Source_Dirs use ("../build/example/generated", "../examples", "../include");
-   for Object_Dir use "../build/" & Target_Arch;
+   for Object_Dir use "../build/" & Target_Arch & "/example";
    for Create_Missing_Dirs use "True";
    for Target use Target_Arch & "-elf";
    case Target_Arch is
