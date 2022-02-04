@@ -515,4 +515,55 @@ is
       Result.Slot_7_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#80#) / 16#80#);
    end Plat_Get_Digests_Data;
 
+   overriding
+   procedure Plat_Valid_Certificate_Request
+      (Ctx    : in out Context;
+       Slot   :        RFLX.SPDM.Slot;
+       Offset :        RFLX.SPDM.Offset;
+       Length :        RFLX.SPDM.Length_16;
+       Result :    out Boolean)
+   is
+      function C_Interface (Slot   : Interfaces.C.unsigned_char;
+                            Offset : Interfaces.C.unsigned_short;
+                            Length : Interfaces.C.unsigned_short) return Interfaces.C.unsigned_char
+      with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_validate_certificate_request";
+      use type Interfaces.C.unsigned_char;
+      use type Interfaces.C.unsigned_short;
+   begin
+      Result := 0 /= C_Interface (Slot   => Interfaces.C.unsigned_char (RFLX.SPDM.To_Base (Slot)),
+                                  Offset => Interfaces.C.unsigned_short (Offset),
+                                  Length => Interfaces.C.unsigned_short (Length));
+   end Plat_Valid_Certificate_Request;
+
+   overriding
+   procedure Plat_Get_Certificate_Response
+      (Ctx    : in out Context;
+       Slot   :        RFLX.SPDM.Slot;
+       Offset :        RFLX.SPDM.Offset;
+       Length :        RFLX.SPDM.Length_16;
+       Result :    out RFLX.SPDM.Certificate_Response.Structure)
+   is
+      procedure C_Interface (Data   : System.Address;
+                             Slot   : Interfaces.C.unsigned_char;
+                             Offset : Interfaces.C.unsigned_short;
+                             Length : Interfaces.C.unsigned_short)
+      with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_get_certificate_data";
+      use type Interfaces.C.unsigned_short;
+   begin
+      C_Interface (Data   => Result.Cert_Chain'Address,
+                   Slot   => Interfaces.C.unsigned_char (RFLX.SPDM.To_Base (Slot)),
+                   Offset => Interfaces.C.unsigned_short (Offset),
+                   Length => Interfaces.C.unsigned_short (Length));
+      Result.Slot := Slot;
+      Result.Portion_Length := Length;
+      --  FIXME
+      Result.Remainder_Length := 0;
+   end Plat_Get_Certificate_Response;
+
 end SPDM_C_Responder;

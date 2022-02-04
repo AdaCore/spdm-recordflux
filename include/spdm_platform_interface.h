@@ -66,4 +66,13 @@ long spdm_platform_select_rbba(unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
 
 void spdm_platform_get_digests_data(char *data, long *length, unsigned char *slot_mask);
 
+unsigned char spdm_platform_validate_certificate_request(unsigned char slot,
+                                                         unsigned short offset,
+                                                         unsigned short length);
+
+void spdm_platform_get_certificate_data (char *data,
+                                         unsigned char slot,
+                                         unsigned short offset,
+                                         unsigned short length);
+
 #endif // __SPDM_PLATFORM_INTERFACE__

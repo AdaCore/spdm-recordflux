@@ -1,6 +1,7 @@
 with RFLX.SPDM;
 with RFLX.SPDM_Responder.Session;
 with RFLX.SPDM_Responder.Digests_Data;
+with RFLX.SPDM.Certificate_Response;
 
 package SPDM_C_Responder with
    SPARK_Mode,
@@ -164,5 +165,21 @@ is
       (Ctx    : in out Context;
        Algo   :        RFLX.SPDM.Measurement_Hash_Algo;
        Result :    out RFLX.SPDM_Responder.Digests_Data.Structure);
+
+   overriding
+   procedure Plat_Valid_Certificate_Request
+      (Ctx    : in out Context;
+       Slot   :        RFLX.SPDM.Slot;
+       Offset :        RFLX.SPDM.Offset;
+       Length :        RFLX.SPDM.Length_16;
+       Result :    out Boolean);
+
+   overriding
+   procedure Plat_Get_Certificate_Response
+      (Ctx    : in out Context;
+       Slot   :        RFLX.SPDM.Slot;
+       Offset :        RFLX.SPDM.Offset;
+       Length :        RFLX.SPDM.Length_16;
+       Result :    out RFLX.SPDM.Certificate_Response.Structure);
 
 end SPDM_C_Responder;

@@ -103,6 +103,16 @@ package SPDM_Responder is
 
       with function Plat_Get_Digests_Data (Algo : SPDM::Measurement_Hash_Algo) return Digests_Data;
 
+      with function Plat_Valid_Certificate_Request
+         (Slot   : SPDM::Slot;
+          Offset : SPDM::Offset;
+          Length : SPDM::Length_16) return Boolean;
+
+      with function Plat_Get_Certificate_Response
+         (Slot   : SPDM::Slot;
+          Offset : SPDM::Offset;
+          Length : SPDM::Length_16) return SPDM::Certificate_Response;
+
    session Session with
       Initial => Init,
       Final => End_Session
@@ -112,6 +122,9 @@ package SPDM_Responder is
       Supp_Versions         : SPDM::Version_Number_Entries;
       Measurement_Hash_Algo : SPDM::Measurement_Hash_Algo;
       Hash_Length           : SPDM::Hash_Length;
+      Slot                  : SPDM::Slot;
+      Offset                : SPDM::Offset;
+      Length                : SPDM::Length_16;
    begin
       state Init
       is
@@ -622,9 +635,77 @@ package SPDM_Responder is
       begin
          Transport'Write (Response);
       transition
+         goto Receive_Get_Certificate
+      end Send_Digests;
+
+      state Receive_Get_Certificate
+      is
+      begin
+         Transport'Read (Request);
+      transition
+         goto Check_Certificate
+            if Request'Valid and Request.Code = SPDM::Get_Certificate
+         goto Error_Unsupported_Request
+            if Request'Valid
+         goto Error_Invalid_Request
+      end Receive_Get_Certificate;
+
+      state Check_Certificate
+      is
+         Valid : Boolean;
+      begin
+         Slot   := Request.Get_Certificate_Request_Slot;
+         Offset := Request.Get_Certificate_Request_Offset;
+         Length := Request.Get_Certificate_Request_Length;
+         Valid  := Plat_Valid_Certificate_Request (Slot, Offset, Length);
+      transition
+         goto Prepare_Certificate
+            if Valid
+         goto Error_Invalid_Request
+      exception
+         goto Error_Invalid_Request
+      end Check_Certificate;
+
+      state Prepare_Certificate
+      is
+         Cert                  : SPDM::Certificate_Response;
+         Cert_Slot             : SPDM::Slot;
+         Cert_Portion_Length   : SPDM::Length_16;
+         Cert_Remainder_Length : SPDM::Length_16;
+      begin
+         Cert                  := Plat_Get_Certificate_Response (Slot, Offset, Length);
+         Cert_Slot             := Cert.Slot;
+         Cert_Portion_Length   := Cert.Portion_Length;
+         Cert_Remainder_Length := Cert.Remainder_Length;
+
+         Response := SPDM::Response'(Meas_Cap                              => SPDM::Meas_Unsupported,
+                                     Hash_Type                             => SPDM::No_Measurement,
+                                     Hash_Length                           => Hash_Length,
+                                     Signature_Length                      => 512,
+                                     Exchange_Data_Length                  => 512,
+                                     Handshake_In_The_Clear                => False,
+                                     Major_Version                         => 1,
+                                     Minor_Version                         => 1,
+                                     Code                                  => SPDM::Certificate,
+                                     Certificate_Response_Slot             => Cert_Slot,
+                                     Certificate_Response_Param_2          => 0,
+                                     Certificate_Response_Portion_Length   => Cert_Portion_Length,
+                                     Certificate_Response_Remainder_Length => Cert_Remainder_Length,
+                                     Certificate_Response_Cert_Chain       => Cert.Cert_Chain);
+      transition
+         goto Send_Certificate
+      exception
+         goto Error_Unspecified
+      end Prepare_Certificate;
+
+      state Send_Certificate
+      is
+      begin
+         Transport'Write (Response);
+      transition
          -- FIXME
          goto Receive_Get_Version
-      end Send_Digests;
+      end Send_Certificate;
 
       state Error_Unsupported_Request
       is

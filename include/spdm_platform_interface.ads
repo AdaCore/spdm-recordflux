@@ -1,5 +1,6 @@
 with RFLX.SPDM;
 with RFLX.SPDM_Responder.Digests_Data;
+with RFLX.SPDM.Certificate_Response;
 
 package SPDM_Platform_Interface is
 
@@ -114,5 +115,17 @@ package SPDM_Platform_Interface is
 
    procedure Get_Digests_Data (Plat_Get_Digests_Data : out RFLX.SPDM_Responder.Digests_Data.Structure;
                                Algorithm             :     RFLX.SPDM.Measurement_Hash_Algo);
+
+   procedure Valid_Certificate_Request
+      (Result : out Boolean;
+       Slot   :     RFLX.SPDM.Slot;
+       Offset :     RFLX.SPDM.Offset;
+       Length :     RFLX.SPDM.Length_16);
+
+   procedure Get_Certificate_Response
+      (Result : out RFLX.SPDM.Certificate_Response.Structure;
+       Slot   :     RFLX.SPDM.Slot;
+       Offset :     RFLX.SPDM.Offset;
+       Length :     RFLX.SPDM.Length_16);
 
 end SPDM_Platform_Interface;
