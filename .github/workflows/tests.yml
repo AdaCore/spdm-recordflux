@@ -11,22 +11,36 @@ jobs:
             fail-fast: false
         steps:
             - uses: actions/checkout@v2
-            - uses: ada-actions/toolchain@ce2021
+            - name: Install GNAT Pro
+              uses: ./.github/actions/install_gnat_pro
               with:
-                  distrib: community
-                  target: native
-            - uses: ada-actions/toolchain@ce2021
+                  version: "23.0w-20220202"
+                  ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
+                  server: ${{ secrets.MEMCACHED_SERVER }}
+            - name: Install GNAT Pro (ARM)
+              uses: ./.github/actions/install_gnat_pro
               with:
-                  distrib: community
-                  target: arm-elf
-            - uses: ada-actions/toolchain@ce2021
+                  version: "23.0w-20220202"
+                  target: "arm-elf"
+                  host_arch: "linux64"
+                  ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
+                  server: ${{ secrets.MEMCACHED_SERVER }}
+            - name: Install GNAT Pro (RISC-V 32)
+              uses: ./.github/actions/install_gnat_pro
               with:
-                  distrib: community
-                  target: riscv32-elf
-            - uses: ada-actions/toolchain@ce2021
+                  version: "23.0w-20220202"
+                  target: "riscv32-elf"
+                  host_arch: "linux64"
+                  ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
+                  server: ${{ secrets.MEMCACHED_SERVER }}
+            - name: Install GNAT Pro (RISC-V 64)
+              uses: ./.github/actions/install_gnat_pro
               with:
-                  distrib: community
-                  target: riscv64-elf
+                  version: "23.0w-20220202"
+                  target: "riscv64-elf"
+                  host_arch: "linux64"
+                  ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
+                  server: ${{ secrets.MEMCACHED_SERVER }}
             - name: Install dependencies
               run: |
                   git submodule update --init --recursive

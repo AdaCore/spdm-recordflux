@@ -9,11 +9,11 @@ is
    for Target use Target_Arch & "-elf";
    case Target_Arch is
       when "arm" =>
-         for Runtime ("Ada") use "zfp-stm32f4";
+         for Runtime ("Ada") use "light-stm32f4";
       when "riscv32" =>
-         for Runtime ("Ada") use "zfp-hifive1";
+         for Runtime ("Ada") use "light-hifive1";
       when "riscv64" =>
-         for Runtime ("Ada") use "zfp-spike";
+         for Runtime ("Ada") use "light-spike";
       when others =>
          null;
    end case;
@@ -25,7 +25,7 @@ is
          "-fdata-sections",
          "-Os",
          "-gnatp",
-         "-fno-inline"
+         "-gnatd.8"
       );
    end Builder;
 
