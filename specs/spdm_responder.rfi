@@ -1,0 +1,20 @@
+Session:
+    Session:
+        Buffer_Size:
+            Default: 100
+            Global:
+                Request: 512
+                Response: 1280
+                Supp_Versions: 2
+            Local:
+                Prepare_Digests:
+                    Digests_Data: 515
+                Prepare_Algorithms:
+                    Ext_Asym: 100
+                    Ext_Hash: 100
+                    No_Ext_Algs: 100
+                    Resp_Alg_Structs: 100
+                    DHE_List: 100
+                    AEAD_Cipher_Suite_List: 100
+                    Req_Base_Asym_Alg_List: 100
+                    Key_Schedule_List: 100
