@@ -1,4 +1,4 @@
-.PHONY: all test check package test_package test_cross clean
+.PHONY: all test check check_spec check_stack check_stack_riscv64 check_stack_arm package test_package test_cross clean
 
 TMPDIR := $(shell mktemp -d)
 FILE_LIST := $(shell mktemp)
@@ -25,8 +25,23 @@ build/%/example/main: build/example/generated/rflx.ads build/example/generated/s
 
 test_cross: build/arm/example/main build/riscv64/example/main
 
-check: | $(RFLX)
+check: check_spec check_stack
+
+check_spec: | $(RFLX)
 	$(RFLX) check specs/spdm_responder.rflx
+
+check_stack: check_stack_riscv64 check_stack_arm
+
+check_stack_riscv64: build/riscv64/gnatstack/example/gnatstack.log
+
+check_stack_arm: build/arm/gnatstack/example/gnatstack.log
+
+build/%/gnatstack/example/gnatstack.log: build/%/gnatstack/example/main
+	gnatstack -Wa -l10 -v -f $@ -P examples/build.gpr -XCHECK_STACK=True -XTARGET=$* | tee $@.tmp
+	mv $@.tmp $@
+
+build/%/gnatstack/example/main: build/example/generated/rflx.ads build/example/generated/spdm_platform_interface.adb
+	gprbuild -j0 -P examples/build.gpr -XCHECK_STACK=True -XTARGET=$*
 
 build/spdm_dump:
 	mkdir -p build/spdm_dump

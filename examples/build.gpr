@@ -3,9 +3,23 @@ is
    type Target_Type is ("arm", "riscv32", "riscv64");
    Target_Arch : Target_Type := external ("TARGET");
 
+   type Boolean is ("True", "False");
+   Check_Stack : Boolean := external ("CHECK_STACK", "False");
+
+   Stack_Check_Path := "";
+   Stack_Check_Switches := ();
+   case Check_Stack is
+      when "True" =>
+         Stack_Check_Path := "/gnatstack";
+         Stack_Check_Switches := ("-fcallgraph-info=su,da");
+      when "False" =>
+         null;
+   end case;
+
    for Languages use ("Ada", "C");
    for Source_Dirs use (".", "platform", "../build/example/generated", "../src", "../include");
-   for Object_Dir use "../build/" & Target_Arch & "/example";
+   for Object_Dir use "../build/" & Target_Arch & Stack_Check_Path & "/example";
+
    for Create_Missing_Dirs use "True";
    for Target use Target_Arch & "-elf";
    case Target_Arch is
@@ -31,7 +45,7 @@ is
          "-Os",
          "-gnatp",
          "-gnatd.8"
-      );
+      ) & Stack_Check_Switches;
    end Builder;
 
    package Linker is
