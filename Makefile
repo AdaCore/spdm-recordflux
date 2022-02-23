@@ -94,6 +94,7 @@ test_responder: build/tests/responder build/tests/proxy build/spdm_emu/bin/spdm_
 
 $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx:
 	python3 -m venv $(TMPDIR)/venv
+	$(TMPDIR)/venv/bin/pip3 install wheel
 	$(TMPDIR)/venv/bin/pip3 install contrib/RecordFlux[devel]
 
 package: build/spdm_$(GITREV).tar.gz
@@ -122,6 +123,7 @@ test_package: build/spdm_$(GITREV).tar
 	tar -xvf $^ --directory $(TMPDIR)/package_test
 	make -C $(TMPDIR)/package_test
 	python3 -m venv $(TMPDIR)/package_test_venv
+	$(TMPDIR)/package_test_venv/bin/pip3 install wheel
 	$(TMPDIR)/package_test_venv/bin/pip3 install contrib/RecordFlux[devel]
 	PATH="$(TMPDIR)/package_test_venv/bin:$(PATH)" make -C $(TMPDIR)/package_test lib
 	# static library must exist
