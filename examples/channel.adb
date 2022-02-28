@@ -4,6 +4,6 @@ package body Channel is
 
    procedure Receive (Buffer : out RFLX.RFLX_Types.Bytes; Length : out RFLX.RFLX_Types.Length) is null;
 
-   function Has_Data return Boolean is (False);
+   function Has_Message return Boolean is (False);
 
 end Channel;
