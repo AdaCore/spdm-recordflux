@@ -32,7 +32,7 @@ is
       when others =>
          null;
    end case;
-   for Main use ("main.adb");
+   for Main use ("main.adb", "main_multiple_responders.adb");
 
    package Compiler is
       for Default_Switches ("C") use ("-W", "-Wall", "-Wextra", "-Werror", "-Wstrict-prototypes", "-Wmissing-prototypes");
