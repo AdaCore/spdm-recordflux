@@ -1,5 +1,5 @@
 with RFLX.SPDM_Responder.Session;
-with RFLX.RFLX_Builtin_Types;
+with RFLX.RFLX_Types;
 
 with Main_Data;
 

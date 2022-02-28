@@ -7,7 +7,6 @@ with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with RFLX.SPDM_Proxy.Proxy;
 with RFLX.RFLX_Types;
-with RFLX.RFLX_Builtin_Types;
 with SPDM_Proxy;
 
 procedure Proxy
@@ -19,7 +18,7 @@ is
    Server_Connection : Server.Server_Type;
    Client_Connection : Client.Connection_Type;
    Buffer            : RFLX.RFLX_Types.Bytes (RFLX.RFLX_Types.Index'First .. RFLX.RFLX_Types.Index'First + 4095);
-   Length            : RFLX.RFLX_Builtin_Types.Length;
+   Length            : RFLX.RFLX_Types.Length;
    Context           : SPDM_Proxy.Context;
 
    package Responder_Channel is new Channel (Client_Connection);
@@ -57,7 +56,7 @@ begin
                SP.Write
                   (Context,
                    SP.C_Emu_Transport,
-                   Buffer (Buffer'First .. Buffer'First +  RFLX.RFLX_Builtin_Types.Index (Length) - 1));
+                   Buffer (Buffer'First .. Buffer'First +  RFLX.RFLX_Types.Index (Length) - 1));
             end if;
          end;
       end if;
@@ -85,7 +84,7 @@ begin
                SP.Write
                   (Context,
                    SP.C_SPDM_Transport,
-                   Buffer (Buffer'First .. Buffer'First +  RFLX.RFLX_Builtin_Types.Index (Length) - 1));
+                   Buffer (Buffer'First .. Buffer'First +  RFLX.RFLX_Types.Index (Length) - 1));
             end if;
          end;
       end if;

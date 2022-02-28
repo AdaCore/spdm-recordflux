@@ -2,7 +2,6 @@ with Server;
 with Channel;
 with RFLX.SPDM_Responder.Session;
 with RFLX.RFLX_Types;
-with RFLX.RFLX_Builtin_Types;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada.Command_Line;
@@ -17,7 +16,7 @@ is
    Listener   : Server.Server_Type := Server.Create_Server;
    Connection : Server.Server_Type;
    Buffer     : RFLX.RFLX_Types.Bytes (RFLX.RFLX_Types.Index'First .. RFLX.RFLX_Types.Index'First + 4095);
-   Length     : RFLX.RFLX_Builtin_Types.Length;
+   Length     : RFLX.RFLX_Types.Length;
    Context    : SPDM_C_Responder.Context;
 
    package TCP_Channel is new Channel (Connection);
@@ -52,7 +51,7 @@ begin
                   SR.Write
                      (Context,
                       C,
-                      Buffer (Buffer'First .. Buffer'First +  RFLX.RFLX_Builtin_Types.Index (Length) - 1));
+                      Buffer (Buffer'First .. Buffer'First +  RFLX.RFLX_Types.Index (Length) - 1));
                end if;
             end;
          end if;

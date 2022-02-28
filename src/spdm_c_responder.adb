@@ -1,6 +1,5 @@
 with Interfaces.C;
 with System;
-with RFLX.RFLX_Builtin_Types;
 with RFLX.SPDM_Responder.Digests_Data;
 
 package body SPDM_C_Responder with
