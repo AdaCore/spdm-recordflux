@@ -14,16 +14,23 @@ all: check test
 
 lib: build/lib/libspdm.a
 
-test: test_validate test_responder test_cross
+libarm: build/arm/lib/libspdm.a
 
-build/lib/libspdm.a: build/generated/rflx.ads
+libriscv64: build/riscv64/lib/libspdm.a
+
+test: test_validate test_responder test_cross lib
+
+build/lib/libspdm.a: build/example/generated/rflx.ads build/example/generated/spdm_platform_interface.adb
 	gprbuild -j0 -P spdm
+
+build/%/lib/libspdm.a: build/example/generated/rflx.ads build/example/generated/spdm_platform_interface.adb
+	gprbuild -j0 -P spdm -XTARGET=$*
 
 build/%/example/main: build/example/generated/rflx.ads build/example/generated/spdm_platform_interface.adb
 	gprbuild -j0 -P examples/build.gpr -XTARGET=$*
 	test -f $@
 
-test_cross: build/arm/example/main build/riscv64/example/main
+test_cross: build/arm/example/main build/riscv64/example/main libarm libriscv64
 
 check: check_spec check_stack
 
