@@ -4,7 +4,7 @@ project SPDM is
    Target_Arch : Target_Type := external ("TARGET", "native");
    for Create_Missing_Dirs use "true";
    for Languages use ("Ada", "C");
-   for Source_Dirs use ("src", "include", "build/example/generated");
+   for Source_Dirs use ("src", "include", "build/generated");
    for Library_Name use "spdm";
    for Library_Kind use "static";
 

@@ -20,13 +20,13 @@ libriscv64: build/riscv64/lib/libspdm.a
 
 test: test_validate test_responder test_cross lib
 
-build/lib/libspdm.a: build/example/generated/rflx.ads build/example/generated/spdm_platform_interface.adb
+build/lib/libspdm.a: build/generated/rflx.ads build/generated/spdm_platform_interface.adb
 	gprbuild -j0 -P spdm
 
-build/%/lib/libspdm.a: build/example/generated/rflx.ads build/example/generated/spdm_platform_interface.adb
+build/%/lib/libspdm.a: build/generated/rflx.ads build/generated/spdm_platform_interface.adb
 	gprbuild -j0 -P spdm -XTARGET=$*
 
-build/%/example/main: build/example/generated/rflx.ads build/example/generated/spdm_platform_interface.adb
+build/%/example/main: build/generated/rflx.ads build/generated/spdm_platform_interface.adb
 	gprbuild -j0 -P examples/build.gpr -XTARGET=$*
 	test -f $@
 
@@ -47,7 +47,7 @@ build/%/gnatstack/example/gnatstack.log: build/%/gnatstack/example/main
 	gnatstack -Wa -l10 -v -f $@ -P examples/build.gpr -XCHECK_STACK=True -XTARGET=$* | tee $@.tmp
 	mv $@.tmp $@
 
-build/%/gnatstack/example/main: build/example/generated/rflx.ads build/example/generated/spdm_platform_interface.adb
+build/%/gnatstack/example/main: build/generated/rflx.ads build/generated/spdm_platform_interface.adb
 	gprbuild -j0 -P examples/build.gpr -XCHECK_STACK=True -XTARGET=$*
 
 build/spdm_dump:
@@ -64,15 +64,15 @@ build/spdm_emu/bin/spdm_%_emu: build/spdm_emu
 	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Release -DCRYPTO=mbedtls -S contrib/dmtf/spdm-emu -B build/spdm_emu
 	make -C build/spdm_emu -j$(shell nproc)
 
+build/debug/generated/rflx.ads: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx | $(RFLX)
+	mkdir -p build/debug/generated
+	$(RFLX) --no-verification generate $^ --debug -d build/debug/generated
+
 build/generated/rflx.ads: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx | $(RFLX)
 	mkdir -p build/generated
-	$(RFLX) --no-verification generate $^ --debug -d build/generated
+	$(RFLX) --no-verification generate $^ -d build/generated
 
-build/example/generated/rflx.ads: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx | $(RFLX)
-	mkdir -p build/example/generated
-	$(RFLX) --no-verification generate $^ -d build/example/generated
-
-build/tests/proxy build/tests/responder: build/generated/rflx.ads tests/tests.gpr tests/*.ad?
+build/tests/proxy build/tests/responder: build/debug/generated/rflx.ads tests/tests.gpr tests/*.ad?
 	gprbuild -p tests/tests.gpr -s
 
 build/certificates:
@@ -136,7 +136,7 @@ test_package: build/spdm_$(GITREV).tar
 	# static library must exist
 	test -f $(TMPDIR)/package_test/build/lib/libspdm.a
 
-build/example/generated/spdm_platform_interface.adb: include/spdm_platform_interface.ads
+build/generated/spdm_platform_interface.adb: include/spdm_platform_interface.ads
 	gnatstub --output-dir=$(dir $@) --no-exception --force $<
 
 
