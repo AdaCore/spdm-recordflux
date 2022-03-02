@@ -125,6 +125,7 @@ package SPDM_Responder is
       state Init
       is
       begin
+         Supp_Versions'Reset;
          Supp_Versions'Append
             (SPDM::Version_Number_Entry'(Alpha                 => 0,
                                          Update_Version_Number => 0,
@@ -702,7 +703,7 @@ package SPDM_Responder is
       begin
          Transport'Write (Response);
       transition
-         goto End_Session
+         goto Init
       end Send_Error;
 
       state End_Session is null state;
