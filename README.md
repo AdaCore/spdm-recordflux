@@ -64,7 +64,7 @@ $ PATH=/path/to/your/NATIVE/gnat:$PATH pip install contrib/RecordFlux
 If a virtual environment had been used in the previous step, it must be active now.
 
 ```
-$ LOCAL_RFLX=1 PATH=/path/to/your/gnat:$PATH make lib
+$ PATH=/path/to/your/gnat:$PATH make lib
 [...]
 
 Build Libraries
@@ -77,10 +77,10 @@ The resulting static library is build/lib/libspdm.a.
 
 The process to compile the library for ARM and RiscV64 is analog:
 ```
-$ LOCAL_RFLX=1 PATH=/path/to/your/gnat:$PATH make libarm
+$ PATH=/path/to/your/cross/gnat:$PATH make libarm
 ```
 ```
-$ LOCAL_RFLX=1 PATH=/path/to/your/gnat:$PATH make libriscv64
+$ PATH=/path/to/your/cross/gnat:$PATH make libriscv64
 ```
 
 The resulting libraries will be build/arm/lib/libspdm.a and build/riscv64/lib/libspdm.a.
