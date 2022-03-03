@@ -78,19 +78,31 @@ is
 begin
    SR.Initialize (Context_1);
    SR.Initialize (Context_2);
+   loop
+      if not SR.Initialized (Context_1) then
+         SR.Initialize (Context_1);
+      end if;
+      if not SR.Initialized (Context_2) then
+         SR.Initialize (Context_2);
+      end if;
 
-   while SR.Active (Context_1) or SR.Active (Context_2) loop
-      pragma Loop_Invariant (SR.Initialized (Context_1));
-      pragma Loop_Invariant (SR.Initialized (Context_2));
+      while SR.Active (Context_1) and SR.Active (Context_2) loop
+         pragma Loop_Invariant (SR.Initialized (Context_1));
+         pragma Loop_Invariant (SR.Initialized (Context_2));
 
-      Run_Responder_1 (Context_1);
-      Run_Responder_2 (Context_2);
+         Run_Responder_1 (Context_1);
+         Run_Responder_2 (Context_2);
 
-      --  Execute application code here as required
+         --  Execute application code here as required
+      end loop;
+
+      pragma Warnings (Off, """*"" is set by ""Finalize"" but not used after the call");
+      if not SR.Active (Context_1) then
+         SR.Finalize (Context_1);
+      end if;
+      if not SR.Active (Context_2) then
+         SR.Finalize (Context_2);
+      end if;
+      pragma Warnings (On, """*"" is set by ""Finalize"" but not used after the call");
    end loop;
-
-   pragma Warnings (Off, """*"" is set by ""Finalize"" but not used after the call");
-   SR.Finalize (Context_1);
-   SR.Finalize (Context_2);
-   pragma Warnings (On, """*"" is set by ""Finalize"" but not used after the call");
 end Main_Multiple_Responders;
