@@ -7,6 +7,7 @@ with Ada.Text_IO;
 with Ada.Command_Line;
 with GNAT.Traceback.Symbolic;
 with SPDM_C_Responder;
+with GNAT.Sockets;
 
 procedure Responder
 is
@@ -18,12 +19,14 @@ is
    Buffer     : RFLX.RFLX_Types.Bytes (RFLX.RFLX_Types.Index'First .. RFLX.RFLX_Types.Index'First + 4095);
    Length     : RFLX.RFLX_Types.Length;
    Context    : SPDM_C_Responder.Context;
+   Address    : GNAT.Sockets.Sock_Addr_Type;
 
    package TCP_Channel is new Channel (Connection);
    package SR renames RFLX.SPDM_Responder.Session;
 begin
+   Server.Bind (Listener, 2324, Address);
    loop
-      Server.Listen (Listener, 2324, Connection);
+      Server.Listen (Listener, Address, Connection);
       SR.Initialize (Context);
       while SR.Active (Context) loop
          pragma Loop_Invariant (SR.Initialized (Context));
@@ -59,10 +62,7 @@ begin
          end loop;
          SR.Run (Context);
       end loop;
-      --  ISSUE: Componolit/Workarounds#32
-      pragma Warnings (Off, """*"" is set by ""Finalize"" but not used after the call");
       SR.Finalize (Context);
-      pragma Warnings (On, """*"" is set by ""Finalize"" but not used after the call");
    end loop;
 exception
    when E : others =>

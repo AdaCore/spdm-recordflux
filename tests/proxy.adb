@@ -8,6 +8,7 @@ with GNAT.Traceback.Symbolic;
 with RFLX.SPDM_Proxy.Proxy;
 with RFLX.RFLX_Types;
 with SPDM_Proxy;
+with GNAT.Sockets;
 
 procedure Proxy
 is
@@ -20,6 +21,7 @@ is
    Buffer            : RFLX.RFLX_Types.Bytes (RFLX.RFLX_Types.Index'First .. RFLX.RFLX_Types.Index'First + 4095);
    Length            : RFLX.RFLX_Types.Length;
    Context           : SPDM_Proxy.Context;
+   Address           : GNAT.Sockets.Sock_Addr_Type;
 
    package Responder_Channel is new Channel (Client_Connection);
    package Emu_Channel is new Channel (Server_Connection);
@@ -27,7 +29,8 @@ is
 begin
    SP.Initialize (Context);
    Client.Connect (2324, Client_Connection);
-   Server.Listen (Listener, 2323, Server_Connection);
+   Server.Bind (Listener, 2323, Address);
+   Server.Listen (Listener, Address, Server_Connection);
 
    while SP.Active (Context) loop
 

@@ -96,13 +96,11 @@ begin
          --  Execute application code here as required
       end loop;
 
-      pragma Warnings (Off, """*"" is set by ""Finalize"" but not used after the call");
       if not SR.Active (Context_1) then
          SR.Finalize (Context_1);
       end if;
       if not SR.Active (Context_2) then
          SR.Finalize (Context_2);
       end if;
-      pragma Warnings (On, """*"" is set by ""Finalize"" but not used after the call");
    end loop;
 end Main_Multiple_Responders;

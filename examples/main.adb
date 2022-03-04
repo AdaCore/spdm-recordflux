@@ -21,8 +21,6 @@ begin
          end loop;
          SR.Run (Main_Data.Context);
       end loop;
-      pragma Warnings (Off, """*"" is set by ""Finalize"" but not used after the call");
       SR.Finalize (Main_Data.Context);
-      pragma Warnings (On, """*"" is set by ""Finalize"" but not used after the call");
    end loop;
 end Main;
