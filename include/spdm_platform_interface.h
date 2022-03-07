@@ -73,6 +73,6 @@ unsigned char spdm_platform_validate_certificate_request(unsigned char slot,
 void spdm_platform_get_certificate_data (char *data,
                                          unsigned char slot,
                                          unsigned short offset,
-                                         unsigned short length);
+                                         unsigned short *length);
 
 #endif // __SPDM_PLATFORM_INTERFACE__

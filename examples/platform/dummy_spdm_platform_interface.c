@@ -265,17 +265,17 @@ unsigned char spdm_platform_validate_certificate_request(unsigned char slot,
 void spdm_platform_get_certificate_data (char *data,
                                          unsigned char slot,
                                          unsigned short offset,
-                                         unsigned short length)
+                                         unsigned short *length)
 {
     switch (slot) {
         case 0:
-            memcpy((void *)data, (void *)(cert_0 + offset), length);
+            memcpy((void *)data, (void *)(cert_0 + offset), *length);
             break;
         case 1:
-            memcpy((void *)data, (void *)(cert_1 + offset), length);
+            memcpy((void *)data, (void *)(cert_1 + offset), *length);
             break;
         case 2:
-            memcpy((void *)data, (void *)(cert_2 + offset), length);
+            memcpy((void *)data, (void *)(cert_2 + offset), *length);
             break;
     }
 };
