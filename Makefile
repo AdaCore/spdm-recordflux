@@ -104,7 +104,7 @@ $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx:
 	$(TMPDIR)/venv/bin/pip3 install wheel
 	$(TMPDIR)/venv/bin/pip3 install contrib/RecordFlux[devel]
 
-package: build/spdm_$(GITREV).tar.gz
+package: build/spdm_$(GITREV).tar.xz
 
 build/spdm_$(GITREV).tar: .git/logs/HEAD
 	# check for local changes, abort if not committed
@@ -118,9 +118,6 @@ build/spdm_$(GITREV).tar: .git/logs/HEAD
 
 build/spdm_$(GITREV).tar.xz: build/spdm_$(GITREV).tar
 	xz -z -e -9 -T0 $^
-
-build/spdm_$(GITREV).tar.gz: build/spdm_$(GITREV).tar
-	gzip -f $^
 
 test_package: build/spdm_$(GITREV).tar
 	# Check for file with charcaters incompatible with Perforce
