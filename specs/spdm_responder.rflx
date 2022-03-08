@@ -5,28 +5,31 @@ package SPDM_Responder is
    --  FIXME: Update transcript hash
 
    type DHE_Algo is
-      (DA_SecP521r1,
-       DA_SecP384r1,
-       DA_SecP256r1,
-       DA_FFDHE4096,
-       DA_FFDHE3072,
-       DA_FFDHE2048) with Size => 8;
+      (DA_FFDHE2048 =>  1,
+       DA_FFDHE3072 =>  2,
+       DA_FFDHE4096 =>  4,
+       DA_SecP256r1 =>  8,
+       DA_SecP384r1 => 16,
+       DA_SecP521r1 => 32)
+   with Size => 8;
 
    type AEAD_Algo is
-      (AA_ChaCha20_Poly1305,
-       AA_AES_256_GCM,
-       AA_AES_128_GCM) with Size => 8;
+      (AA_AES_128_GCM       => 1,
+       AA_AES_256_GCM       => 2,
+       AA_ChaCha20_Poly1305 => 4)
+   with Size => 8;
 
    type RBAA_Algo is
-      (RA_TPM_ALG_ECDSA_ECC_NIST_P384,
-       RA_TPM_ALG_RSAPSS_4096,
-       RA_TPM_ALG_RSASSA_4096,
-       RA_TPM_ALG_ECDSA_ECC_NIST_P256,
-       RA_TPM_ALG_RSAPSS_3072,
-       RA_TPM_ALG_RSASSA_3072,
-       RA_TPM_ALG_RSAPSS_2048,
-       RA_TPM_ALG_RSASSA_2048,
-       RA_TPM_ALG_ECDSA_ECC_NIST_P521) with Size => 8;
+      (RA_TPM_ALG_RSASSA_2048         =>   1,
+       RA_TPM_ALG_RSAPSS_2048         =>   2,
+       RA_TPM_ALG_RSASSA_3072         =>   4,
+       RA_TPM_ALG_RSAPSS_3072         =>   8,
+       RA_TPM_ALG_ECDSA_ECC_NIST_P256 =>  16,
+       RA_TPM_ALG_RSASSA_4096         =>  32,
+       RA_TPM_ALG_RSAPSS_4096         =>  64,
+       RA_TPM_ALG_ECDSA_ECC_NIST_P384 => 128,
+       RA_TPM_ALG_ECDSA_ECC_NIST_P521 => 256)
+   with Size => 16;
 
    type Digests_Length is range 0 .. 512 with Size => 16;
 

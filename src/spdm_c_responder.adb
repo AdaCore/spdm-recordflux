@@ -1,6 +1,7 @@
 with Interfaces.C;
 with System;
 with RFLX.SPDM_Responder.Digests_Data;
+with RFLX.SPDM;
 
 package body SPDM_C_Responder with
    SPARK_Mode
@@ -16,6 +17,9 @@ is
          Convention    => C,
          External_Name => "spdm_platform_config_ct_exponent";
    begin
+      if not RFLX.SPDM.Valid (RFLX.SPDM.CT_Exponent_Base (C_Interface)) then
+         raise Constraint_Error;
+      end if;
       Result := RFLX.SPDM.CT_Exponent (C_Interface);
    end Plat_Cfg_CT_Exponent;
 
@@ -70,15 +74,12 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_meas";
-      Value : constant Interfaces.C.unsigned_char := C_Interface;
-      use type Interfaces.C.unsigned_char;
+      Value : constant RFLX.SPDM.Meas_Cap_Base := RFLX.SPDM.Meas_Cap_Base (C_Interface);
    begin
-      pragma Assert (Value < 3);
-      Result := (case Value is
-                 when 0      => RFLX.SPDM.Meas_Unsupported,
-                 when 1      => RFLX.SPDM.Meas_Plain,
-                 when 2      => RFLX.SPDM.MEas_Signed,
-                 when others => raise Program_Error);
+      if not RFLX.SPDM.Valid (Value) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM.To_Actual (Value);
    end Plat_Cfg_Cap_Meas;
 
    overriding
@@ -188,15 +189,12 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_psk";
-      Value : constant Interfaces.C.unsigned_char := C_Interface;
-      use type Interfaces.C.unsigned_char;
+      Value : constant RFLX.SPDM.PSK_Resp_Cap_Base := RFLX.SPDM.PSK_Resp_Cap_Base (C_Interface);
    begin
-      pragma Assert (Value < 3);
-      Result := (case Value is
-                 when 0 => RFLX.SPDM.PSK_Resp_Unsupported,
-                 when 1 => RFLX.SPDM.PSK_Resp_Without_Context,
-                 when 2 => RFLX.SPDM.PSK_Resp_With_Context,
-                 when others => raise Program_Error);
+      if not RFLX.SPDM.Valid (Value) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM.To_Actual (Value);
    end Plat_Cfg_Cap_PSK;
 
    overriding
@@ -268,28 +266,21 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_measurement_hash_algo";
-      Value : constant Interfaces.C.unsigned_char :=
-         C_Interface (TPM_ALG_SHA_256      => C_Bool (TPM_ALG_SHA_256),
-                      TPM_ALG_SHA_384      => C_Bool (TPM_ALG_SHA_384),
-                      TPM_ALG_SHA_512      => C_Bool (TPM_ALG_SHA_512),
-                      TPM_ALG_SHA3_256     => C_Bool (TPM_ALG_SHA3_256),
-                      TPM_ALG_SHA3_384     => C_Bool (TPM_ALG_SHA3_384),
-                      TPM_ALG_SHA3_512     => C_Bool (TPM_ALG_SHA3_512),
-                      Raw_Bit_Streams_Only => C_Bool (Raw_Bit_Streams_Only));
-      use type Interfaces.C.unsigned_char;
+      Value : constant RFLX.SPDM.Measurement_Hash_Algo_Base :=
+         RFLX.SPDM.Measurement_Hash_Algo_Base
+            (C_Interface
+               (TPM_ALG_SHA_256      => C_Bool (TPM_ALG_SHA_256),
+                TPM_ALG_SHA_384      => C_Bool (TPM_ALG_SHA_384),
+                TPM_ALG_SHA_512      => C_Bool (TPM_ALG_SHA_512),
+                TPM_ALG_SHA3_256     => C_Bool (TPM_ALG_SHA3_256),
+                TPM_ALG_SHA3_384     => C_Bool (TPM_ALG_SHA3_384),
+                TPM_ALG_SHA3_512     => C_Bool (TPM_ALG_SHA3_512),
+                Raw_Bit_Streams_Only => C_Bool (Raw_Bit_Streams_Only)));
    begin
-      --  Values could be used directly
-      --  ISSUE: Componolit/RecordFlux#913
-      Result := (case Value is
-                 when     64 => RFLX.SPDM.MH_TPM_ALG_SHA3_512,
-                 when     32 => RFLX.SPDM.MH_TPM_ALG_SHA3_384,
-                 when     16 => RFLX.SPDM.MH_TPM_ALG_SHA3_256,
-                 when      8 => RFLX.SPDM.MH_TPM_ALG_SHA_512,
-                 when      4 => RFLX.SPDM.MH_TPM_ALG_SHA_384,
-                 when      2 => RFLX.SPDM.MH_TPM_ALG_SHA_256,
-                 when      1 => RFLX.SPDM.MH_Raw_Bit_Streams_Only,
-                 when      0 => RFLX.SPDM.MH_Unsupported,
-                 when others => raise Constraint_Error);
+      if not RFLX.SPDM.Valid (Value) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM.To_Actual (Value);
    end Plat_Cfg_Sel_Measurement_Hash_Algo;
 
    overriding
@@ -320,32 +311,23 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_base_asym_algo";
-      Value : constant Interfaces.C.long :=
-         C_Interface (TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P384),
-                      TPM_ALG_RSAPSS_4096         => C_Bool (TPM_ALG_RSAPSS_4096),
-                      TPM_ALG_RSASSA_4096         => C_Bool (TPM_ALG_RSASSA_4096),
-                      TPM_ALG_ECDSA_ECC_NIST_P256 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P256),
-                      TPM_ALG_RSAPSS_3072         => C_Bool (TPM_ALG_RSAPSS_3072),
-                      TPM_ALG_RSASSA_3072         => C_Bool (TPM_ALG_RSASSA_3072),
-                      TPM_ALG_RSAPSS_2048         => C_Bool (TPM_ALG_RSAPSS_2048),
-                      TPM_ALG_RSASSA_2048         => C_Bool (TPM_ALG_RSASSA_2048),
-                      TPM_ALG_ECDSA_ECC_NIST_P521 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P521));
-      use type Interfaces.C.long;
+      Value : constant RFLX.SPDM.Base_Asym_Sel_Base :=
+         RFLX.SPDM.Base_Asym_Sel_Base
+            (C_Interface
+               (TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P384),
+                TPM_ALG_RSAPSS_4096         => C_Bool (TPM_ALG_RSAPSS_4096),
+                TPM_ALG_RSASSA_4096         => C_Bool (TPM_ALG_RSASSA_4096),
+                TPM_ALG_ECDSA_ECC_NIST_P256 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P256),
+                TPM_ALG_RSAPSS_3072         => C_Bool (TPM_ALG_RSAPSS_3072),
+                TPM_ALG_RSASSA_3072         => C_Bool (TPM_ALG_RSASSA_3072),
+                TPM_ALG_RSAPSS_2048         => C_Bool (TPM_ALG_RSAPSS_2048),
+                TPM_ALG_RSASSA_2048         => C_Bool (TPM_ALG_RSASSA_2048),
+                TPM_ALG_ECDSA_ECC_NIST_P521 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P521)));
    begin
-      --  Values could be used directly
-      --  ISSUE: Componolit/RecordFlux#913
-      Result := (case Value is
-                 when    256 => RFLX.SPDM.BA_TPM_ALG_ECDSA_ECC_NIST_P521,
-                 when    128 => RFLX.SPDM.BA_TPM_ALG_ECDSA_ECC_NIST_P384,
-                 when     64 => RFLX.SPDM.BA_TPM_ALG_RSAPSS_4096,
-                 when     32 => RFLX.SPDM.BA_TPM_ALG_RSASSA_4096,
-                 when     16 => RFLX.SPDM.BA_TPM_ALG_ECDSA_ECC_NIST_P256,
-                 when      8 => RFLX.SPDM.BA_TPM_ALG_RSAPSS_3072,
-                 when      4 => RFLX.SPDM.BA_TPM_ALG_RSASSA_3072,
-                 when      2 => RFLX.SPDM.BA_TPM_ALG_RSAPSS_2048,
-                 when      1 => RFLX.SPDM.BA_TPM_ALG_RSASSA_2048,
-                 when      0 => RFLX.SPDM.BA_Unsupported,
-                 when others => raise Constraint_Error);
+      if not RFLX.SPDM.Valid (Value) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM.To_Actual (Value);
    end Plat_Cfg_Sel_Base_Asym_Algo;
 
    overriding
@@ -370,25 +352,20 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_base_hash_algo";
-      Value : constant Interfaces.C.unsigned_char :=
-         C_Interface (TPM_ALG_SHA_256  => C_Bool (TPM_ALG_SHA_256),
-                      TPM_ALG_SHA_384  => C_Bool (TPM_ALG_SHA_384),
-                      TPM_ALG_SHA_512  => C_Bool (TPM_ALG_SHA_512),
-                      TPM_ALG_SHA3_256 => C_Bool (TPM_ALG_SHA3_256),
-                      TPM_ALG_SHA3_384 => C_Bool (TPM_ALG_SHA3_384),
-                      TPM_ALG_SHA3_512 => C_Bool (TPM_ALG_SHA3_512));
-      use type Interfaces.C.unsigned_char;
+      Value : constant RFLX.SPDM.Base_Hash_Sel_Base :=
+         RFLX.SPDM.Base_Hash_Sel_Base
+            (C_Interface
+               (TPM_ALG_SHA_256  => C_Bool (TPM_ALG_SHA_256),
+                TPM_ALG_SHA_384  => C_Bool (TPM_ALG_SHA_384),
+                TPM_ALG_SHA_512  => C_Bool (TPM_ALG_SHA_512),
+                TPM_ALG_SHA3_256 => C_Bool (TPM_ALG_SHA3_256),
+                TPM_ALG_SHA3_384 => C_Bool (TPM_ALG_SHA3_384),
+                TPM_ALG_SHA3_512 => C_Bool (TPM_ALG_SHA3_512)));
    begin
-      --  Values could be used directly
-      --  ISSUE: Componolit/RecordFlux#913
-      Result := (case Value is
-                 when     32 => RFLX.SPDM.BH_TPM_ALG_SHA_256,
-                 when     16 => RFLX.SPDM.BH_TPM_ALG_SHA_384,
-                 when      8 => RFLX.SPDM.BH_TPM_ALG_SHA_512,
-                 when      4 => RFLX.SPDM.BH_TPM_ALG_SHA3_256,
-                 when      2 => RFLX.SPDM.BH_TPM_ALG_SHA3_384,
-                 when      1 => RFLX.SPDM.BH_TPM_ALG_SHA3_512,
-                 when others => raise Constraint_Error);
+      if not RFLX.SPDM.Valid (Value) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM.To_Actual (Value);
    end Plat_Cfg_Sel_Base_Hash_Algo;
 
    overriding
@@ -413,25 +390,20 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_dhe";
-      Value : constant Interfaces.C.unsigned_char :=
-         C_Interface (SecP521r1 => C_Bool (Req_SecP521r1),
-                      SecP384r1 => C_Bool (Req_SecP384r1),
-                      SecP256r1 => C_Bool (Req_SecP256r1),
-                      FFDHE4096 => C_Bool (Req_FFDHE4096),
-                      FFDHE3072 => C_Bool (Req_FFDHE3072),
-                      FFDHE2048 => C_Bool (Req_FFDHE2048));
-      use type Interfaces.C.unsigned_char;
+      Value : constant RFLX.SPDM_Responder.DHE_Algo_Base :=
+         RFLX.SPDM_Responder.DHE_Algo_Base
+            (C_Interface
+               (SecP521r1 => C_Bool (Req_SecP521r1),
+                SecP384r1 => C_Bool (Req_SecP384r1),
+                SecP256r1 => C_Bool (Req_SecP256r1),
+                FFDHE4096 => C_Bool (Req_FFDHE4096),
+                FFDHE3072 => C_Bool (Req_FFDHE3072),
+                FFDHE2048 => C_Bool (Req_FFDHE2048)));
    begin
-      --  Values could be used directly
-      --  ISSUE: Componolit/RecordFlux#913
-      Result := (case Value is
-                 when     32 => RFLX.SPDM_Responder.DA_SecP521r1,
-                 when     16 => RFLX.SPDM_Responder.DA_SecP384r1,
-                 when      8 => RFLX.SPDM_Responder.DA_SecP256r1,
-                 when      4 => RFLX.SPDM_Responder.DA_FFDHE4096,
-                 when      2 => RFLX.SPDM_Responder.DA_FFDHE3072,
-                 when      1 => RFLX.SPDM_Responder.DA_FFDHE2048,
-                 when others => raise Constraint_Error);
+      if not RFLX.SPDM_Responder.Valid (Value) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM_Responder.To_Actual (Value);
    end Plat_Cfg_Sel_DHE;
 
    overriding
@@ -450,19 +422,17 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_aead";
-      Value : constant Interfaces.C.unsigned_char :=
-         C_Interface (AA_ChaCha20_Poly1305 => C_Bool (Req_ChaCha20_Poly1305),
-                      AA_AES_256_GCM       => C_Bool (Req_AES_256_GCM),
-                      AA_AES_128_GCM       => C_Bool (Req_AES_128_GCM));
-      use type Interfaces.C.unsigned_char;
+      Value : constant RFLX.SPDM_Responder.AEAD_Algo_Base :=
+         RFLX.SPDM_Responder.AEAD_Algo_Base
+            (C_Interface
+               (AA_ChaCha20_Poly1305 => C_Bool (Req_ChaCha20_Poly1305),
+                AA_AES_256_GCM       => C_Bool (Req_AES_256_GCM),
+                AA_AES_128_GCM       => C_Bool (Req_AES_128_GCM)));
    begin
-      --  Values could be used directly
-      --  ISSUE: Componolit/RecordFlux#913
-      Result := (case Value is
-                 when      4 => RFLX.SPDM_Responder.AA_ChaCha20_Poly1305,
-                 when      2 => RFLX.SPDM_Responder.AA_AES_256_GCM,
-                 when      1 => RFLX.SPDM_Responder.AA_AES_128_GCM,
-                 when others => raise Constraint_Error);
+      if not RFLX.SPDM_Responder.Valid (Value) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM_Responder.To_Actual (Value);
    end Plat_Cfg_Sel_AEAD;
 
    overriding
@@ -493,31 +463,23 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_rbba";
-      Value : constant Interfaces.C.long :=
-         C_Interface (RA_TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P384),
-                      RA_TPM_ALG_RSAPSS_4096         => C_Bool (Req_TPM_ALG_RSAPSS_4096),
-                      RA_TPM_ALG_RSASSA_4096         => C_Bool (Req_TPM_ALG_RSASSA_4096),
-                      RA_TPM_ALG_ECDSA_ECC_NIST_P256 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P256),
-                      RA_TPM_ALG_RSAPSS_3072         => C_Bool (Req_TPM_ALG_RSAPSS_3072),
-                      RA_TPM_ALG_RSASSA_3072         => C_Bool (Req_TPM_ALG_RSASSA_3072),
-                      RA_TPM_ALG_RSAPSS_2048         => C_Bool (Req_TPM_ALG_RSAPSS_2048),
-                      RA_TPM_ALG_RSASSA_2048         => C_Bool (Req_TPM_ALG_RSASSA_2048),
-                      RA_TPM_ALG_ECDSA_ECC_NIST_P521 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P521));
-      use type Interfaces.C.unsigned_char;
+      Value : constant RFLX.SPDM_Responder.RBAA_Algo_Base :=
+         (RFLX.SPDM_Responder.RBAA_Algo_Base
+            (C_Interface
+               (RA_TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P384),
+                RA_TPM_ALG_RSAPSS_4096         => C_Bool (Req_TPM_ALG_RSAPSS_4096),
+                RA_TPM_ALG_RSASSA_4096         => C_Bool (Req_TPM_ALG_RSASSA_4096),
+                RA_TPM_ALG_ECDSA_ECC_NIST_P256 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P256),
+                RA_TPM_ALG_RSAPSS_3072         => C_Bool (Req_TPM_ALG_RSAPSS_3072),
+                RA_TPM_ALG_RSASSA_3072         => C_Bool (Req_TPM_ALG_RSASSA_3072),
+                RA_TPM_ALG_RSAPSS_2048         => C_Bool (Req_TPM_ALG_RSAPSS_2048),
+                RA_TPM_ALG_RSASSA_2048         => C_Bool (Req_TPM_ALG_RSASSA_2048),
+                RA_TPM_ALG_ECDSA_ECC_NIST_P521 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P521))));
    begin
-      --  Values could be used directly
-      --  ISSUE: Componolit/RecordFlux#913
-      Result := (case Value is
-                 when    256 => RFLX.SPDM_Responder.RA_TPM_ALG_ECDSA_ECC_NIST_P384,
-                 when    128 => RFLX.SPDM_Responder.RA_TPM_ALG_RSAPSS_4096,
-                 when     64 => RFLX.SPDM_Responder.RA_TPM_ALG_RSASSA_4096,
-                 when     32 => RFLX.SPDM_Responder.RA_TPM_ALG_ECDSA_ECC_NIST_P256,
-                 when     16 => RFLX.SPDM_Responder.RA_TPM_ALG_RSAPSS_3072,
-                 when      8 => RFLX.SPDM_Responder.RA_TPM_ALG_RSASSA_3072,
-                 when      4 => RFLX.SPDM_Responder.RA_TPM_ALG_RSAPSS_2048,
-                 when      2 => RFLX.SPDM_Responder.RA_TPM_ALG_RSASSA_2048,
-                 when      1 => RFLX.SPDM_Responder.RA_TPM_ALG_ECDSA_ECC_NIST_P521,
-                 when others => raise Constraint_Error);
+      if not RFLX.SPDM_Responder.Valid (Value) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM_Responder.To_Actual (Value);
    end Plat_Cfg_Sel_RBAA;
 
    overriding

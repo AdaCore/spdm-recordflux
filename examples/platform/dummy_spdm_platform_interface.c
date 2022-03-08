@@ -156,13 +156,13 @@ unsigned char spdm_platform_select_base_hash_algo(unsigned char tpm_alg_sha_256,
                                                   unsigned char tpm_alg_sha3_384,
                                                   unsigned char tpm_alg_sha3_512)
 {
-    if (tpm_alg_sha3_512) return 1;
-    if (tpm_alg_sha3_384) return 2;
-    if (tpm_alg_sha3_256) return 4;
-    if (tpm_alg_sha_512) return 8;
-    if (tpm_alg_sha_384) return 16;
-    if (tpm_alg_sha_256) return 32;
-    errx(3, "No Base Hash Algo selected");
+    if (tpm_alg_sha3_512) return 32;
+    if (tpm_alg_sha3_384) return 16;
+    if (tpm_alg_sha3_256) return 8;
+    if (tpm_alg_sha_512) return 4;
+    if (tpm_alg_sha_384) return 2;
+    if (tpm_alg_sha_256) return 1;
+    return 0;
 }
 
 unsigned char spdm_platform_select_dhe(unsigned char secp521r1,
@@ -202,15 +202,15 @@ long spdm_platform_select_rbba(unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
                                unsigned char ra_tpm_alg_rsassa_2048,
                                unsigned char ra_tpm_alg_ecdsa_ecc_nist_p521)
 {
-    if (ra_tpm_alg_ecdsa_ecc_nist_p521) return 1;
-    if (ra_tpm_alg_ecdsa_ecc_nist_p384) return 256;
-    if (ra_tpm_alg_ecdsa_ecc_nist_p256) return 32;
-    if (ra_tpm_alg_rsapss_4096) return 128;
-    if (ra_tpm_alg_rsassa_4096) return 64;
-    if (ra_tpm_alg_rsapss_3072) return 16;
-    if (ra_tpm_alg_rsassa_3072) return 8;
-    if (ra_tpm_alg_rsapss_2048) return 4;
-    if (ra_tpm_alg_rsassa_2048) return 2;
+    if (ra_tpm_alg_ecdsa_ecc_nist_p521) return 256;
+    if (ra_tpm_alg_ecdsa_ecc_nist_p384) return 128;
+    if (ra_tpm_alg_rsapss_4096) return 64;
+    if (ra_tpm_alg_rsassa_4096) return 32;
+    if (ra_tpm_alg_ecdsa_ecc_nist_p256) return 16;
+    if (ra_tpm_alg_rsapss_3072) return 8;
+    if (ra_tpm_alg_rsassa_3072) return 4;
+    if (ra_tpm_alg_rsapss_2048) return 2;
+    if (ra_tpm_alg_rsassa_2048) return 1;
     errx(6, "Invalid RBBA selected");
 }
 
