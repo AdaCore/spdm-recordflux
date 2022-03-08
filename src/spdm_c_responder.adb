@@ -546,10 +546,11 @@ is
        Length :        RFLX.SPDM.Length_16;
        Result :    out RFLX.SPDM.Certificate_Response.Structure)
    is
-      procedure C_Interface (Data   :        System.Address;
-                             Slot   :        Interfaces.C.unsigned_char;
-                             Offset :        Interfaces.C.unsigned_short;
-                             Length : in out Interfaces.C.unsigned_short)
+      procedure C_Interface (Data         :        System.Address;
+                             Slot         :        Interfaces.C.unsigned_char;
+                             Offset       :        Interfaces.C.unsigned_short;
+                             Length       : in out Interfaces.C.unsigned_short;
+                             Total_Length :    out Interfaces.C.unsigned_short)
       with
          Import        => True,
          Convention    => C,
@@ -558,23 +559,25 @@ is
       use type RFLX.SPDM.Length_16;
       Max_Length : constant RFLX.SPDM.Length_16 := 508;
       Cert_Length : Interfaces.C.unsigned_short;
+      Total_Length : Interfaces.C.unsigned_short;
    begin
       if Length <= Max_Length then
          Cert_Length := Interfaces.C.unsigned_short (Length);
       else
          Cert_Length := Interfaces.C.unsigned_short (Max_Length);
       end if;
-      C_Interface (Data   => Result.Cert_Chain'Address,
-                   Slot   => Interfaces.C.unsigned_char (RFLX.SPDM.To_Base (Slot)),
-                   Offset => Interfaces.C.unsigned_short (Offset),
-                   Length => Cert_Length);
+      C_Interface (Data         => Result.Cert_Chain'Address,
+                   Slot         => Interfaces.C.unsigned_char (RFLX.SPDM.To_Base (Slot)),
+                   Offset       => Interfaces.C.unsigned_short (Offset),
+                   Length       => Cert_Length,
+                   Total_Length => Total_Length);
       Result.Slot := Slot;
       if Cert_Length = Interfaces.C.unsigned_short (Max_Length) then
          Result.Portion_Length := Max_Length;
       else
          Result.Portion_Length := RFLX.SPDM.Length_16 (Cert_Length);
       end if;
-      Result.Remainder_Length := Length - RFLX.SPDM.Length_16 (Cert_Length);
+      Result.Remainder_Length := RFLX.SPDM.Length_16 (Total_Length - Cert_Length - Interfaces.C.unsigned_short (Offset));
    end Plat_Get_Certificate_Response;
 
 end SPDM_C_Responder;

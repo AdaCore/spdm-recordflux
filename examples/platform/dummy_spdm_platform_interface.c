@@ -235,47 +235,28 @@ void spdm_platform_get_digests_data(char *data, long *length, unsigned char *slo
     }
 }
 
-static unsigned char initialized = 0;
-static unsigned char cert_0[1024];
-static unsigned char cert_1[1024];
-static unsigned char cert_2[1024];
-
 unsigned char spdm_platform_validate_certificate_request(unsigned char slot,
                                                          unsigned short offset,
                                                          unsigned short length)
 {
     if (slot > 3) return 0;
-
-    if (!initialized) {
-        bzero((void *)cert_0, sizeof(cert_0));
-        bzero((void *)cert_1, sizeof(cert_1));
-        bzero((void *)cert_2, sizeof(cert_2));
-    }
-
     printf("slot=%d, offset=%d, length=%d\n", slot, offset, length);
-
-    switch (slot) {
-        case 0: return offset + length <= sizeof(cert_0);
-        case 1: return offset + length <= sizeof(cert_1);
-        case 2: return offset + length <= sizeof(cert_2);
-    }
-    return 0;
+    return 1;
 };
 
 void spdm_platform_get_certificate_data (char *data,
-                                         unsigned char slot,
+                                         __attribute__((unused)) unsigned char slot,
                                          unsigned short offset,
-                                         unsigned short *length)
+                                         unsigned short *length,
+                                         unsigned short *total_length)
 {
-    switch (slot) {
-        case 0:
-            memcpy((void *)data, (void *)(cert_0 + offset), *length);
-            break;
-        case 1:
-            memcpy((void *)data, (void *)(cert_1 + offset), *length);
-            break;
-        case 2:
-            memcpy((void *)data, (void *)(cert_2 + offset), *length);
-            break;
+    FILE *f = fopen("build/certificates/ecp384/bundle_responder.certchain.der", "rb");
+    if (f == 0) {
+        errx(6, "cert not found");
     }
+    fseek(f, offset, SEEK_SET);
+    *length = fread(data, 1, *length, f);
+    fseek(f, 0, SEEK_END);
+    *total_length = ftell(f);
+    fclose(f);
 };

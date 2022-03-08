@@ -703,7 +703,8 @@ package SPDM_Responder is
       begin
          Transport'Write (Response);
       transition
-         -- FIXME
+         goto Receive_Get_Certificate
+            if Response.Certificate_Response_Remainder_Length > 0
          goto Receive_Get_Version
       end Send_Certificate;
 
