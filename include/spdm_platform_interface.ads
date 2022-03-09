@@ -101,7 +101,7 @@ package SPDM_Platform_Interface is
        AES_128_GCM       :     Boolean);
 
    procedure Select_RBAA
-      (Result                      : out RFLX.SPDM_Responder.RBAA_Algo;
+      (Result                      : out RFLX.SPDM.Base_Asym_Sel;
        TPM_ALG_ECDSA_ECC_NIST_P384 :     Boolean;
        TPM_ALG_RSAPSS_4096         :     Boolean;
        TPM_ALG_RSASSA_4096         :     Boolean;

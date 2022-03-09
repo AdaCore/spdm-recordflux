@@ -19,18 +19,6 @@ package SPDM_Responder is
        AA_ChaCha20_Poly1305 => 4)
    with Size => 8;
 
-   type RBAA_Algo is
-      (RA_TPM_ALG_RSASSA_2048         =>   1,
-       RA_TPM_ALG_RSAPSS_2048         =>   2,
-       RA_TPM_ALG_RSASSA_3072         =>   4,
-       RA_TPM_ALG_RSAPSS_3072         =>   8,
-       RA_TPM_ALG_ECDSA_ECC_NIST_P256 =>  16,
-       RA_TPM_ALG_RSASSA_4096         =>  32,
-       RA_TPM_ALG_RSAPSS_4096         =>  64,
-       RA_TPM_ALG_ECDSA_ECC_NIST_P384 => 128,
-       RA_TPM_ALG_ECDSA_ECC_NIST_P521 => 256)
-   with Size => 16;
-
    type Digests_Length is range 0 .. 512 with Size => 16;
 
    type Digests_Data is
@@ -111,7 +99,7 @@ package SPDM_Responder is
           Req_TPM_ALG_RSASSA_3072         : Boolean;
           Req_TPM_ALG_RSAPSS_2048         : Boolean;
           Req_TPM_ALG_RSASSA_2048         : Boolean;
-          Req_TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM_Responder::RBAA_Algo;
+          Req_TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM::Base_Asym_Sel;
 
       with function Plat_Get_Digests_Data (Algo : SPDM::Measurement_Hash_Algo) return Digests_Data;
 
@@ -305,7 +293,7 @@ package SPDM_Responder is
          No_Ext_Algs           : SPDM::Ext_Algs;
          DHE_Algo              : SPDM_Responder::DHE_Algo;
          AEAD_Algo             : SPDM_Responder::AEAD_Algo;
-         RBAA_Algo             : SPDM_Responder::RBAA_Algo;
+         RBAA_Algo             : SPDM::Base_Asym_Sel;
 
          Sel_SecP521r1 : Boolean;
          Sel_SecP384r1 : Boolean;
@@ -452,15 +440,15 @@ package SPDM_Responder is
              Req_Base_Asym_Alg.RBAA_TPM_ALG_RSASSA_2048,
              Req_Base_Asym_Alg.RBAA_TPM_ALG_ECDSA_ECC_NIST_P521);
 
-         Sel_TPM_ALG_ECDSA_ECC_NIST_P384 := RBAA_Algo = RA_TPM_ALG_ECDSA_ECC_NIST_P384;
-         Sel_TPM_ALG_RSAPSS_4096         := RBAA_Algo = RA_TPM_ALG_RSAPSS_4096;
-         Sel_TPM_ALG_RSASSA_4096         := RBAA_Algo = RA_TPM_ALG_RSASSA_4096;
-         Sel_TPM_ALG_ECDSA_ECC_NIST_P256 := RBAA_Algo = RA_TPM_ALG_ECDSA_ECC_NIST_P256;
-         Sel_TPM_ALG_RSAPSS_3072         := RBAA_Algo = RA_TPM_ALG_RSAPSS_3072;
-         Sel_TPM_ALG_RSASSA_3072         := RBAA_Algo = RA_TPM_ALG_RSASSA_3072;
-         Sel_TPM_ALG_RSAPSS_2048         := RBAA_Algo = RA_TPM_ALG_RSAPSS_2048;
-         Sel_TPM_ALG_RSASSA_2048         := RBAA_Algo = RA_TPM_ALG_RSASSA_2048;
-         Sel_TPM_ALG_ECDSA_ECC_NIST_P521 := RBAA_Algo = RA_TPM_ALG_ECDSA_ECC_NIST_P521;
+         Sel_TPM_ALG_ECDSA_ECC_NIST_P384 := RBAA_Algo = SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P384;
+         Sel_TPM_ALG_RSAPSS_4096         := RBAA_Algo = SPDM::BA_TPM_ALG_RSAPSS_4096;
+         Sel_TPM_ALG_RSASSA_4096         := RBAA_Algo = SPDM::BA_TPM_ALG_RSASSA_4096;
+         Sel_TPM_ALG_ECDSA_ECC_NIST_P256 := RBAA_Algo = SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P256;
+         Sel_TPM_ALG_RSAPSS_3072         := RBAA_Algo = SPDM::BA_TPM_ALG_RSAPSS_3072;
+         Sel_TPM_ALG_RSASSA_3072         := RBAA_Algo = SPDM::BA_TPM_ALG_RSASSA_3072;
+         Sel_TPM_ALG_RSAPSS_2048         := RBAA_Algo = SPDM::BA_TPM_ALG_RSAPSS_2048;
+         Sel_TPM_ALG_RSASSA_2048         := RBAA_Algo = SPDM::BA_TPM_ALG_RSASSA_2048;
+         Sel_TPM_ALG_ECDSA_ECC_NIST_P521 := RBAA_Algo = SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P521;
 
          Resp_Alg_Structs'Append (
             SPDM::Alg_Struct'(

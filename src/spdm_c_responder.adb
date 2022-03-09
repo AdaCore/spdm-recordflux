@@ -447,7 +447,7 @@ is
        Req_TPM_ALG_RSAPSS_2048         :        Boolean;
        Req_TPM_ALG_RSASSA_2048         :        Boolean;
        Req_TPM_ALG_ECDSA_ECC_NIST_P521 :        Boolean;
-       Result                          :    out RFLX.SPDM_Responder.RBAA_Algo)
+       Result                          :    out RFLX.SPDM.Base_Asym_Sel)
    is
       function C_Interface
          (RA_TPM_ALG_ECDSA_ECC_NIST_P384 : Interfaces.C.unsigned_char;
@@ -463,8 +463,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_rbba";
-      Value : constant RFLX.SPDM_Responder.RBAA_Algo_Base :=
-         (RFLX.SPDM_Responder.RBAA_Algo_Base
+      Value : constant RFLX.SPDM.Base_Asym_Sel_Base :=
+         (RFLX.SPDM.Base_Asym_Sel_Base
             (C_Interface
                (RA_TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P384),
                 RA_TPM_ALG_RSAPSS_4096         => C_Bool (Req_TPM_ALG_RSAPSS_4096),
@@ -476,10 +476,10 @@ is
                 RA_TPM_ALG_RSASSA_2048         => C_Bool (Req_TPM_ALG_RSASSA_2048),
                 RA_TPM_ALG_ECDSA_ECC_NIST_P521 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P521))));
    begin
-      if not RFLX.SPDM_Responder.Valid (Value) then
+      if not RFLX.SPDM.Valid (Value) then
          raise Constraint_Error;
       end if;
-      Result := RFLX.SPDM_Responder.To_Actual (Value);
+      Result := RFLX.SPDM.To_Actual (Value);
    end Plat_Cfg_Sel_RBAA;
 
    overriding

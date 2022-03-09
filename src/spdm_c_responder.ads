@@ -157,7 +157,7 @@ is
        Req_TPM_ALG_RSAPSS_2048         :        Boolean;
        Req_TPM_ALG_RSASSA_2048         :        Boolean;
        Req_TPM_ALG_ECDSA_ECC_NIST_P521 :        Boolean;
-       Result                          :    out RFLX.SPDM_Responder.RBAA_Algo);
+       Result                          :    out RFLX.SPDM.Base_Asym_Sel);
 
    overriding
    procedure Plat_Get_Digests_Data
