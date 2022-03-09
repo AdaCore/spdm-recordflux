@@ -64,7 +64,7 @@ package SPDM_Platform_Interface is
 
    --  Select an asymetric algorithm based on receive proposal
    procedure Select_Base_Asym_Algo
-                (Result                      : out RFLX.SPDM.Base_Asym_Sel;
+                (Result                      : out RFLX.SPDM.Base_Asym_Algo;
                  TPM_ALG_ECDSA_ECC_NIST_P384 :     Boolean;
                  TPM_ALG_RSAPSS_4096         :     Boolean;
                  TPM_ALG_RSASSA_4096         :     Boolean;
@@ -77,7 +77,7 @@ package SPDM_Platform_Interface is
 
    --  Select a hash algorithm based on receive proposal
    procedure Select_Base_Hash_Algo
-                (Result           : out RFLX.SPDM.Base_Hash_Sel;
+                (Result           : out RFLX.SPDM.Base_Hash_Algo;
                  TPM_ALG_SHA_256  :     Boolean;
                  TPM_ALG_SHA_384  :     Boolean;
                  TPM_ALG_SHA_512  :     Boolean;
@@ -101,7 +101,7 @@ package SPDM_Platform_Interface is
        AES_128_GCM       :     Boolean);
 
    procedure Select_RBAA
-      (Result                      : out RFLX.SPDM.Base_Asym_Sel;
+      (Result                      : out RFLX.SPDM.Base_Asym_Algo;
        TPM_ALG_ECDSA_ECC_NIST_P384 :     Boolean;
        TPM_ALG_RSAPSS_4096         :     Boolean;
        TPM_ALG_RSASSA_4096         :     Boolean;

@@ -113,7 +113,7 @@ is
        TPM_ALG_RSAPSS_2048         :        Boolean;
        TPM_ALG_RSASSA_2048         :        Boolean;
        TPM_ALG_ECDSA_ECC_NIST_P521 :        Boolean;
-       Result                      :    out RFLX.SPDM.Base_Asym_Sel);
+       Result                      :    out RFLX.SPDM.Base_Asym_Algo);
 
    overriding
    procedure Plat_Cfg_Sel_Base_Hash_Algo
@@ -124,7 +124,7 @@ is
        TPM_ALG_SHA3_256 :        Boolean;
        TPM_ALG_SHA3_384 :        Boolean;
        TPM_ALG_SHA3_512 :        Boolean;
-       Result           :    out RFLX.SPDM.Base_Hash_Sel);
+       Result           :    out RFLX.SPDM.Base_Hash_Algo);
 
    overriding
    procedure Plat_Cfg_Sel_DHE
@@ -157,7 +157,7 @@ is
        Req_TPM_ALG_RSAPSS_2048         :        Boolean;
        Req_TPM_ALG_RSASSA_2048         :        Boolean;
        Req_TPM_ALG_ECDSA_ECC_NIST_P521 :        Boolean;
-       Result                          :    out RFLX.SPDM.Base_Asym_Sel);
+       Result                          :    out RFLX.SPDM.Base_Asym_Algo);
 
    overriding
    procedure Plat_Get_Digests_Data

@@ -554,7 +554,7 @@ package SPDM is
        MH_TPM_ALG_SHA3_512     => 64)
    with Size => 32;
 
-   type Base_Asym_Sel is
+   type Base_Asym_Algo is
       (BA_Unsupported                 =>   0,
        BA_TPM_ALG_RSASSA_2048         =>   1,
        BA_TPM_ALG_RSAPSS_2048         =>   2,
@@ -567,7 +567,7 @@ package SPDM is
        BA_TPM_ALG_ECDSA_ECC_NIST_P521 => 256)
    with Size => 32;
 
-   type Base_Hash_Sel is
+   type Base_Hash_Algo is
       (BH_Unsupported      =>  0,
        BH_TPM_ALG_SHA_256  =>  1,
        BH_TPM_ALG_SHA_384  =>  2,
@@ -586,8 +586,8 @@ package SPDM is
          Measurement_Specification_Sel : Measurement_Specification;
          Reserved_1 : Reserved_8;
          Measurement_Hash_Algo : Measurement_Hash_Algo;
-         Base_Asym_Sel : Base_Asym_Sel;
-         Base_Hash_Sel : Base_Hash_Sel;
+         Base_Asym_Sel : Base_Asym_Algo;
+         Base_Hash_Sel : Base_Hash_Algo;
          Reserved_2 : Reserved_64;
          Reserved_3 : Reserved_32;
          Ext_Asym_Sel_Count : Ext_Asym_Count

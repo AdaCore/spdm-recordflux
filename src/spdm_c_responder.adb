@@ -295,7 +295,7 @@ is
        TPM_ALG_RSAPSS_2048         :        Boolean;
        TPM_ALG_RSASSA_2048         :        Boolean;
        TPM_ALG_ECDSA_ECC_NIST_P521 :        Boolean;
-       Result                      :    out RFLX.SPDM.Base_Asym_Sel)
+       Result                      :    out RFLX.SPDM.Base_Asym_Algo)
    is
       function C_Interface
          (TPM_ALG_ECDSA_ECC_NIST_P384 : Interfaces.C.unsigned_char;
@@ -311,8 +311,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_base_asym_algo";
-      Value : constant RFLX.SPDM.Base_Asym_Sel_Base :=
-         RFLX.SPDM.Base_Asym_Sel_Base
+      Value : constant RFLX.SPDM.Base_Asym_Algo_Base :=
+         RFLX.SPDM.Base_Asym_Algo_Base
             (C_Interface
                (TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P384),
                 TPM_ALG_RSAPSS_4096         => C_Bool (TPM_ALG_RSAPSS_4096),
@@ -339,7 +339,7 @@ is
        TPM_ALG_SHA3_256 :        Boolean;
        TPM_ALG_SHA3_384 :        Boolean;
        TPM_ALG_SHA3_512 :        Boolean;
-       Result           :    out RFLX.SPDM.Base_Hash_Sel)
+       Result           :    out RFLX.SPDM.Base_Hash_Algo)
    is
       function C_Interface
          (TPM_ALG_SHA_256  : Interfaces.C.unsigned_char;
@@ -352,8 +352,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_base_hash_algo";
-      Value : constant RFLX.SPDM.Base_Hash_Sel_Base :=
-         RFLX.SPDM.Base_Hash_Sel_Base
+      Value : constant RFLX.SPDM.Base_Hash_Algo_Base :=
+         RFLX.SPDM.Base_Hash_Algo_Base
             (C_Interface
                (TPM_ALG_SHA_256  => C_Bool (TPM_ALG_SHA_256),
                 TPM_ALG_SHA_384  => C_Bool (TPM_ALG_SHA_384),
@@ -447,7 +447,7 @@ is
        Req_TPM_ALG_RSAPSS_2048         :        Boolean;
        Req_TPM_ALG_RSASSA_2048         :        Boolean;
        Req_TPM_ALG_ECDSA_ECC_NIST_P521 :        Boolean;
-       Result                          :    out RFLX.SPDM.Base_Asym_Sel)
+       Result                          :    out RFLX.SPDM.Base_Asym_Algo)
    is
       function C_Interface
          (RA_TPM_ALG_ECDSA_ECC_NIST_P384 : Interfaces.C.unsigned_char;
@@ -463,8 +463,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_rbba";
-      Value : constant RFLX.SPDM.Base_Asym_Sel_Base :=
-         (RFLX.SPDM.Base_Asym_Sel_Base
+      Value : constant RFLX.SPDM.Base_Asym_Algo_Base :=
+         (RFLX.SPDM.Base_Asym_Algo_Base
             (C_Interface
                (RA_TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P384),
                 RA_TPM_ALG_RSAPSS_4096         => C_Bool (Req_TPM_ALG_RSAPSS_4096),

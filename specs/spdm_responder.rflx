@@ -70,13 +70,13 @@ package SPDM_Responder is
                                                  TPM_ALG_RSASSA_3072         : Boolean;
                                                  TPM_ALG_RSAPSS_2048         : Boolean;
                                                  TPM_ALG_RSASSA_2048         : Boolean;
-                                                 TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM::Base_Asym_Sel;
+                                                 TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM::Base_Asym_Algo;
       with function Plat_Cfg_Sel_Base_Hash_Algo (TPM_ALG_SHA_256  : Boolean;
                                                  TPM_ALG_SHA_384  : Boolean;
                                                  TPM_ALG_SHA_512  : Boolean;
                                                  TPM_ALG_SHA3_256 : Boolean;
                                                  TPM_ALG_SHA3_384 : Boolean;
-                                                 TPM_ALG_SHA3_512 : Boolean) return SPDM::Base_Hash_Sel;
+                                                 TPM_ALG_SHA3_512 : Boolean) return SPDM::Base_Hash_Algo;
       with function Plat_Cfg_Sel_DHE
          (Req_SecP521r1 : Boolean;
           Req_SecP384r1 : Boolean;
@@ -99,7 +99,7 @@ package SPDM_Responder is
           Req_TPM_ALG_RSASSA_3072         : Boolean;
           Req_TPM_ALG_RSAPSS_2048         : Boolean;
           Req_TPM_ALG_RSASSA_2048         : Boolean;
-          Req_TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM::Base_Asym_Sel;
+          Req_TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM::Base_Asym_Algo;
 
       with function Plat_Get_Digests_Data (Algo : SPDM::Measurement_Hash_Algo) return Digests_Data;
 
@@ -285,15 +285,15 @@ package SPDM_Responder is
 
       state Prepare_Algorithms
       is
-         Base_Hash_Sel         : SPDM::Base_Hash_Sel;
-         Base_Asym_Sel         : SPDM::Base_Asym_Sel;
+         Base_Hash_Sel         : SPDM::Base_Hash_Algo;
+         Base_Asym_Sel         : SPDM::Base_Asym_Algo;
          Ext_Asym              : SPDM::Ext_Algs;
          Ext_Hash              : SPDM::Ext_Algs;
          Resp_Alg_Structs      : SPDM::Resp_Alg_Structs;
          No_Ext_Algs           : SPDM::Ext_Algs;
          DHE_Algo              : SPDM_Responder::DHE_Algo;
          AEAD_Algo             : SPDM_Responder::AEAD_Algo;
-         RBAA_Algo             : SPDM::Base_Asym_Sel;
+         RBAA_Algo             : SPDM::Base_Asym_Algo;
 
          Sel_SecP521r1 : Boolean;
          Sel_SecP384r1 : Boolean;
