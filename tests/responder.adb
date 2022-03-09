@@ -24,6 +24,7 @@ is
    package TCP_Channel is new Channel (Connection);
    package SR renames RFLX.SPDM_Responder.Session;
 begin
+   Context.Plat_Initialize;
    Server.Bind (Listener, 2324, Address);
    loop
       Server.Listen (Listener, Address, Connection);

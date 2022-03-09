@@ -1,11 +1,20 @@
 with Interfaces.C;
-with System;
 with RFLX.SPDM_Responder.Digests_Data;
 with RFLX.SPDM;
 
 package body SPDM_C_Responder with
    SPARK_Mode
 is
+
+   procedure Plat_Initialize (Ctx : in out Context)
+   is
+      procedure C_Interface (Instance : out System.Address) with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_initialize";
+   begin
+      C_Interface (Ctx.Instance);
+   end Plat_Initialize;
 
    overriding
    procedure Plat_Cfg_CT_Exponent
@@ -298,7 +307,8 @@ is
        Result                      :    out RFLX.SPDM.Base_Asym_Algo)
    is
       function C_Interface
-         (TPM_ALG_ECDSA_ECC_NIST_P384 : Interfaces.C.unsigned_char;
+         (Instance                    : System.Address;
+          TPM_ALG_ECDSA_ECC_NIST_P384 : Interfaces.C.unsigned_char;
           TPM_ALG_RSAPSS_4096         : Interfaces.C.unsigned_char;
           TPM_ALG_RSASSA_4096         : Interfaces.C.unsigned_char;
           TPM_ALG_ECDSA_ECC_NIST_P256 : Interfaces.C.unsigned_char;
@@ -314,7 +324,8 @@ is
       Value : constant RFLX.SPDM.Base_Asym_Algo_Base :=
          RFLX.SPDM.Base_Asym_Algo_Base
             (C_Interface
-               (TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P384),
+               (Instance                    => Ctx.Instance,
+                TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P384),
                 TPM_ALG_RSAPSS_4096         => C_Bool (TPM_ALG_RSAPSS_4096),
                 TPM_ALG_RSASSA_4096         => C_Bool (TPM_ALG_RSASSA_4096),
                 TPM_ALG_ECDSA_ECC_NIST_P256 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P256),
@@ -342,7 +353,8 @@ is
        Result           :    out RFLX.SPDM.Base_Hash_Algo)
    is
       function C_Interface
-         (TPM_ALG_SHA_256  : Interfaces.C.unsigned_char;
+         (Instance         : System.Address;
+          TPM_ALG_SHA_256  : Interfaces.C.unsigned_char;
           TPM_ALG_SHA_384  : Interfaces.C.unsigned_char;
           TPM_ALG_SHA_512  : Interfaces.C.unsigned_char;
           TPM_ALG_SHA3_256 : Interfaces.C.unsigned_char;
@@ -355,7 +367,8 @@ is
       Value : constant RFLX.SPDM.Base_Hash_Algo_Base :=
          RFLX.SPDM.Base_Hash_Algo_Base
             (C_Interface
-               (TPM_ALG_SHA_256  => C_Bool (TPM_ALG_SHA_256),
+               (Instance         => Ctx.Instance,
+                TPM_ALG_SHA_256  => C_Bool (TPM_ALG_SHA_256),
                 TPM_ALG_SHA_384  => C_Bool (TPM_ALG_SHA_384),
                 TPM_ALG_SHA_512  => C_Bool (TPM_ALG_SHA_512),
                 TPM_ALG_SHA3_256 => C_Bool (TPM_ALG_SHA3_256),
@@ -546,7 +559,8 @@ is
        Length :        RFLX.SPDM.Length_16;
        Result :    out RFLX.SPDM.Certificate_Response.Structure)
    is
-      procedure C_Interface (Data         :        System.Address;
+      procedure C_Interface (Instance     :        System.Address;
+                             Data         :        System.Address;
                              Slot         :        Interfaces.C.unsigned_char;
                              Offset       :        Interfaces.C.unsigned_short;
                              Length       : in out Interfaces.C.unsigned_short;
@@ -566,7 +580,8 @@ is
       else
          Cert_Length := Interfaces.C.unsigned_short (Max_Length);
       end if;
-      C_Interface (Data         => Result.Cert_Chain'Address,
+      C_Interface (Instance     => Ctx.Instance,
+                   Data         => Result.Cert_Chain'Address,
                    Slot         => Interfaces.C.unsigned_char (RFLX.SPDM.To_Base (Slot)),
                    Offset       => Interfaces.C.unsigned_short (Offset),
                    Length       => Cert_Length,

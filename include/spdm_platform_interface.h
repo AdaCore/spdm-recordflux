@@ -1,6 +1,13 @@
 #ifndef __SPDM_PLATFORM_INTERFACE__
 #define __SPDM_PLATFORM_INTERFACE__
 
+typedef struct {
+    unsigned char base_hash_algo;
+    long base_asym_algo;
+} instance_t;
+
+void spdm_platform_initialize(instance_t **instance);
+
 unsigned char spdm_platform_config_ct_exponent(void);
 unsigned char spdm_platform_config_cap_mac(void);
 unsigned char spdm_platform_config_cap_encrypt(void);
@@ -26,7 +33,8 @@ unsigned char spdm_platform_select_measurement_hash_algo(unsigned char tpm_alg_s
                                                          unsigned char tpm_alg_sha3_512,
                                                          unsigned char raw_bit_streams_only);
 
-long spdm_platform_select_base_asym_algo(unsigned char tpm_alg_ecdsa_ecc_nist_p384,
+long spdm_platform_select_base_asym_algo(instance_t *instance,
+                                         unsigned char tpm_alg_ecdsa_ecc_nist_p384,
                                          unsigned char tpm_alg_rsapss_4096,
                                          unsigned char tpm_alg_rsassa_4096,
                                          unsigned char tpm_alg_ecdsa_ecc_nist_p256,
@@ -36,7 +44,8 @@ long spdm_platform_select_base_asym_algo(unsigned char tpm_alg_ecdsa_ecc_nist_p3
                                          unsigned char tpm_alg_rsassa_2048,
                                          unsigned char tpm_alg_ecdsa_ecc_nist_p521);
 
-unsigned char spdm_platform_select_base_hash_algo(unsigned char tpm_alg_sha_256,
+unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
+                                                  unsigned char tpm_alg_sha_256,
                                                   unsigned char tpm_alg_sha_384,
                                                   unsigned char tpm_alg_sha_512,
                                                   unsigned char tpm_alg_sha3_256,
@@ -70,7 +79,8 @@ unsigned char spdm_platform_validate_certificate_request(unsigned char slot,
                                                          unsigned short offset,
                                                          unsigned short length);
 
-void spdm_platform_get_certificate_data (char *data,
+void spdm_platform_get_certificate_data (instance_t *instance,
+                                         char *data,
                                          unsigned char slot,
                                          unsigned short offset,
                                          unsigned short *length,

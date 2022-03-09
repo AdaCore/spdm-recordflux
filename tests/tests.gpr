@@ -1,9 +1,14 @@
 with "contrib/RecordFlux/defaults.gpr";
+with "spdm_responder_emu.gpr";
 
 project Tests is
 
    for Languages use ("Ada", "C");
-   for Source_Dirs use (".", "../examples/platform", "../build/debug/generated", "../src", "../include");
+   for Source_Dirs use (".",
+                        "../examples/platform",
+                        "../build/debug/generated",
+                        "../src",
+                        "../include");
    for Object_Dir use "../build/tests";
    for Main use ("responder.adb", "proxy.adb");
 
@@ -17,9 +22,23 @@ project Tests is
                                       "-Wall",
                                       "-Wextra",
                                       "-Werror",
-                                      "-Wstrict-prototypes",
                                       "-Wmissing-prototypes");
    end Compiler;
+
+   package Linker is
+      for Default_Switches ("Ada") use ("-L../build/spdm_emu/lib",
+                                        "-Wl,--start-group",
+                                        "-lcryptlib_mbedtls",
+                                        "-ldebuglib",
+                                        "-lmbedtlslib",
+                                        "-lspdm_common_lib",
+                                        "-lspdm_crypt_lib",
+                                        "-lspdm_device_secret_lib_sample",
+                                        "-lspdm_responder_lib",
+                                        "-lmalloclib",
+                                        "-lmemlib",
+                                        "-Wl,--end-group");
+   end Linker;
 
    package Binder is
       for Default_Switches ("Ada") use ("-Es");

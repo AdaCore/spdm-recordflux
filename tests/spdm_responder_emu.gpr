@@ -1,0 +1,12 @@
+project SPDM_Responder_Emu is
+
+   for Languages use ("C");
+   for Source_Dirs use ("../contrib/dmtf/spdm-emu/spdm_emu/spdm_emu_common",
+                        "../contrib/dmtf/spdm-emu/libspdm/include",
+                        "../contrib/dmtf/spdm-emu/libspdm/include/hal",
+                        "../contrib/dmtf/spdm-emu/libspdm/include/hal/x64",
+                        "../contrib/dmtf/spdm-emu/libspdm/os_stub/include",
+                        "../contrib/dmtf/spdm-emu/libspdm/os_stub/spdm_device_secret_lib_sample");
+   for Object_Dir use "../build/libspdm";
+
+end SPDM_Responder_Emu;

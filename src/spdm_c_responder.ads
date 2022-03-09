@@ -1,3 +1,4 @@
+with System;
 with RFLX.SPDM;
 with RFLX.SPDM_Responder.Session;
 with RFLX.SPDM_Responder.Digests_Data;
@@ -8,7 +9,11 @@ package SPDM_C_Responder with
    Elaborate_Body
 is
 
-   type Context is new RFLX.SPDM_Responder.Session.Context with null record;
+   type Context is new RFLX.SPDM_Responder.Session.Context with record
+      Instance : System.Address := System.Null_Address;
+   end record;
+
+   procedure Plat_Initialize (Ctx : in out Context);
 
    overriding
    procedure Plat_Cfg_CT_Exponent

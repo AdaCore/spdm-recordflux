@@ -1,12 +1,14 @@
 #include <string.h>
-#ifdef __linux__
-#include <stdio.h>
-#include <err.h>
-#else
-#define errx(eval, format) return 0;
-#define printf(...)
-#endif
+#include <dummy_spdm_platform_interface.h>
 #include <../include/spdm_platform_interface.h>
+
+void spdm_platform_initialize(instance_t **instance)
+{
+    *instance = malloc(sizeof(instance_t));
+    if(!*instance){
+        errx(1, "failed to create instance");
+    }
+}
 
 unsigned char spdm_platform_config_ct_exponent(void) {
     return 10;
@@ -124,7 +126,8 @@ unsigned char spdm_platform_select_measurement_hash_algo(unsigned char tpm_alg_s
     return 0;
 }
 
-long spdm_platform_select_base_asym_algo(unsigned char tpm_alg_ecdsa_ecc_nist_p384,
+long spdm_platform_select_base_asym_algo(instance_t *instance,
+                                         unsigned char tpm_alg_ecdsa_ecc_nist_p384,
                                          unsigned char tpm_alg_rsapss_4096,
                                          unsigned char tpm_alg_rsassa_4096,
                                          unsigned char tpm_alg_ecdsa_ecc_nist_p256,
@@ -137,34 +140,37 @@ long spdm_platform_select_base_asym_algo(unsigned char tpm_alg_ecdsa_ecc_nist_p3
     // FIXME: When anything but BA_Unsupported is announced, spdm-emu bails out with:
     // ASSERT: contrib/dmtf/spdm-emu/libspdm/os_stub/spdm_device_secret_lib_sample/cert.c(76): ((boolean)(0 == 1))
     // Return 0 (i.e. BA_Unsupported) until this problem is resolved in spdm-emu.
-    return 0;
+    //return 0;
 
-    if (tpm_alg_ecdsa_ecc_nist_p521) return 256;
-    if (tpm_alg_ecdsa_ecc_nist_p384) return 128;
-    if (tpm_alg_ecdsa_ecc_nist_p256) return 16;
-    if (tpm_alg_rsapss_4096) return 64;
-    if (tpm_alg_rsassa_4096) return 32;
-    if (tpm_alg_rsapss_3072) return 8;
-    if (tpm_alg_rsassa_3072) return 4;
-    if (tpm_alg_rsapss_2048) return 2;
-    if (tpm_alg_rsassa_2048) return 1;
-    return 0;
+    if (tpm_alg_ecdsa_ecc_nist_p521) instance->base_asym_algo = 256;
+    else if (tpm_alg_ecdsa_ecc_nist_p384) instance->base_asym_algo = 128;
+    else if (tpm_alg_ecdsa_ecc_nist_p256) instance->base_asym_algo = 16;
+    else if (tpm_alg_rsapss_4096) instance->base_asym_algo = 64;
+    else if (tpm_alg_rsassa_4096) instance->base_asym_algo = 32;
+    else if (tpm_alg_rsapss_3072) instance->base_asym_algo = 8;
+    else if (tpm_alg_rsassa_3072) instance->base_asym_algo = 4;
+    else if (tpm_alg_rsapss_2048) instance->base_asym_algo = 2;
+    else if (tpm_alg_rsassa_2048) instance->base_asym_algo = 1;
+    else errx(3, "No Base Asym Algo selected");
+    return instance->base_asym_algo;
 }
 
-unsigned char spdm_platform_select_base_hash_algo(unsigned char tpm_alg_sha_256,
+unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
+                                                  unsigned char tpm_alg_sha_256,
                                                   unsigned char tpm_alg_sha_384,
                                                   unsigned char tpm_alg_sha_512,
                                                   unsigned char tpm_alg_sha3_256,
                                                   unsigned char tpm_alg_sha3_384,
                                                   unsigned char tpm_alg_sha3_512)
 {
-    if (tpm_alg_sha3_512) return 32;
-    if (tpm_alg_sha3_384) return 16;
-    if (tpm_alg_sha3_256) return 8;
-    if (tpm_alg_sha_512) return 4;
-    if (tpm_alg_sha_384) return 2;
-    if (tpm_alg_sha_256) return 1;
-    return 0;
+    if (tpm_alg_sha3_512) instance->base_hash_algo = 32;
+    else if (tpm_alg_sha3_384) instance->base_hash_algo = 16;
+    else if (tpm_alg_sha3_256) instance->base_hash_algo = 8;
+    else if (tpm_alg_sha_512) instance->base_hash_algo = 4;
+    else if (tpm_alg_sha_384) instance->base_hash_algo = 2;
+    else if (tpm_alg_sha_256) instance->base_hash_algo = 1;
+    else errx(3, "No Base Hash Algo selected");
+    return instance->base_hash_algo;
 }
 
 unsigned char spdm_platform_select_dhe(unsigned char secp521r1,
@@ -181,6 +187,7 @@ unsigned char spdm_platform_select_dhe(unsigned char secp521r1,
     if (ffdhe3072) return 2;
     if (ffdhe2048) return 1;
     errx(4, "No DHE selected");
+    return 0;
 }
 
 unsigned char spdm_platform_select_aead(unsigned char chacha20_poly1305,
@@ -191,6 +198,7 @@ unsigned char spdm_platform_select_aead(unsigned char chacha20_poly1305,
     if (aes_256_gcm) return 2;
     if (aes_128_gcm) return 1;
     errx(5, "No AEAD selected");
+    return 0;
 }
 
 
@@ -214,6 +222,7 @@ long spdm_platform_select_rbba(unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
     if (ra_tpm_alg_rsapss_2048) return 2;
     if (ra_tpm_alg_rsassa_2048) return 1;
     errx(6, "Invalid RBBA selected");
+    return 0;
 }
 
 void spdm_platform_get_digests_data(char *data, long *length, unsigned char *slot_mask)
@@ -236,27 +245,37 @@ void spdm_platform_get_digests_data(char *data, long *length, unsigned char *slo
 }
 
 unsigned char spdm_platform_validate_certificate_request(unsigned char slot,
-                                                         unsigned short offset,
-                                                         unsigned short length)
+                                                         __unused_cross__ unsigned short offset,
+                                                         __unused_cross__ unsigned short length)
 {
     if (slot > 3) return 0;
     printf("slot=%d, offset=%d, length=%d\n", slot, offset, length);
     return 1;
-};
+}
 
-void spdm_platform_get_certificate_data (char *data,
+void spdm_platform_get_certificate_data (__unused_cross__ instance_t *instance,
+                                         __unused_cross__ char *data,
                                          __attribute__((unused)) unsigned char slot,
-                                         unsigned short offset,
+                                         __unused_cross__ unsigned short offset,
                                          unsigned short *length,
                                          unsigned short *total_length)
 {
-    FILE *f = fopen("build/certificates/ecp384/bundle_responder.certchain.der", "rb");
-    if (f == 0) {
-        errx(6, "cert not found");
+    __unused_cross__ void *raw_data;
+    uintn size = 0;
+    boolean res = read_responder_public_certificate_chain(instance->base_hash_algo,
+                                                          instance->base_asym_algo,
+                                                          &raw_data, &size,
+                                                          NULL, NULL);
+    if(!res){
+        errx(0, "failed to get certificate");
     }
-    fseek(f, offset, SEEK_SET);
-    *length = fread(data, 1, *length, f);
-    fseek(f, 0, SEEK_END);
-    *total_length = ftell(f);
-    fclose(f);
-};
+    if(offset > size){
+        *length = 0;
+        return;
+    }
+    *total_length = size;
+    if (size - offset < *length) {
+        *length = size - offset;
+    }
+    memcpy(data, &((unsigned char *)raw_data)[offset], *length);
+}

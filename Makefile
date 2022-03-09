@@ -72,7 +72,7 @@ build/generated/rflx.ads: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_e
 	mkdir -p build/generated
 	$(RFLX) --no-verification generate $^ -d build/generated
 
-build/tests/proxy build/tests/responder: build/debug/generated/rflx.ads tests/tests.gpr tests/*.ad?
+build/tests/proxy build/tests/responder: build/debug/generated/rflx.ads build/spdm_emu/bin/spdm_responder_emu tests/tests.gpr tests/*.ad?
 	gprbuild -p tests/tests.gpr -s
 
 build/certificates:
