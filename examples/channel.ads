@@ -1,3 +1,5 @@
+pragma SPARK_Mode;
+
 with RFLX.RFLX_Types;
 
 generic

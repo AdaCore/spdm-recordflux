@@ -1,4 +1,6 @@
-package body Channel is
+package body Channel with
+   SPARK_Mode => Off
+is
 
    procedure Send (Buffer : RFLX.RFLX_Types.Bytes) is null;
 

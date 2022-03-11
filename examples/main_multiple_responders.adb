@@ -3,7 +3,8 @@ with RFLX.SPDM_Responder.Session;
 with RFLX.RFLX_Types;
 with SPDM_C_Responder;
 
-procedure Main_Multiple_Responders
+procedure Main_Multiple_Responders with
+   SPARK_Mode
 is
    use type RFLX.RFLX_Types.Index;
    use type RFLX.RFLX_Types.Length;
@@ -51,7 +52,7 @@ is
                      BS : constant RFLX.RFLX_Types.Length := SR.Write_Buffer_Size (Context, SR.C_Transport);
                   begin
                      Receive (Buffer, Length);
-                     if Length > 0 and Length <= BS then
+                     if Length in 1 .. BS then
                         SR.Write
                            (Context,
                             SR.C_Transport,
@@ -78,13 +79,10 @@ is
 begin
    SR.Initialize (Context_1);
    SR.Initialize (Context_2);
+
    loop
-      if not SR.Initialized (Context_1) then
-         SR.Initialize (Context_1);
-      end if;
-      if not SR.Initialized (Context_2) then
-         SR.Initialize (Context_2);
-      end if;
+      pragma Loop_Invariant (SR.Initialized (Context_1));
+      pragma Loop_Invariant (SR.Initialized (Context_2));
 
       while SR.Active (Context_1) and SR.Active (Context_2) loop
          pragma Loop_Invariant (SR.Initialized (Context_1));
@@ -96,11 +94,16 @@ begin
          --  Execute application code here as required
       end loop;
 
+      pragma Assert (SR.Initialized (Context_1));
+      pragma Assert (SR.Initialized (Context_2));
+
       if not SR.Active (Context_1) then
          SR.Finalize (Context_1);
+         SR.Initialize (Context_1);
       end if;
       if not SR.Active (Context_2) then
          SR.Finalize (Context_2);
+         SR.Initialize (Context_2);
       end if;
    end loop;
 end Main_Multiple_Responders;
