@@ -663,7 +663,7 @@ package SPDM_Responder is
             if Valid
          goto Error_Invalid_Request
       exception
-         goto Error_Invalid_Request
+         goto Error_Unspecified
       end Check_Certificate;
 
       state Prepare_Certificate

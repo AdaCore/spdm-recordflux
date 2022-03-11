@@ -137,11 +137,6 @@ long spdm_platform_select_base_asym_algo(instance_t *instance,
                                          unsigned char tpm_alg_rsassa_2048,
                                          unsigned char tpm_alg_ecdsa_ecc_nist_p521)
 {
-    // FIXME: When anything but BA_Unsupported is announced, spdm-emu bails out with:
-    // ASSERT: contrib/dmtf/spdm-emu/libspdm/os_stub/spdm_device_secret_lib_sample/cert.c(76): ((boolean)(0 == 1))
-    // Return 0 (i.e. BA_Unsupported) until this problem is resolved in spdm-emu.
-    //return 0;
-
     if (tpm_alg_ecdsa_ecc_nist_p521) instance->base_asym_algo = 256;
     else if (tpm_alg_ecdsa_ecc_nist_p384) instance->base_asym_algo = 128;
     else if (tpm_alg_ecdsa_ecc_nist_p256) instance->base_asym_algo = 16;
