@@ -663,11 +663,14 @@ package SPDM is
       end message
          with Byte_Order => Low_Order_First;
 
+   type Portion_Length_16 is range 0 .. 1024 with
+      Size => 16;
+
    type Certificate_Response is
       message
          Slot : Slot;
          Param_2 : Reserved_8;
-         Portion_Length : Length_16;
+         Portion_Length : Portion_Length_16;
          Remainder_Length : Length_16;
          Cert_Chain : Opaque
             with Size => 8 * Portion_Length;

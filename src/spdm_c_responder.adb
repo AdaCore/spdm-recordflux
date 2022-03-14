@@ -588,9 +588,9 @@ is
                    Total_Length => Total_Length);
       Result.Slot := Slot;
       if Cert_Length = Interfaces.C.unsigned_short (Max_Length) then
-         Result.Portion_Length := Max_Length;
+         Result.Portion_Length := RFLX.SPDM.Portion_Length_16 (Max_Length);
       else
-         Result.Portion_Length := RFLX.SPDM.Length_16 (Cert_Length);
+         Result.Portion_Length := RFLX.SPDM.Portion_Length_16 (Cert_Length);
       end if;
       Result.Remainder_Length := RFLX.SPDM.Length_16 (Total_Length - Cert_Length - Interfaces.C.unsigned_short (Offset));
    end Plat_Get_Certificate_Response;

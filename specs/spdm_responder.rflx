@@ -670,7 +670,7 @@ package SPDM_Responder is
       is
          Cert                  : SPDM::Certificate_Response;
          Cert_Slot             : SPDM::Slot;
-         Cert_Portion_Length   : SPDM::Length_16;
+         Cert_Portion_Length   : SPDM::Portion_Length_16;
          Cert_Remainder_Length : SPDM::Length_16;
       begin
          Cert                  := Plat_Get_Certificate_Response (Slot, Offset, Length);
