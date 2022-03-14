@@ -12,7 +12,7 @@ sleep 1
 spawn ../tests/proxy
 set proxy_id $spawn_id
 expect -i $responder_id "State: Init"
-spawn ../spdm_emu/bin/spdm_requester_emu --trans NONE
+spawn ../spdm_emu/bin/spdm_requester_emu --trans NONE --exe_conn DIGEST,CERT,MEAS
 set requester_id $spawn_id
 match $requester_id "spdm_requester_emu version 0.1"
 match $responder_id "State: Receive_Get_Version"
