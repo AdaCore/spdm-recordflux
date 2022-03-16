@@ -86,4 +86,8 @@ void spdm_platform_get_certificate_data (instance_t *instance,
                                          unsigned short *length,
                                          unsigned short *total_length);
 
+unsigned char spdm_platform_get_number_of_indices (instance_t *instance);
+
+void spdm_platform_get_nonce(void *nonce);
+
 #endif // __SPDM_PLATFORM_INTERFACE__

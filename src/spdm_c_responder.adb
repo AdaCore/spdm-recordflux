@@ -599,4 +599,29 @@ is
       Result.Remainder_Length := RFLX.SPDM.Length_16 (Total_Length - Cert_Length - Interfaces.C.unsigned_short (Offset));
    end Plat_Get_Certificate_Response;
 
+   overriding
+   procedure Plat_Get_Number_Of_Indices
+      (Ctx    : in out Context;
+       Result :    out RFLX.SPDM.Measurement_Count)
+   is
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_number_of_indices";
+   begin
+      Result := RFLX.SPDM.Measurement_Count (C_Interface (Instance => Ctx.Instance));
+   end Plat_Get_Number_Of_Indices;
+
+   overriding
+   procedure Plat_Get_Nonce (Ctx    : in out Context;
+                             Result :    out RFLX.SPDM.Nonce.Structure)
+   is
+      procedure C_Interface (Nonce : out RFLX.RFLX_Types.Bytes) with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_nonce";
+   begin
+      C_Interface (Result.Data);
+   end Plat_Get_Nonce;
+
 end SPDM_C_Responder;

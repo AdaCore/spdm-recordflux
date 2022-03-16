@@ -10,7 +10,7 @@ package SPDM is
    type Length_24 is mod 2 ** 24;
    type Index is range 1 .. 2 ** 8 - 1 with Size => 8;
 
-   type Signature_Length is range 48 .. 512 with Size => 10;
+   type Signature_Length is range 0 .. 512 with Size => 10;
    type Exchange_Data_Length is range 96 .. 512 with Size => 10;
    type Hash_Length is range 0 .. 64 with Size => 8;
 
@@ -289,6 +289,12 @@ package SPDM is
        NS_Trusted_Environment => 16#F#)
    with Size => 4;
 
+   type Nonce is
+      message
+         Data : Opaque
+            with Size => 32 * 8;
+      end message;
+
    type Get_Measurements_Request is
       message
          Reserved_1 : Reserved_7;
@@ -298,8 +304,7 @@ package SPDM is
                if Generate_Signature = True
             then null
                if Generate_Signature = False;
-         Nonce : Opaque
-            with Size => 32 * 8;
+         Nonce : Nonce;
          Reserved_2 : Reserved_4;
          Slot_ID_Param : Narrow_Slot;
       end message;
@@ -357,8 +362,7 @@ package SPDM is
          Measurement_Record_Length : Length_24;
          Measurement_Record : Measurement_Record
             with Size => 8 * Measurement_Record_Length;
-         Nonce : Opaque
-            with Size => 8 * 32;
+         Nonce : Nonce;
          Opaque_Length : Length_16;
          Opaque_Data : Opaque
             with Size => 8 * Opaque_Length
@@ -689,8 +693,7 @@ package SPDM is
       message
          Slot : Slot;
          Hash_Type : Measurement_Summary_Hash_Type;
-         Nonce : Opaque
-            with Size => 8 * 32;
+         Nonce : Nonce;
       end message;
 
    type Challenge_Auth_Response (Meas_Cap         : Meas_Cap;
@@ -704,8 +707,7 @@ package SPDM is
          Slot_Mask          : Slot_Mask;
          Cert_Chain_Hash    : Opaque
             with Size => 8 * Hash_Length;
-         Nonce : Opaque
-            with Size => 8 * 32
+         Nonce : Nonce
             --  [256] MeasurementSummaryHash:
             --  When the Responder does not support measurement or requested Param2=0
             --  (i.e. Hash_Type = No_Measurment), the field shall be absent.

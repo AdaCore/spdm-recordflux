@@ -274,3 +274,15 @@ void spdm_platform_get_certificate_data (__unused_cross__ instance_t *instance,
     }
     memcpy(data, &((unsigned char *)raw_data)[offset], *length);
 }
+
+unsigned char spdm_platform_get_number_of_indices (__attribute__((unused)) instance_t *instance)
+{
+    return 2; //FIXME
+}
+
+void spdm_platform_get_nonce(__unused_cross__ void *nonce)
+{
+    if(getrandom(nonce, 32, 0) < 0){
+        errx(2, "failed to get nonce");
+    }
+}

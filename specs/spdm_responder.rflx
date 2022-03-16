@@ -113,6 +113,10 @@ package SPDM_Responder is
           Offset : SPDM::Offset;
           Length : SPDM::Length_16) return SPDM::Certificate_Response;
 
+      with function Plat_Get_Number_Of_Indices return SPDM::Measurement_Count;
+
+      with function Plat_Get_Nonce return SPDM::Nonce;
+
    session Session with
       Initial => Init,
       Final => End_Session
@@ -173,7 +177,7 @@ package SPDM_Responder is
                                      Hash_Length                                 => 0,
                                      Signature_Length                            => 512,
                                      Exchange_Data_Length                        => 512,
-                                     Handshake_In_The_Clear                      => False,
+                                     Handshake_In_The_Clear                      => True,
                                      Major_Version                               => 1,
                                      Minor_Version                               => 0,
                                      Code                                        => SPDM::Version,
@@ -250,7 +254,7 @@ package SPDM_Responder is
                             Hash_Length                                      => 0,
                             Signature_Length                                 => 512,
                             Exchange_Data_Length                             => 512,
-                            Handshake_In_The_Clear                           => False,
+                            Handshake_In_The_Clear                           => True,
                             Major_Version                                    => 1,
                             Minor_Version                                    => 1,
                             Code                                             => SPDM::Capabilities,
@@ -560,7 +564,7 @@ package SPDM_Responder is
                             Hash_Length                                       => 0,
                             Signature_Length                                  => 512,
                             Exchange_Data_Length                              => 512,
-                            Handshake_In_The_Clear                            => False,
+                            Handshake_In_The_Clear                            => True,
                             Major_Version                                     => 1,
                             Minor_Version                                     => 1,
                             Code                                              => SPDM::Algorithms,
@@ -671,7 +675,7 @@ package SPDM_Responder is
                                      Hash_Length                                 => Hash_Length,
                                      Signature_Length                            => 512,
                                      Exchange_Data_Length                        => 512,
-                                     Handshake_In_The_Clear                      => False,
+                                     Handshake_In_The_Clear                      => True,
                                      Major_Version                               => 1,
                                      Minor_Version                               => 1,
                                      Code                                        => SPDM::Digests,
@@ -744,7 +748,7 @@ package SPDM_Responder is
                                      Hash_Length                           => Hash_Length,
                                      Signature_Length                      => 512,
                                      Exchange_Data_Length                  => 512,
-                                     Handshake_In_The_Clear                => False,
+                                     Handshake_In_The_Clear                => True,
                                      Major_Version                         => 1,
                                      Minor_Version                         => 1,
                                      Code                                  => SPDM::Certificate,
@@ -766,8 +770,99 @@ package SPDM_Responder is
       transition
          goto Receive_Get_Certificate
             if Response.Certificate_Response_Remainder_Length > 0
-         goto Receive_Get_Version
+         goto Receive_Get_Measurements
       end Send_Certificate;
+
+      state Receive_Get_Measurements
+      is
+      begin
+         Transport'Read (Request);
+      transition
+         goto Prepare_Measurements
+            if Request'Valid and Request.Code = SPDM::Get_Measurements
+         goto Error_Unsupported_Request
+            if Request'Valid
+         goto Error_Invalid_Request
+      end Receive_Get_Measurements;
+
+      state Prepare_Measurements
+      is
+      begin
+      transition
+         goto Prepare_Measurements_Number_Of_Indices
+            if Request.Get_Measurements_Request_Measurement_Operation = SPDM::Get_Number_Of_Measurements
+         goto Prepare_Measurements_Records
+      end Prepare_Measurements;
+
+      state Prepare_Measurements_Records
+      is
+         Measurement_Record : SPDM::Measurement_Record;
+         Nonce : SPDM::Nonce;
+      begin
+         Nonce := Plat_Get_Nonce;
+         Response := SPDM::Response'(Meas_Cap                              => SPDM::Meas_Unsupported,
+                                     Hash_Type                             => SPDM::No_Measurement,
+                                     Hash_Length                           => Hash_Length,
+                                     Signature_Length                      => 0,
+                                     Exchange_Data_Length                  => 512,
+                                     Handshake_In_The_Clear                => True,
+                                     Major_Version                         => 1,
+                                     Minor_Version                         => 1,
+                                     Code                                  => SPDM::Measurements,
+                                     Measurements_Response_Number_Of_Indices => 1,
+                                     Measurements_Response_Reserved_1 => 0,
+                                     Measurements_Response_Slot_ID => SPDM::NS_0,
+                                     Measurements_Response_Number_Of_Blocks => 0,
+                                     Measurements_Response_Measurement_Record_Length => 0,
+                                     Measurements_Response_Measurement_Record => Measurement_Record,
+                                     Measurements_Response_Nonce_Data => Nonce.Data,
+                                     Measurements_Response_Opaque_Length => 0,
+                                     Measurements_Response_Opaque_Data => []);
+      transition
+         goto Send_Measurements
+      exception
+         goto Error_Unspecified
+      end Prepare_Measurements_Records;
+
+      state Prepare_Measurements_Number_Of_Indices
+      is
+         Measurement_Record : SPDM::Measurement_Record;
+         Number_Of_Indices : SPDM::Measurement_Count;
+         Nonce : SPDM::Nonce;
+      begin
+         Nonce := Plat_Get_Nonce;
+         Number_Of_Indices := Plat_Get_Number_Of_Indices;
+         Response := SPDM::Response'(Meas_Cap                              => SPDM::Meas_Unsupported,
+                                     Hash_Type                             => SPDM::No_Measurement,
+                                     Hash_Length                           => Hash_Length,
+                                     Signature_Length                      => 0,
+                                     Exchange_Data_Length                  => 512,
+                                     Handshake_In_The_Clear                => True,
+                                     Major_Version                         => 1,
+                                     Minor_Version                         => 1,
+                                     Code                                  => SPDM::Measurements,
+                                     Measurements_Response_Number_Of_Indices => Number_Of_Indices,
+                                     Measurements_Response_Reserved_1 => 0,
+                                     Measurements_Response_Slot_ID => SPDM::NS_0,
+                                     Measurements_Response_Number_Of_Blocks => 0,
+                                     Measurements_Response_Measurement_Record_Length => 0,
+                                     Measurements_Response_Measurement_Record => Measurement_Record,
+                                     Measurements_Response_Nonce_Data => Nonce.Data,
+                                     Measurements_Response_Opaque_Length => 0,
+                                     Measurements_Response_Opaque_Data => []);
+      transition
+         goto Send_Measurements
+      exception
+         goto Error_Unspecified
+      end Prepare_Measurements_Number_Of_Indices;
+
+      state Send_Measurements
+      is
+      begin
+         Transport'Write (Response);
+      transition
+         goto Receive_Get_Measurements
+      end Send_Measurements;
 
       state Error_Unsupported_Request
       is
@@ -778,7 +873,7 @@ package SPDM_Responder is
                             Hash_Length                          => 64,
                             Signature_Length                     => 512,
                             Exchange_Data_Length                 => 512,
-                            Handshake_In_The_Clear               => False,
+                            Handshake_In_The_Clear               => True,
                             Major_Version                        => 1,
                             Minor_Version                        => 1,
                             Code                                 => SPDM::Error,
@@ -799,7 +894,7 @@ package SPDM_Responder is
                             Hash_Length                    => 64,
                             Signature_Length               => 512,
                             Exchange_Data_Length           => 512,
-                            Handshake_In_The_Clear         => False,
+                            Handshake_In_The_Clear         => True,
                             Major_Version                  => 1,
                             Minor_Version                  => 1,
                             Code                           => SPDM::Error,
@@ -820,7 +915,7 @@ package SPDM_Responder is
                             Hash_Length                    => 64,
                             Signature_Length               => 512,
                             Exchange_Data_Length           => 512,
-                            Handshake_In_The_Clear         => False,
+                            Handshake_In_The_Clear         => True,
                             Major_Version                  => 1,
                             Minor_Version                  => 1,
                             Code                           => SPDM::Error,

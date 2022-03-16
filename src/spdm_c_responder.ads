@@ -3,6 +3,7 @@ with RFLX.SPDM;
 with RFLX.SPDM_Responder.Session;
 with RFLX.SPDM_Responder.Digests_Data;
 with RFLX.SPDM.Certificate_Response;
+with RFLX.SPDM.Nonce;
 
 package SPDM_C_Responder with
    SPARK_Mode,
@@ -186,5 +187,14 @@ is
        Offset :        RFLX.SPDM.Offset;
        Length :        RFLX.SPDM.Length_16;
        Result :    out RFLX.SPDM.Certificate_Response.Structure);
+
+   overriding
+   procedure Plat_Get_Number_Of_Indices
+      (Ctx    : in out Context;
+       Result :    out RFLX.SPDM.Measurement_Count);
+
+   overriding
+   procedure Plat_Get_Nonce (Ctx    : in out Context;
+                             Result :    out RFLX.SPDM.Nonce.Structure);
 
 end SPDM_C_Responder;
