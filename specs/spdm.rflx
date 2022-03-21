@@ -367,7 +367,7 @@ package SPDM is
          Opaque_Data : Opaque
             with Size => 8 * Opaque_Length
             then Signature
-               if Opaque_Data'Last + 8 * Signature_Length = Message'Last
+               if Signature_Length > 0 and Opaque_Data'Last + 8 * Signature_Length = Message'Last
             then null
                if Opaque_Data'Last = Message'Last;
          Signature : Opaque
