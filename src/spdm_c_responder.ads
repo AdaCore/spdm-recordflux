@@ -4,6 +4,7 @@ with RFLX.SPDM_Responder.Session;
 with RFLX.SPDM_Responder.Digests_Data;
 with RFLX.SPDM.Certificate_Response;
 with RFLX.SPDM.Nonce;
+with RFLX.SPDM.DMTF_Measurement_Field;
 
 package SPDM_C_Responder with
    SPARK_Mode,
@@ -196,5 +197,10 @@ is
    overriding
    procedure Plat_Get_Nonce (Ctx    : in out Context;
                              Result :    out RFLX.SPDM.Nonce.Structure);
+
+   overriding
+   procedure Plat_Get_DMTF_Measurement_Field (Ctx    : in out Context;
+                                              Index  :        RFLX.SPDM.Index;
+                                              Result :    out RFLX.SPDM.DMTF_Measurement_Field.Structure);
 
 end SPDM_C_Responder;

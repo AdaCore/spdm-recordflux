@@ -624,4 +624,13 @@ is
       C_Interface (Result.Data);
    end Plat_Get_Nonce;
 
+   overriding
+   procedure Plat_Get_DMTF_Measurement_Field (Ctx    : in out Context;
+                                              Index  :        RFLX.SPDM.Index;
+                                              Result :    out RFLX.SPDM.DMTF_Measurement_Field.Structure)
+   is
+   begin
+      null;
+   end Plat_Get_DMTF_Measurement_Field;
+
 end SPDM_C_Responder;

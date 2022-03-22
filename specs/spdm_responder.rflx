@@ -117,6 +117,8 @@ package SPDM_Responder is
 
       with function Plat_Get_Nonce return SPDM::Nonce;
 
+      with function Plat_Get_DMTF_Measurement_Field (Index : SPDM::Index) return SPDM::DMTF_Measurement_Field;
+
    session Session with
       Initial => Init,
       Final => End_Session
@@ -790,16 +792,27 @@ package SPDM_Responder is
       begin
       transition
          goto Prepare_Measurements_Number_Of_Indices
-            if Request.Get_Measurements_Request_Measurement_Operation = SPDM::Get_Number_Of_Measurements
+            if Request.Get_Measurements_Request_Measurement_Operation = 0
          goto Prepare_Measurements_Records
       end Prepare_Measurements;
 
       state Prepare_Measurements_Records
       is
          Measurement_Record : SPDM::Measurement_Record;
+         Measurement_Field : SPDM::DMTF_Measurement_Field;
          Nonce : SPDM::Nonce;
       begin
          Nonce := Plat_Get_Nonce;
+         Measurement_Field := Plat_Get_DMTF_Measurement_Field (Request.Get_Measurements_Request_Measurement_Operation);
+         Measurement_Record'Append (SPDM::Measurement_Block'
+            (Index                                             =>
+               Request.Get_Measurements_Request_Measurement_Operation,
+             Measurement_Specification                         => SPDM::DMTF,
+             Measurement_Length                                => Measurement_Field'Size / 8,
+             DMTF_Measurement_Measurement_Value_Representation => Measurement_Field.Measurement_Value_Representation,
+             DMTF_Measurement_Measurement_Value_Type           => Measurement_Field.Measurement_Value_Type,
+             DMTF_Measurement_Measurement_Value_Length         => Measurement_Field.Measurement_Value_Length,
+             DMTF_Measurement_Measurement_Value                => Measurement_Field.Measurement_Value));
          Response := SPDM::Response'(Meas_Cap                              => SPDM::Meas_Unsupported,
                                      Hash_Type                             => SPDM::No_Measurement,
                                      Hash_Length                           => Hash_Length,
@@ -812,8 +825,8 @@ package SPDM_Responder is
                                      Measurements_Response_Number_Of_Indices => 1,
                                      Measurements_Response_Reserved_1 => 0,
                                      Measurements_Response_Slot_ID => SPDM::NS_0,
-                                     Measurements_Response_Number_Of_Blocks => 0,
-                                     Measurements_Response_Measurement_Record_Length => 0,
+                                     Measurements_Response_Number_Of_Blocks => 1,
+                                     Measurements_Response_Measurement_Record_Length => Measurement_Record'Size,
                                      Measurements_Response_Measurement_Record => Measurement_Record,
                                      Measurements_Response_Nonce_Data => Nonce.Data,
                                      Measurements_Response_Opaque_Length => 0,

@@ -8,7 +8,7 @@ package SPDM is
 
    type Length_16 is mod 2 ** 16;
    type Length_24 is mod 2 ** 24;
-   type Index is range 1 .. 2 ** 8 - 1 with Size => 8;
+   type Index is range 0 .. 2 ** 8 - 1 with Size => 8;
 
    type Signature_Length is range 0 .. 512 with Size => 10;
    type Exchange_Data_Length is range 96 .. 512 with Size => 10;
@@ -272,10 +272,10 @@ package SPDM is
    --  The value 0 queries the responder for the total number of measurements
    --  available. The value 255 requests all measurements. The values 1 to 254
    --  request the measurement at the index corresponding to that value.
-   type Measurement_Operation is
-      (Get_Number_Of_Measurements => 0,
-       Get_All_Measurements       => 255)
-      with Size => 8, Always_Valid;
+   --  type Measurement_Operation is
+   --     (Get_Number_Of_Measurements => 0,
+   --      Get_All_Measurements       => 255)
+   --     with Size => 8, Always_Valid;
 
    type Narrow_Slot is
       (NS_0                   => 16#0#,
@@ -299,7 +299,7 @@ package SPDM is
       message
          Reserved_1 : Reserved_7;
          Generate_Signature : Boolean;
-         Measurement_Operation : Measurement_Operation
+         Measurement_Operation : Index
             then Nonce
                if Generate_Signature = True
             then null
@@ -326,24 +326,30 @@ package SPDM is
        Measured_Manifest      => 4) --  SPDM 1.1 only
    with Size => 7;
 
+   type DMTF_Measurement_Field is
+      message
+         Measurement_Value_Representation : DMTF_Spec_Measurement_Value_Representation;
+         Measurement_Value_Type : DMTF_Spec_Measurement_Value_Type;
+         --  [335] When DMTFSpecMeasurementValueType[7]=0b, the DMTFSpecMeasurementValueSize shall
+         --  be derived from the measurement hash algorithm that the ALGORITHM response message
+         --  returns.
+         --  FIXME: What does "shall be derived" mean - equals the hash length?
+         Measurement_Value_Length : Length_16;
+         Measurement_Value : Opaque
+            with Size => 8 * Measurement_Value_Length;
+      end message
+         with Byte_Order => Low_Order_First;
+
    type Measurement_Block is
       message
          Index : Index;
          Measurement_Specification : Measurement_Specification;
          Measurement_Length : Length_16
-            then DMTF_Spec_Measurement_Value_Representation
+            then DMTF_Measurement
                if Measurement_Specification = DMTF;
-         DMTF_Spec_Measurement_Value_Representation : DMTF_Spec_Measurement_Value_Representation;
-         DMTF_Spec_Measurement_Value_Type : DMTF_Spec_Measurement_Value_Type;
-         --  [335] When DMTFSpecMeasurementValueType[7]=0b, the DMTFSpecMeasurementValueSize shall
-         --  be derived from the measurement hash algorithm that the ALGORITHM response message
-         --  returns.
-         --  FIXME: What does "shall be derived" mean - equals the hash length?
-         DMTF_Spec_Measurement_Value_Length : Length_16;
-         DMTF_Spec_Measurement_Value : Opaque
-            with Size => 8 * DMTF_Spec_Measurement_Value_Length
+         DMTF_Measurement : DMTF_Measurement_Field
             then null
-               if 8 * Measurement_Length = DMTF_Spec_Measurement_Value'Last - Measurement_Length'Last;
+               if 8 * Measurement_Length = DMTF_Measurement_Measurement_Value'Last - Measurement_Length'Last;
       end message
          with Byte_Order => Low_Order_First;
 

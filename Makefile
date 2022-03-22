@@ -108,7 +108,11 @@ GENERATED := rflx.ads \
     rflx-spdm_requester-requester_allocator.adb \
     rflx-spdm_requester-requester_allocator.ads \
     rflx-spdm_requester-request.adb \
-    rflx-spdm_requester-request.ads
+    rflx-spdm_requester-request.ads \
+    rflx-spdm-nonce.adb \
+    rflx-spdm-nonce.ads \
+    rflx-spdm-dmtf_measurement_field.adb \
+    rflx-spdm-dmtf_measurement_field.ads
 
 ifdef LOCAL_RFLX
 RFLX = $(shell command -v python3) $(shell command -v rflx)
