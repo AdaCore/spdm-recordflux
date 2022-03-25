@@ -1,6 +1,7 @@
 with Interfaces.C;
 with RFLX.SPDM_Responder.Digests_Data;
 with RFLX.SPDM;
+with RFLX.RFLX_Types;
 
 package body SPDM_C_Responder with
    SPARK_Mode
@@ -26,7 +27,7 @@ is
          Convention    => C,
          External_Name => "spdm_platform_config_ct_exponent";
    begin
-      if not RFLX.SPDM.Valid (RFLX.SPDM.CT_Exponent_Base (C_Interface)) then
+      if not RFLX.SPDM.Valid_CT_Exponent (RFLX.RFLX_Types.U64 (C_Interface)) then
          raise Constraint_Error;
       end if;
       Result := RFLX.SPDM.CT_Exponent (C_Interface);
@@ -83,9 +84,9 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_meas";
-      Value : constant RFLX.SPDM.Meas_Cap_Base := RFLX.SPDM.Meas_Cap_Base (C_Interface);
+      Value : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface);
    begin
-      if not RFLX.SPDM.Valid (Value) then
+      if not RFLX.SPDM.Valid_Meas_Cap (Value) then
          raise Constraint_Error;
       end if;
       Result := RFLX.SPDM.To_Actual (Value);
@@ -198,9 +199,9 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_psk";
-      Value : constant RFLX.SPDM.PSK_Resp_Cap_Base := RFLX.SPDM.PSK_Resp_Cap_Base (C_Interface);
+      Value : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface);
    begin
-      if not RFLX.SPDM.Valid (Value) then
+      if not RFLX.SPDM.Valid_PSK_Resp_Cap (Value) then
          raise Constraint_Error;
       end if;
       Result := RFLX.SPDM.To_Actual (Value);
@@ -275,8 +276,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_measurement_hash_algo";
-      Value : constant RFLX.SPDM.Measurement_Hash_Algo_Base :=
-         RFLX.SPDM.Measurement_Hash_Algo_Base
+      Value : constant RFLX.RFLX_Types.U64 :=
+         RFLX.RFLX_Types.U64
             (C_Interface
                (TPM_ALG_SHA_256      => C_Bool (TPM_ALG_SHA_256),
                 TPM_ALG_SHA_384      => C_Bool (TPM_ALG_SHA_384),
@@ -286,7 +287,7 @@ is
                 TPM_ALG_SHA3_512     => C_Bool (TPM_ALG_SHA3_512),
                 Raw_Bit_Streams_Only => C_Bool (Raw_Bit_Streams_Only)));
    begin
-      if not RFLX.SPDM.Valid (Value) then
+      if not RFLX.SPDM.Valid_Measurement_Hash_Algo (Value) then
          raise Constraint_Error;
       end if;
       Result := RFLX.SPDM.To_Actual (Value);
@@ -321,8 +322,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_base_asym_algo";
-      Value : constant RFLX.SPDM.Base_Asym_Algo_Base :=
-         RFLX.SPDM.Base_Asym_Algo_Base
+      Value : constant RFLX.RFLX_Types.U64 :=
+         RFLX.RFLX_Types.U64
             (C_Interface
                (Instance                    => Ctx.Instance,
                 TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P384),
@@ -335,7 +336,7 @@ is
                 TPM_ALG_RSASSA_2048         => C_Bool (TPM_ALG_RSASSA_2048),
                 TPM_ALG_ECDSA_ECC_NIST_P521 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P521)));
    begin
-      if not RFLX.SPDM.Valid (Value) then
+      if not RFLX.SPDM.Valid_Base_Asym_Algo (Value) then
          raise Constraint_Error;
       end if;
       Result := RFLX.SPDM.To_Actual (Value);
@@ -364,8 +365,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_base_hash_algo";
-      Value : constant RFLX.SPDM.Base_Hash_Algo_Base :=
-         RFLX.SPDM.Base_Hash_Algo_Base
+      Value : constant RFLX.RFLX_Types.U64 :=
+         RFLX.RFLX_Types.U64
             (C_Interface
                (Instance         => Ctx.Instance,
                 TPM_ALG_SHA_256  => C_Bool (TPM_ALG_SHA_256),
@@ -375,7 +376,7 @@ is
                 TPM_ALG_SHA3_384 => C_Bool (TPM_ALG_SHA3_384),
                 TPM_ALG_SHA3_512 => C_Bool (TPM_ALG_SHA3_512)));
    begin
-      if not RFLX.SPDM.Valid (Value) then
+      if not RFLX.SPDM.Valid_Base_Hash_Algo (Value) then
          raise Constraint_Error;
       end if;
       Result := RFLX.SPDM.To_Actual (Value);
@@ -403,8 +404,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_dhe";
-      Value : constant RFLX.SPDM_Responder.DHE_Algo_Base :=
-         RFLX.SPDM_Responder.DHE_Algo_Base
+      Value : constant RFLX.RFLX_Types.U64 :=
+         RFLX.RFLX_Types.U64
             (C_Interface
                (SecP521r1 => C_Bool (Req_SecP521r1),
                 SecP384r1 => C_Bool (Req_SecP384r1),
@@ -413,7 +414,7 @@ is
                 FFDHE3072 => C_Bool (Req_FFDHE3072),
                 FFDHE2048 => C_Bool (Req_FFDHE2048)));
    begin
-      if not RFLX.SPDM_Responder.Valid (Value) then
+      if not RFLX.SPDM_Responder.Valid_DHE_Algo (Value) then
          raise Constraint_Error;
       end if;
       Result := RFLX.SPDM_Responder.To_Actual (Value);
@@ -435,14 +436,14 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_aead";
-      Value : constant RFLX.SPDM_Responder.AEAD_Algo_Base :=
-         RFLX.SPDM_Responder.AEAD_Algo_Base
+      Value : constant RFLX.RFLX_Types.U64 :=
+         RFLX.RFLX_Types.U64
             (C_Interface
                (AA_ChaCha20_Poly1305 => C_Bool (Req_ChaCha20_Poly1305),
                 AA_AES_256_GCM       => C_Bool (Req_AES_256_GCM),
                 AA_AES_128_GCM       => C_Bool (Req_AES_128_GCM)));
    begin
-      if not RFLX.SPDM_Responder.Valid (Value) then
+      if not RFLX.SPDM_Responder.Valid_AEAD_Algo (Value) then
          raise Constraint_Error;
       end if;
       Result := RFLX.SPDM_Responder.To_Actual (Value);
@@ -476,8 +477,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_rbba";
-      Value : constant RFLX.SPDM.Base_Asym_Algo_Base :=
-         (RFLX.SPDM.Base_Asym_Algo_Base
+      Value : constant RFLX.RFLX_Types.U64 :=
+         (RFLX.RFLX_Types.U64
             (C_Interface
                (RA_TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P384),
                 RA_TPM_ALG_RSAPSS_4096         => C_Bool (Req_TPM_ALG_RSAPSS_4096),
@@ -489,7 +490,7 @@ is
                 RA_TPM_ALG_RSASSA_2048         => C_Bool (Req_TPM_ALG_RSASSA_2048),
                 RA_TPM_ALG_ECDSA_ECC_NIST_P521 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P521))));
    begin
-      if not RFLX.SPDM.Valid (Value) then
+      if not RFLX.SPDM.Valid_Base_Asym_Algo (Value) then
          raise Constraint_Error;
       end if;
       Result := RFLX.SPDM.To_Actual (Value);
@@ -546,7 +547,7 @@ is
       use type Interfaces.C.unsigned_char;
       use type Interfaces.C.unsigned_short;
    begin
-      Result := 0 /= C_Interface (Slot   => Interfaces.C.unsigned_char (RFLX.SPDM.To_Base (Slot)),
+      Result := 0 /= C_Interface (Slot   => Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
                                   Offset => Interfaces.C.unsigned_short (Offset),
                                   Length => Interfaces.C.unsigned_short (Length));
    end Plat_Valid_Certificate_Request;
@@ -582,7 +583,7 @@ is
       end if;
       C_Interface (Instance     => Ctx.Instance,
                    Data         => Result.Cert_Chain'Address,
-                   Slot         => Interfaces.C.unsigned_char (RFLX.SPDM.To_Base (Slot)),
+                   Slot         => Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
                    Offset       => Interfaces.C.unsigned_short (Offset),
                    Length       => Cert_Length,
                    Total_Length => Total_Length);
