@@ -588,6 +588,7 @@ is
                    Length       => Cert_Length,
                    Total_Length => Total_Length);
       Result.Slot := Slot;
+      Result.Param_2 := 0;
       if Cert_Length = Interfaces.C.unsigned_short (Max_Length) then
          Result.Portion_Length := RFLX.SPDM.Portion_Length_16 (Max_Length);
       else
