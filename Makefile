@@ -198,7 +198,7 @@ test_validate_static: | $(RFLX)
 	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_response.log -v tests/data/spdm/Response/valid specs/spdm.rflx SPDM::Response
 
 test_responder: build/tests/responder build/tests/proxy build/spdm_emu/bin/spdm_requester_emu build/certificates
-	tools/run_responder.sh
+	tools/run_responder.expect
 
 $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx:
 	python3 -m venv $(TMPDIR)/venv

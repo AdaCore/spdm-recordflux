@@ -1,0 +1,44 @@
+#!/usr/bin/expect
+
+proc match {id string} {
+    expect -i $id default {puts "Failed to match:"; puts $string; exit 1} $string
+}
+
+cd build/certificates
+set timeout 30
+spawn ../tests/responder
+set responder_id $spawn_id
+sleep 1
+spawn ../tests/proxy
+set proxy_id $spawn_id
+expect -i $responder_id "State: Init"
+spawn ../spdm_emu/bin/spdm_requester_emu --trans NONE
+set requester_id $spawn_id
+match $requester_id "spdm_requester_emu version 0.1"
+match $responder_id "State: Receive_Get_Version"
+match $responder_id "State: Prepare_Version"
+match $responder_id "State: Send_Version"
+match $requester_id "0000: 10 04 00 00 00 01 00 11"
+match $responder_id "State: Receive_Get_Capabilities"
+match $responder_id "State: Prepare_Capabilities"
+match $responder_id "State: Send_Capabilities"
+match $requester_id "0000: 11 61 00 00 00 0a 00 00 ca 82 00 00"
+match $responder_id "State: Receive_Negotiate_Algorithms"
+match $responder_id "State: Prepare_Algorithms"
+match $responder_id "State: Set_Hash_Len_48"
+match $responder_id "State: Send_Algorithms"
+match $requester_id "0000: 11 63 04 00 34 00 01 00 04 00 00 00 80 00 00 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+match $responder_id "State: Receive_Get_Digests"
+match $responder_id "State: Prepare_Digests"
+match $responder_id "State: Send_Digests"
+match $requester_id "0000: 11 01 00 07"
+match $requester_id "!!! verify_peer_digests - PASS !!!"
+match $responder_id "State: Receive_Get_Certificate"
+match $responder_id "State: Check_Certificate"
+match $responder_id "State: Prepare_Certificate"
+match $responder_id "State: Send_Certificate"
+match $requester_id "0000: 11 02 00 00"
+match $requester_id "!!! VerifyCertificateChainBuffer - PASS (cert root hash match) !!!"
+match $requester_id "!!! verify_peer_cert_chain_buffer - PASS !!!"
+match $requester_id "do_authentication_via_spdm - 3"
+match $requester_id "Client stopped"
