@@ -1,4 +1,4 @@
-.PHONY: all test check check_spec check_stack check_stack_riscv64 check_stack_arm package test_package test_cross clean
+.PHONY: all test check check_spec check_stack check_stack_riscv64 check_stack_arm package test_package test_cross prove clean
 
 TMPDIR := $(shell mktemp -d)
 FILE_LIST := $(shell mktemp)
@@ -10,7 +10,7 @@ else
 RFLX = $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx
 endif
 
-all: check test
+all: check test prove
 
 lib: build/lib/libspdm.a
 
@@ -136,6 +136,10 @@ test_package: build/spdm_$(GITREV).tar
 build/generated/spdm_platform_interface.adb: include/spdm_platform_interface.ads
 	gnatstub --output-dir=$(dir $@) --no-exception --force $<
 
+prove: build/generated/rflx.ads
+	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder
+	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder_multiple_responders
+	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder_select
 
 clean:
 	rm -rf build

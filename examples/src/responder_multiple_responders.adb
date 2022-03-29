@@ -3,11 +3,23 @@ with RFLX.SPDM_Responder.Session;
 with RFLX.RFLX_Types;
 with SPDM_C_Responder;
 
-package body Responder_Multiple_Responders
+package body Responder_Multiple_Responders with
+   SPARK_Mode,
+   Refined_State => (Responder_State => (Context_1, Context_2))
 is
 
    Context_1  : SPDM_C_Responder.Context;
+   pragma Annotate (GNATprove, False_Positive,
+                    """Context_1.P"" constituent of ""Responder_State"" is not initialized",
+                    "ISSUE: Componolit/RecordFlux#954");
    Context_2  : SPDM_C_Responder.Context;
+   pragma Annotate (GNATprove, False_Positive,
+                    """Context_2.P"" constituent of ""Responder_State"" is not initialized",
+                    "ISSUE: Componolit/RecordFlux#954");
+
+   function Uninitialized return Boolean is
+      (RFLX.SPDM_Responder.Session.Uninitialized (Context_1)
+       and RFLX.SPDM_Responder.Session.Uninitialized (Context_2));
 
    procedure Main
    is

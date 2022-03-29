@@ -2,11 +2,18 @@ with RFLX.SPDM_Responder.Session;
 with RFLX.RFLX_Types;
 with SPDM_C_Responder;
 
-package body Responder
+package body Responder with
+   SPARK_Mode,
+   Refined_State => (Responder_State => (Buffer, Context))
 is
    use type RFLX.RFLX_Types.Index;
    Buffer : RFLX.RFLX_Types.Bytes (RFLX.RFLX_Types.Index'First .. RFLX.RFLX_Types.Index'First + 1279) := (others => 0);
    Context : SPDM_C_Responder.Context;
+   pragma Annotate (GNATprove, False_Positive,
+                    """Context.P"" constituent of ""Responder_State"" is not initialized",
+                    "ISSUE: Componolit/RecordFlux#954");
+
+   function Uninitialized return Boolean is (RFLX.SPDM_Responder.Session.Uninitialized (Context));
 
    procedure Main
    is
