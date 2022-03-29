@@ -3,6 +3,105 @@
 TMPDIR := $(shell mktemp -d)
 FILE_LIST := $(shell mktemp)
 GITREV := $(shell git rev-parse --short HEAD 2>/dev/null || echo local)
+GENERATED := rflx.ads \
+    rflx-rflx_arithmetic.adb \
+    rflx-rflx_arithmetic.ads \
+    rflx-rflx_builtin_types.ads \
+    rflx-rflx_builtin_types-conversions.ads \
+    rflx-rflx_generic_types.adb \
+    rflx-rflx_generic_types.ads \
+    rflx-rflx_message_sequence.adb \
+    rflx-rflx_message_sequence.ads \
+    rflx-rflx_scalar_sequence.adb \
+    rflx-rflx_scalar_sequence.ads \
+    rflx-rflx_types.ads \
+    rflx-spdm.ads \
+    rflx-spdm-algorithms_response.adb \
+    rflx-spdm-algorithms_response.ads \
+    rflx-spdm-alg_struct.adb \
+    rflx-spdm-alg_struct.ads \
+    rflx-spdm-capabilities_response.adb \
+    rflx-spdm-capabilities_response.ads \
+    rflx-spdm-certificate_response.adb \
+    rflx-spdm-certificate_response.ads \
+    rflx-spdm-challenge_auth_response.adb \
+    rflx-spdm-challenge_auth_response.ads \
+    rflx-spdm-challenge_request.adb \
+    rflx-spdm-challenge_request.ads \
+    rflx-spdm-digests_response.adb \
+    rflx-spdm-digests_response.ads \
+    rflx-spdm-end_session_request.adb \
+    rflx-spdm-end_session_request.ads \
+    rflx-spdm-end_session_response.adb \
+    rflx-spdm-end_session_response.ads \
+    rflx-spdm-error_response.adb \
+    rflx-spdm-error_response.ads \
+    rflx-spdm-ext_alg.adb \
+    rflx-spdm-ext_alg.ads \
+    rflx-spdm-ext_algs.ads \
+    rflx-spdm-finish_request.adb \
+    rflx-spdm-finish_request.ads \
+    rflx-spdm-finish_response.adb \
+    rflx-spdm-finish_response.ads \
+    rflx-spdm-get_capabilities_request.adb \
+    rflx-spdm-get_capabilities_request.ads \
+    rflx-spdm-get_certificate_request.adb \
+    rflx-spdm-get_certificate_request.ads \
+    rflx-spdm-get_digests_request.adb \
+    rflx-spdm-get_digests_request.ads \
+    rflx-spdm-get_measurements_request.adb \
+    rflx-spdm-get_measurements_request.ads \
+    rflx-spdm-get_version_request.adb \
+    rflx-spdm-get_version_request.ads \
+    rflx-spdm-key_exchange_request.adb \
+    rflx-spdm-key_exchange_request.ads \
+    rflx-spdm-key_exchange_response.adb \
+    rflx-spdm-key_exchange_response.ads \
+    rflx-spdm-key_update_ack_response.adb \
+    rflx-spdm-key_update_ack_response.ads \
+    rflx-spdm-key_update_request.adb \
+    rflx-spdm-key_update_request.ads \
+    rflx-spdm-measurements_response.adb \
+    rflx-spdm-measurements_response.ads \
+    rflx-spdm-measurement_block.adb \
+    rflx-spdm-measurement_block.ads \
+    rflx-spdm-measurement_record.ads \
+    rflx-spdm-negotiate_algorithms_request.adb \
+    rflx-spdm-negotiate_algorithms_request.ads \
+    rflx-spdm-request.adb \
+    rflx-spdm-request.ads \
+    rflx-spdm-req_alg_structs.ads \
+    rflx-spdm-respond_if_ready_request.adb \
+    rflx-spdm-respond_if_ready_request.ads \
+    rflx-spdm-response.adb \
+    rflx-spdm-response.ads \
+    rflx-spdm-response_not_ready_data.adb \
+    rflx-spdm-response_not_ready_data.ads \
+    rflx-spdm-resp_alg_structs.ads \
+    rflx-spdm-slot_mask.adb \
+    rflx-spdm-slot_mask.ads \
+    rflx-spdm-version_number_entries.ads \
+    rflx-spdm-version_number_entry.adb \
+    rflx-spdm-version_number_entry.ads \
+    rflx-spdm-version_response.adb \
+    rflx-spdm-version_response.ads \
+    rflx-spdm_emu.ads \
+    rflx-spdm_emu-platform_port.adb \
+    rflx-spdm_emu-platform_port.ads \
+    rflx-spdm_proxy.ads \
+    rflx-spdm_proxy-packet.adb \
+    rflx-spdm_proxy-packet.ads \
+    rflx-spdm_proxy-proxy.adb \
+    rflx-spdm_proxy-proxy.ads \
+    rflx-spdm_proxy-proxy_allocator.adb \
+    rflx-spdm_proxy-proxy_allocator.ads \
+    rflx-spdm_responder.ads \
+    rflx-spdm_responder-digests_data.adb \
+    rflx-spdm_responder-digests_data.ads \
+    rflx-spdm_responder-session.adb \
+    rflx-spdm_responder-session.ads \
+    rflx-spdm_responder-session_allocator.adb \
+    rflx-spdm_responder-session_allocator.ads
 
 ifdef LOCAL_RFLX
 RFLX = $(shell command -v rflx)
@@ -20,13 +119,13 @@ libriscv64: build/riscv64/lib/libspdm.a
 
 test: test_validate test_responder test_cross lib
 
-build/lib/libspdm.a: build/generated/rflx.ads build/generated/spdm_platform_interface.adb
+build/lib/libspdm.a: $(addprefix build/generated/,$(GENERATED)) build/generated/spdm_platform_interface.adb
 	gprbuild -j0 -P spdm
 
-build/%/lib/libspdm.a: build/generated/rflx.ads build/generated/spdm_platform_interface.adb
+build/%/lib/libspdm.a: $(addprefix build/generated/,$(GENERATED)) build/generated/spdm_platform_interface.adb
 	gprbuild -j0 -P spdm -XTARGET=$*
 
-build/%/example/main: build/generated/rflx.ads build/generated/spdm_platform_interface.adb
+build/%/example/main: $(addprefix build/generated/,$(GENERATED)) build/generated/spdm_platform_interface.adb
 	gprbuild -j0 -P examples/build.gpr -XTARGET=$*
 	test -f $@
 
@@ -47,7 +146,7 @@ build/%/gnatstack/example/gnatstack.log: build/%/gnatstack/example/main
 	gnatstack -Wa -l10 -v -f $@ -P examples/build.gpr -XCHECK_STACK=True -XTARGET=$* | tee $@.tmp
 	mv $@.tmp $@
 
-build/%/gnatstack/example/main: build/generated/rflx.ads build/generated/spdm_platform_interface.adb
+build/%/gnatstack/example/main: $(addprefix build/generated/,$(GENERATED)) build/generated/spdm_platform_interface.adb
 	gprbuild -j0 -P examples/build.gpr -XCHECK_STACK=True -XTARGET=$*
 
 build/spdm_dump:
@@ -64,15 +163,17 @@ build/spdm_emu/bin/spdm_%_emu: build/spdm_emu
 	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Release -DCRYPTO=mbedtls -S contrib/dmtf/spdm-emu -B build/spdm_emu
 	make -C build/spdm_emu -j$(shell nproc)
 
-build/debug/generated/rflx.ads: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx | $(RFLX)
+build/debug/generated/%: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx | $(RFLX)
 	mkdir -p build/debug/generated
 	$(RFLX) --no-verification generate $^ --debug -d build/debug/generated
 
-build/generated/rflx.ads: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx | $(RFLX)
+build/generated:
 	mkdir -p build/generated
-	$(RFLX) --no-verification generate $^ -d build/generated
 
-build/tests/proxy build/tests/responder: build/debug/generated/rflx.ads build/spdm_emu/bin/spdm_responder_emu tests/tests.gpr tests/*.ad?
+build/generated/%: build/debug/generated/% build/generated
+	grep -v "Ada.Text_IO" $< > $@
+
+build/tests/proxy build/tests/responder: $(addprefix build/debug/generated/,$(GENERATED)) build/spdm_emu/bin/spdm_responder_emu tests/tests.gpr tests/*.ad?
 	gprbuild -p tests/tests.gpr -s
 
 build/certificates:
@@ -136,7 +237,7 @@ test_package: build/spdm_$(GITREV).tar
 build/generated/spdm_platform_interface.adb: include/spdm_platform_interface.ads
 	gnatstub --output-dir=$(dir $@) --no-exception --force $<
 
-prove: build/generated/rflx.ads
+prove: $(addprefix build/generated/,$(GENERATED))
 	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder
 	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder_multiple_responders
 	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder_select
