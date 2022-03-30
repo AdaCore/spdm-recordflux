@@ -15,14 +15,16 @@ jobs:
             fail-fast: false
         steps:
             - uses: actions/checkout@v2
+              with:
+                  submodules: recursive
             - name: Install GNAT Pro
-              uses: ./.github/actions/install_gnat_pro
+              uses: ./contrib/RecordFlux/.github/actions/install_gnat_pro
               with:
                   version: "23.0w-20220202"
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
                   server: ${{ secrets.MEMCACHED_SERVER }}
             - name: Install GNAT Pro (ARM)
-              uses: ./.github/actions/install_gnat_pro
+              uses: ./contrib/RecordFlux/.github/actions/install_gnat_pro
               with:
                   version: "23.0w-20220202"
                   target: "arm-elf"
@@ -30,7 +32,7 @@ jobs:
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
                   server: ${{ secrets.MEMCACHED_SERVER }}
             - name: Install GNAT Pro (RISC-V 32)
-              uses: ./.github/actions/install_gnat_pro
+              uses: ./contrib/RecordFlux/.github/actions/install_gnat_pro
               with:
                   version: "23.0w-20220202"
                   target: "riscv32-elf"
@@ -38,7 +40,7 @@ jobs:
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
                   server: ${{ secrets.MEMCACHED_SERVER }}
             - name: Install GNAT Pro (RISC-V 64)
-              uses: ./.github/actions/install_gnat_pro
+              uses: ./contrib/RecordFlux/.github/actions/install_gnat_pro
               with:
                   version: "23.0w-20220202"
                   target: "riscv64-elf"
@@ -46,14 +48,13 @@ jobs:
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
                   server: ${{ secrets.MEMCACHED_SERVER }}
             - name: Install SPARK Pro
-              uses: ./.github/actions/install_spark_pro
+              uses: ./contrib/RecordFlux/.github/actions/install_spark_pro
               with:
                   version: "23.0w-20220128"
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
                   server: ${{ secrets.MEMCACHED_SERVER }}
             - name: Install dependencies
               run: |
-                  git submodule update --init --recursive
                   sudo apt-get update
                   sudo apt-get install -y expect python python3-dev python3-setuptools
                   echo "/canary (for systems using strange)/paths" >> $GITHUB_PATH
