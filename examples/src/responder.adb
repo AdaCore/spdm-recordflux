@@ -15,7 +15,20 @@ is
 
    function Uninitialized return Boolean is (RFLX.SPDM_Responder.Session.Uninitialized (Context));
 
+   procedure Responder_Main with
+      Pre => Uninitialized,
+      Post => Uninitialized,
+      Global => (In_Out => (Buffer, Context));
+
    procedure Main
+   is
+   begin
+      if Uninitialized then
+         Responder_Main;
+      end if;
+   end Main;
+
+   procedure Responder_Main
    is
       use type RFLX.RFLX_Types.Length;
       package SR renames RFLX.SPDM_Responder.Session;
@@ -51,6 +64,6 @@ is
 
          SR.Finalize (Context);
       end loop;
-   end Main;
+   end Responder_Main;
 
 end Responder;

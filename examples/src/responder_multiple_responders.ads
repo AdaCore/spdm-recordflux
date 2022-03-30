@@ -11,12 +11,9 @@ is
                     """Context_2.P"" constituent of ""Responder_State"" is not initialized",
                     "ISSUE: Componolit/RecordFlux#954");
 
-   function Uninitialized return Boolean with
-      Ghost;
+   function Uninitialized return Boolean;
 
    procedure Main with
-      Pre    => Uninitialized,
-      Post   => Uninitialized,
       Global => (In_Out => Responder_State);
 
 end Responder_Multiple_Responders;

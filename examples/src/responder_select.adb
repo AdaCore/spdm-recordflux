@@ -18,7 +18,20 @@ is
    function Uninitialized return Boolean is
       (for all C of Contexts => RFLX.SPDM_Responder.Session.Uninitialized (C));
 
-   procedure Main with
+   procedure Responder_Main with
+      Pre    => Uninitialized,
+      Post   => Uninitialized,
+      Global => (In_Out => Contexts);
+
+   procedure Main
+   is
+   begin
+      if Uninitialized then
+         Responder_Main;
+      end if;
+   end Main;
+
+   procedure Responder_Main with
       SPARK_Mode
    is
       use type RFLX.RFLX_Types.Index;
@@ -138,6 +151,6 @@ is
             end if;
          end loop;
       end loop;
-   end Main;
+   end Responder_Main;
 
 end Responder_Select;

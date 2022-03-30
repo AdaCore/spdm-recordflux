@@ -238,9 +238,8 @@ build/generated/spdm_platform_interface.adb: include/spdm_platform_interface.ads
 	gnatstub --output-dir=$(dir $@) --no-exception --force $<
 
 prove: $(addprefix build/generated/,$(GENERATED))
-	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder
-	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder_multiple_responders
-	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder_select
+	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder -u responder_multiple_responders -u responder_select
+	gnatprove -P examples/build.gpr -j0 -XTARGET=riscv64 -u main -u main_multiple_responders -u main_select
 
 clean:
 	rm -rf build
