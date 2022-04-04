@@ -9,13 +9,7 @@ package body Responder_Multiple_Responders with
 is
 
    Context_1  : SPDM_C_Responder.Context;
-   pragma Annotate (GNATprove, False_Positive,
-                    """Context_1.P"" constituent of ""Responder_State"" is not initialized",
-                    "ISSUE: Componolit/RecordFlux#954");
    Context_2  : SPDM_C_Responder.Context;
-   pragma Annotate (GNATprove, False_Positive,
-                    """Context_2.P"" constituent of ""Responder_State"" is not initialized",
-                    "ISSUE: Componolit/RecordFlux#954");
 
    function Uninitialized return Boolean is
       (RFLX.SPDM_Responder.Session.Uninitialized (Context_1)

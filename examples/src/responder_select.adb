@@ -11,9 +11,6 @@ is
    type Index is range 1 .. 2;
    type Context_Array is array (Index) of SPDM_C_Responder.Context;
    Contexts : Context_Array;
-   pragma Annotate (GNATprove, False_Positive,
-                    """Contexts"" constituent of ""Responder_State"" is not initialized",
-                    "ISSUE: Componolit/RecordFlux#954");
 
    function Uninitialized return Boolean is
       (for all C of Contexts => RFLX.SPDM_Responder.Session.Uninitialized (C));
