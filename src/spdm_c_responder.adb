@@ -501,6 +501,7 @@ is
       (Ctx    : in out Context;
        Algo   :        RFLX.SPDM.Measurement_Hash_Algo;
        Result :    out RFLX.SPDM_Responder.Digests_Data.Structure)
+   with SPARK_Mode => Off
    is
       Slot_Mask : Interfaces.C.unsigned_char;
       Length    : Interfaces.C.long;
@@ -559,6 +560,7 @@ is
        Offset :        RFLX.SPDM.Offset;
        Length :        RFLX.SPDM.Length_16;
        Result :    out RFLX.SPDM.Certificate_Response.Structure)
+   with SPARK_Mode => Off
    is
       procedure C_Interface (Instance     :        System.Address;
                              Data         :        System.Address;
