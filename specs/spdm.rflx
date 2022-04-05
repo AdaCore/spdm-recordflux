@@ -192,7 +192,7 @@ package SPDM is
                   --  Handshake_In_The_Clear_Cap:
                   --  [177] If the Requester does not support encryption and message authentication, then
                   --  this bit shall be zero.
-                  and ((Encrypt_Cap = True and Mac_Cap = True) or Handshake_In_The_Clear_Cap = False)
+                  and ((Encrypt_Cap = True and MAC_Cap = True) or Handshake_In_The_Clear_Cap = False)
                   --  Pub_Key_ID_Cap:
                   --  [177] If set, the public key of the Requester was provisioned to the Responder.
                   --  The transport layer is responsible for identifying the Responder. In this case,
@@ -259,7 +259,7 @@ package SPDM is
                   --  Handshake_In_The_Clear_Cap:
                   --  [178] If the Responder does not support encryption and message authentication,
                   --  then this bit shall be zero.
-                  and ((Encrypt_Cap = True and Mac_Cap = True) or Handshake_In_The_Clear_Cap = False)
+                  and ((Encrypt_Cap = True and MAC_Cap = True) or Handshake_In_The_Clear_Cap = False)
                   --  Pub_Key_ID_Cap:
                   --  [178] If set, the public key of the Responder was provisioned to the Requester.
                   --  The transport layer is responsible for identifying the Requester. In this case,
