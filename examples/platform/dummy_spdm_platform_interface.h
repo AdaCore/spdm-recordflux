@@ -8,6 +8,7 @@
 #include <err.h>
 #include <sys/random.h>
 #include <spdm_device_secret_lib_internal.h>
+#include <spdm_crypt_lib.h>
 #define __unused_cross__
 
 #else

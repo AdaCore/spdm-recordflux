@@ -36,6 +36,13 @@ package SPDM_Responder is
             with Size => 8 * Length;
       end message;
 
+   type Signature is
+      message
+         Length : SPDM::Signature_Length;
+         Data   : Opaque with
+            Size => Length * 8;
+      end message;
+
    generic
       Transport : Channel with Readable, Writable;
       with function Plat_Cfg_CT_Exponent return SPDM::CT_Exponent;
@@ -119,6 +126,14 @@ package SPDM_Responder is
 
       with function Plat_Get_DMTF_Measurement_Field (Index : SPDM::Index) return SPDM::DMTF_Measurement_Field;
 
+      with function Plat_Get_Meas_Signature_Length return SPDM::Signature_Length;
+
+      with function Plat_Get_Meas_Signature (Unsigned_Message : SPDM::Response) return Signature;
+
+      with function Plat_Update_Meas_Signature_Resp (Message : SPDM::Response; Reset : Boolean) return Boolean;
+
+      with function Plat_Update_Meas_Signature_Req (Message : SPDM::Request; Reset : Boolean) return Boolean;
+
    session Session with
       Initial => Init,
       Final => End_Session
@@ -136,6 +151,7 @@ package SPDM_Responder is
       Req_Base_Asym_Alg_List : SPDM::Req_Alg_Structs;
       Key_Schedule_List      : SPDM::Req_Alg_Structs;
       Resp_Alg_Structs       : SPDM::Resp_Alg_Structs;
+      Reset_Measurement_Sig : Boolean;
    begin
       state Init
       is
@@ -772,8 +788,16 @@ package SPDM_Responder is
       transition
          goto Receive_Get_Certificate
             if Response.Certificate_Response_Remainder_Length > 0
-         goto Receive_Get_Measurements
+         goto Reset_Measurements_Signature
       end Send_Certificate;
+
+      state Reset_Measurements_Signature
+      is
+      begin
+         Reset_Measurement_Sig := True;
+      transition
+         goto Receive_Get_Measurements
+      end Reset_Measurements_Signature;
 
       state Receive_Get_Measurements
       is
@@ -789,11 +813,16 @@ package SPDM_Responder is
 
       state Prepare_Measurements
       is
+         Success : Boolean;
       begin
+         Success := Plat_Update_Meas_Signature_Req (Request, Reset_Measurement_Sig);
+         Reset_Measurement_Sig := False;
       transition
          goto Prepare_Measurements_Number_Of_Indices
-            if Request.Get_Measurements_Request_Measurement_Operation = 0
+            if Request.Get_Measurements_Request_Measurement_Operation = 0 and Success
          goto Prepare_Measurements_Records
+            if Success
+         goto Error_Unspecified
       end Prepare_Measurements;
 
       state Prepare_Measurements_Records
@@ -832,10 +861,48 @@ package SPDM_Responder is
                                      Measurements_Response_Opaque_Length => 0,
                                      Measurements_Response_Opaque_Data => []);
       transition
-         goto Send_Measurements
+         goto Prepare_Measurements_Sign
+            if Request.Get_Measurements_Request_Generate_Signature
+         goto Update_Measurement_Signature
       exception
          goto Error_Unspecified
       end Prepare_Measurements_Records;
+
+      state Prepare_Measurements_Sign
+      is
+         Unsigned : SPDM::Response;
+         Signature_Length : SPDM::Signature_Length;
+         Signature : Signature;
+      begin
+         Unsigned := Response;
+         Signature_Length := Plat_Get_Meas_Signature_Length;
+         Signature := Plat_Get_Meas_Signature (Unsigned);
+         Response := SPDM::Response'
+            (Meas_Cap                                        => Unsigned.Meas_Cap,
+             Hash_Type                                       => Unsigned.Hash_Type,
+             Hash_Length                                     => Unsigned.Hash_Length,
+             Signature_Length                                => Signature_Length,
+             Exchange_Data_Length                            => Unsigned.Exchange_Data_Length,
+             Handshake_In_The_Clear                          => Unsigned.Handshake_In_The_Clear,
+             Major_Version                                   => Unsigned.Major_Version,
+             Minor_Version                                   => Unsigned.Major_Version,
+             Code                                            => Unsigned.Code,
+             Measurements_Response_Number_Of_Indices         => Unsigned.Measurements_Response_Number_Of_Indices,
+             Measurements_Response_Reserved_1                => 0,
+             Measurements_Response_Slot_ID                   => Unsigned.Measurements_Response_Slot_ID,
+             Measurements_Response_Number_Of_Blocks          => Unsigned.Measurements_Response_Number_Of_Blocks,
+             Measurements_Response_Measurement_Record_Length =>
+               Unsigned.Measurements_Response_Measurement_Record_Length,
+             Measurements_Response_Measurement_Record        => Unsigned.Measurements_Response_Measurement_Record,
+             Measurements_Response_Nonce_Data                => Unsigned.Measurements_Response_Nonce_Data,
+             Measurements_Response_Opaque_Length             => Unsigned.Measurements_Response_Opaque_Length,
+             Measurements_Response_Opaque_Data               => Unsigned.Measurements_Response_Opaque_Data,
+             Measurements_Response_Signature                 => Signature.Data);
+      transition
+         goto Send_Measurements
+      exception
+         goto Error_Unspecified
+      end Prepare_Measurements_Sign;
 
       state Prepare_Measurements_Number_Of_Indices
       is
@@ -864,10 +931,21 @@ package SPDM_Responder is
                                      Measurements_Response_Opaque_Length => 0,
                                      Measurements_Response_Opaque_Data => []);
       transition
-         goto Send_Measurements
+         goto Update_Measurement_Signature
       exception
          goto Error_Unspecified
       end Prepare_Measurements_Number_Of_Indices;
+
+      state Update_Measurement_Signature
+      is
+         Success : Boolean;
+      begin
+         Success := Plat_Update_Meas_Signature_Resp (Response, Reset_Measurement_Sig);
+      transition
+         goto Send_Measurements
+            if Success
+         goto Error_Unspecified
+      end Update_Measurement_Signature;
 
       state Send_Measurements
       is
@@ -875,6 +953,8 @@ package SPDM_Responder is
          Transport'Write (Response);
       transition
          goto Receive_Get_Measurements
+         --  TODO: Leave measurements cycle after last measurements response
+         --  We possibly need a state that accepts multiple different requests instead.
       end Send_Measurements;
 
       state Error_Unsupported_Request

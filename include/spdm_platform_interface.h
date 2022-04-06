@@ -1,10 +1,8 @@
 #ifndef __SPDM_PLATFORM_INTERFACE__
 #define __SPDM_PLATFORM_INTERFACE__
 
-typedef struct {
-    unsigned char base_hash_algo;
-    long base_asym_algo;
-} instance_t;
+struct instance;
+typedef struct instance instance_t;
 
 void spdm_platform_initialize(instance_t **instance);
 
@@ -25,7 +23,8 @@ unsigned char spdm_platform_config_cap_key_ex(void);
 unsigned char spdm_platform_config_cap_mut_auth(void);
 unsigned char spdm_platform_config_cap_pub_key_id(void);
 
-unsigned char spdm_platform_select_measurement_hash_algo(unsigned char tpm_alg_sha_256,
+unsigned char spdm_platform_select_measurement_hash_algo(instance_t *instance,
+                                                         unsigned char tpm_alg_sha_256,
                                                          unsigned char tpm_alg_sha_384,
                                                          unsigned char tpm_alg_sha_512,
                                                          unsigned char tpm_alg_sha3_256,
@@ -73,7 +72,7 @@ long spdm_platform_select_rbba(unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
                                unsigned char ra_tpm_alg_rsassa_2048,
                                unsigned char ra_tpm_alg_ecdsa_ecc_nist_p521);
 
-void spdm_platform_get_digests_data(char *data, long *length, unsigned char *slot_mask);
+void spdm_platform_get_digests_data(instance_t *instance, char *data, long *length, unsigned char *slot_mask);
 
 unsigned char spdm_platform_validate_certificate_request(unsigned char slot,
                                                          unsigned short offset,

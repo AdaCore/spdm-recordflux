@@ -2,6 +2,12 @@
 #include <dummy_spdm_platform_interface.h>
 #include <../include/spdm_platform_interface.h>
 
+struct instance {
+    unsigned char base_hash_algo;
+    long base_asym_algo;
+    unsigned char measurement_hash_algo;
+};
+
 void spdm_platform_initialize(instance_t **instance)
 {
     *instance = malloc(sizeof(instance_t));
@@ -27,8 +33,8 @@ unsigned char spdm_platform_config_cap_meas_fresh(void) {
 }
 
 unsigned char spdm_platform_config_cap_meas(void) {
-    //  The Responder supports MEASUREMENTS response but cannot perform signature generation.
-    return 1;
+    //  The Responder supports MEASUREMENTS response and can perform signature generation.
+    return 2;
 }
 
 unsigned char spdm_platform_config_cap_chal(void) {
@@ -77,9 +83,8 @@ unsigned char spdm_platform_config_cap_pub_key_id(void) {
     return 0;
 }
 
-static int measurement_hash_size = 0;
-
-unsigned char spdm_platform_select_measurement_hash_algo(unsigned char tpm_alg_sha_256,
+unsigned char spdm_platform_select_measurement_hash_algo(instance_t *instance,
+                                                         unsigned char tpm_alg_sha_256,
                                                          unsigned char tpm_alg_sha_384,
                                                          unsigned char tpm_alg_sha_512,
                                                          unsigned char tpm_alg_sha3_256,
@@ -88,42 +93,24 @@ unsigned char spdm_platform_select_measurement_hash_algo(unsigned char tpm_alg_s
                                                          unsigned char raw_bit_streams_only)
 {
     if (tpm_alg_sha3_512) {
-        measurement_hash_size = 64;
-        return 64;
+        instance->measurement_hash_algo = 64;
+    } else if (tpm_alg_sha3_384) {
+        instance->measurement_hash_algo = 32;
+    } else if (tpm_alg_sha3_256) {
+        instance->measurement_hash_algo = 16;
+    } else if (tpm_alg_sha_512) {
+        instance->measurement_hash_algo = 8;
+    } else if (tpm_alg_sha_384) {
+        instance->measurement_hash_algo = 4;
+    } else if (tpm_alg_sha_256) {
+        instance->measurement_hash_algo = 2;
+    } else if (raw_bit_streams_only) {
+        instance->measurement_hash_algo = 1;
+    } else {
+        // No mode set, unsupported
+        instance->measurement_hash_algo = 0;
     }
-
-    if (tpm_alg_sha3_384) {
-        measurement_hash_size = 48;
-        return 32;
-    }
-
-    if (tpm_alg_sha3_256) {
-        measurement_hash_size = 32;
-        return 16;
-    }
-
-    if (tpm_alg_sha_512) {
-        measurement_hash_size = 64;
-        return 8;
-    }
-
-    if (tpm_alg_sha_384) {
-        measurement_hash_size = 48;
-        return 4;
-    }
-
-    if (tpm_alg_sha_256) {
-        measurement_hash_size = 32;
-        return 2;
-    }
-
-    if (raw_bit_streams_only) {
-        measurement_hash_size = 0;
-        return 1;
-    }
-
-    // No mode set, unsupported
-    return 0;
+    return instance->measurement_hash_algo;
 }
 
 long spdm_platform_select_base_asym_algo(instance_t *instance,
@@ -220,7 +207,7 @@ long spdm_platform_select_rbba(unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
     return 0;
 }
 
-void spdm_platform_get_digests_data(char *data, long *length, unsigned char *slot_mask)
+void spdm_platform_get_digests_data(instance_t *instance, char *data, long *length, unsigned char *slot_mask)
 {
     for (long i = 0; i < *length; i++)
     {
@@ -231,7 +218,7 @@ void spdm_platform_get_digests_data(char *data, long *length, unsigned char *slo
 
     // measurment_hash_size is a static variable set to the size of the currently
     // selected hash in spdm_platform_select_measurement_hash_algo (in bytes)
-    *length = 3 * measurement_hash_size;
+    *length = 3 * spdm_get_measurement_hash_size(instance->measurement_hash_algo);
 
     for (long i = 0; i < *length; i++)
     {

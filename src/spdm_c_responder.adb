@@ -265,7 +265,8 @@ is
        Result               :    out RFLX.SPDM.Measurement_Hash_Algo)
    is
       function C_Interface
-         (TPM_ALG_SHA_256      : Interfaces.C.unsigned_char;
+         (Instance             : System.Address;
+          TPM_ALG_SHA_256      : Interfaces.C.unsigned_char;
           TPM_ALG_SHA_384      : Interfaces.C.unsigned_char;
           TPM_ALG_SHA_512      : Interfaces.C.unsigned_char;
           TPM_ALG_SHA3_256     : Interfaces.C.unsigned_char;
@@ -279,7 +280,8 @@ is
       Value : constant RFLX.RFLX_Types.U64 :=
          RFLX.RFLX_Types.U64
             (C_Interface
-               (TPM_ALG_SHA_256      => C_Bool (TPM_ALG_SHA_256),
+               (Instance             => Ctx.Instance,
+                TPM_ALG_SHA_256      => C_Bool (TPM_ALG_SHA_256),
                 TPM_ALG_SHA_384      => C_Bool (TPM_ALG_SHA_384),
                 TPM_ALG_SHA_512      => C_Bool (TPM_ALG_SHA_512),
                 TPM_ALG_SHA3_256     => C_Bool (TPM_ALG_SHA3_256),
@@ -506,9 +508,10 @@ is
       Slot_Mask : Interfaces.C.unsigned_char;
       Length    : Interfaces.C.long;
 
-      procedure C_Interface (Data   : System.Address;
-                             Length : System.Address;
-                             Slots  : System.Address) with
+      procedure C_Interface (Instance : System.Address;
+                             Data     : System.Address;
+                             Length   : System.Address;
+                             Slots    : System.Address) with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_get_digests_data";
@@ -516,9 +519,10 @@ is
       use type RFLX.SPDM_Responder.Digests_Length;
    begin
       Length := Interfaces.C.long (Result.Value'Length);
-      C_Interface (Data   => Result.Value'Address,
-                   Length => Length'Address,
-                   Slots  => Slot_Mask'Address);
+      C_Interface (Instance => Ctx.Instance,
+                   Data     => Result.Value'Address,
+                   Length   => Length'Address,
+                   Slots    => Slot_Mask'Address);
       Result.Length := RFLX.SPDM_Responder.Digests_Length (Length);
       Result.Slot_0_Present := RFLX.SPDM.Slot_Present (Slot_Mask and 16#01#);
       Result.Slot_1_Present := RFLX.SPDM.Slot_Present ((Slot_Mask and 16#02#) / 16#02#);

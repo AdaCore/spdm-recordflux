@@ -3,6 +3,7 @@ project SPDM_Responder_Emu is
    for Languages use ("C");
    for Source_Dirs use ("../contrib/dmtf/spdm-emu/spdm_emu/spdm_emu_common",
                         "../contrib/dmtf/spdm-emu/libspdm/include",
+                        "../contrib/dmtf/spdm-emu/libspdm/include/library",
                         "../contrib/dmtf/spdm-emu/libspdm/include/hal",
                         "../contrib/dmtf/spdm-emu/libspdm/include/hal/x64",
                         "../contrib/dmtf/spdm-emu/libspdm/os_stub/include",
