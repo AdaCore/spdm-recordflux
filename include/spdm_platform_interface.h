@@ -90,4 +90,11 @@ unsigned char spdm_platform_get_number_of_indices (instance_t *instance);
 
 void spdm_platform_get_nonce(void *nonce);
 
+void spdm_platform_get_dmtf_measurement_field (instance_t *instance,
+                                               unsigned index,
+                                               unsigned *representation,
+                                               unsigned *type,
+                                               unsigned *size,
+                                               void *buffer);
+
 #endif // __SPDM_PLATFORM_INTERFACE__

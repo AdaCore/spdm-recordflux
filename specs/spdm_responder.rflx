@@ -826,7 +826,7 @@ package SPDM_Responder is
                                      Measurements_Response_Reserved_1 => 0,
                                      Measurements_Response_Slot_ID => SPDM::NS_0,
                                      Measurements_Response_Number_Of_Blocks => 1,
-                                     Measurements_Response_Measurement_Record_Length => Measurement_Record'Size,
+                                     Measurements_Response_Measurement_Record_Length => Measurement_Record'Size / 8,
                                      Measurements_Response_Measurement_Record => Measurement_Record,
                                      Measurements_Response_Nonce_Data => Nonce.Data,
                                      Measurements_Response_Opaque_Length => 0,

@@ -275,14 +275,44 @@ void spdm_platform_get_certificate_data (__unused_cross__ instance_t *instance,
     memcpy(data, &((unsigned char *)raw_data)[offset], *length);
 }
 
+const char *measurements[] = {"[6:0]=00h immutable rom",
+                              "[6:0]=01h mutable firmware",
+                              "[6:0]=02h hardware configuration",
+                              "[6:0]=03h firmware configuration",
+                              "[6:0]=04h measurement manifest"};
+
+
 unsigned char spdm_platform_get_number_of_indices (__attribute__((unused)) instance_t *instance)
 {
-    return 2; //FIXME
+    return sizeof(measurements) / sizeof(const char *);
 }
 
 void spdm_platform_get_nonce(__unused_cross__ void *nonce)
 {
     if(getrandom(nonce, 32, 0) < 0){
         errx(2, "failed to get nonce");
+    }
+}
+
+
+void spdm_platform_get_dmtf_measurement_field(instance_t *instance,
+                                              unsigned index,
+                                              unsigned *representation,
+                                              unsigned *type,
+                                              unsigned *size,
+                                              __unused_cross__ void *buffer)
+{
+    if(index < 1 || index > spdm_platform_get_number_of_indices(instance)){
+        errx(2, "invalid measurement index");
+    }
+    __unused_cross__ const char *measurement = measurements[index - 1];
+    const unsigned length = strlen(measurement);
+    *representation = 1;
+    *type = index - 1;
+    if(*size < length){
+        memcpy(buffer, measurement, *size);
+    }else{
+        memcpy(buffer, measurement, length);
+        *size = length;
     }
 }

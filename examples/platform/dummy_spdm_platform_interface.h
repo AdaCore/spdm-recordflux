@@ -18,6 +18,7 @@
 #define read_responder_public_certificate_chain(...) 1
 #define memcpy(...)
 #define getrandom(...) 0
+#define strlen(...) 0
 #define __unused_cross__ __attribute__((unused))
 
 typedef unsigned long uintn;

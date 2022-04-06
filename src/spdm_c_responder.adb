@@ -629,8 +629,27 @@ is
                                               Index  :        RFLX.SPDM.Index;
                                               Result :    out RFLX.SPDM.DMTF_Measurement_Field.Structure)
    is
+      procedure C_Interface (Instance       :        System.Address;
+                             Index          :        Interfaces.C.unsigned;
+                             Representation :    out Interfaces.C.unsigned;
+                             Value_Type     :    out Interfaces.C.unsigned;
+                             Size           : in out Interfaces.C.unsigned;
+                             Data           : in out RFLX.RFLX_Types.Bytes) with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_dmtf_measurement_field";
+      Value_Representation : Interfaces.C.unsigned;
+      Value_Type : Interfaces.C.unsigned;
    begin
-      null;
+      Result.Measurement_Value_Length := Result.Measurement_Value'Length;
+      C_Interface (Ctx.Instance,
+                   Interfaces.C.unsigned (Index),
+                   Value_Representation,
+                   Value_Type,
+                   Interfaces.C.unsigned (Result.Measurement_Value_Length),
+                   Result.Measurement_Value);
+      Result.Measurement_Value_Representation := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Value_Representation));
+      Result.Measurement_Value_Type := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Value_Type));
    end Plat_Get_DMTF_Measurement_Field;
 
 end SPDM_C_Responder;
