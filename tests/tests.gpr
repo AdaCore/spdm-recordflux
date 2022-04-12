@@ -10,7 +10,7 @@ project Tests is
                         "../src",
                         "../include");
    for Object_Dir use "../build/tests";
-   for Main use ("responder.adb", "proxy.adb");
+   for Main use ("responder.adb", "proxy.adb", "requester.adb");
 
    package Builder is
       for Default_Switches ("Ada") use ("-j0");

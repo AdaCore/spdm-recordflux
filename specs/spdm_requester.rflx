@@ -1,0 +1,92 @@
+with SPDM_Emu;
+
+package SPDM_Requester is
+
+   type Size is mod 2 ** 16;
+
+   type Request is
+      message
+         Size : Size;
+         Data : Opaque with
+            Size => Size * 8;
+      end message;
+
+   generic
+      Transport : Channel with Readable, Writable;
+      with function Get_Request_Data return Request;
+      with function Return_Response (Resp : Opaque) return Boolean;
+   session Requester with
+      Initial => Prepare_Request,
+      Final => Done
+   is
+      Emu_Packet : SPDM_Emu::Platform_Port;
+   begin
+      state Prepare_Request
+      is
+         Req : Request;
+      begin
+         Req := Get_Request_Data;
+         Emu_Packet := SPDM_Emu::Platform_Port'(Command        => SPDM_Emu::Normal,
+                                                Transport_Type => SPDM_Emu::None,
+                                                Size           => Req.Size,
+                                                SPDM_Payload   => Req.Data);
+      transition
+         goto Send_Request
+      exception
+         goto Prepare_Shutdown
+      end Prepare_Request;
+
+      state Send_Request
+      is
+      begin
+         Transport'Write (Emu_Packet);
+      transition
+         goto Receive_Response
+      end Send_Request;
+
+      state Receive_Response
+      is
+      begin
+         Transport'Read (Emu_Packet);
+      transition
+         goto Return_Response
+      end Receive_Response;
+
+      state Return_Response
+      is
+         Continue : Boolean;
+      begin
+         Continue := Return_Response (Emu_Packet.SPDM_Payload);
+      transition
+         goto Prepare_Request
+            if Continue
+         goto Prepare_Shutdown
+      exception
+         goto Prepare_Shutdown
+      end Return_Response;
+
+      state Prepare_Shutdown
+      is
+      begin
+         Emu_Packet := SPDM_Emu::Platform_Port'(Command        => SPDM_Emu::Shutdown,
+                                                Transport_Type => SPDM_Emu::None,
+                                                Size           => 0,
+                                                SPDM_Payload   => []);
+      transition
+         goto Send_Shutdown
+      exception
+         goto Done
+      end Prepare_Shutdown;
+
+      state Send_Shutdown
+      is
+      begin
+         Transport'Write (Emu_Packet);
+      transition
+         goto Done
+      end Send_Shutdown;
+
+      state Done is null state;
+   end Requester;
+
+end SPDM_Requester;

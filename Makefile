@@ -101,7 +101,14 @@ GENERATED := rflx.ads \
     rflx-spdm_responder-session.adb \
     rflx-spdm_responder-session.ads \
     rflx-spdm_responder-session_allocator.adb \
-    rflx-spdm_responder-session_allocator.ads
+    rflx-spdm_responder-session_allocator.ads \
+    rflx-spdm_requester.ads \
+    rflx-spdm_requester-requester_allocator.adb \
+    rflx-spdm_requester-requester_allocator.ads \
+    rflx-spdm_requester-requester_allocator.adb \
+    rflx-spdm_requester-requester_allocator.ads \
+    rflx-spdm_requester-request.adb \
+    rflx-spdm_requester-request.ads
 
 ifdef LOCAL_RFLX
 RFLX = $(shell command -v rflx)
@@ -163,7 +170,7 @@ build/spdm_emu/bin/spdm_%_emu: build/spdm_emu
 	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Release -DCRYPTO=mbedtls -S contrib/dmtf/spdm-emu -B build/spdm_emu
 	make -C build/spdm_emu -j$(shell nproc)
 
-build/debug/generated/%: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx | $(RFLX)
+build/debug/generated/%: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx specs/spdm_requester.rflx | $(RFLX)
 	mkdir -p build/debug/generated
 	$(RFLX) --no-verification generate $^ --debug -d build/debug/generated
 
