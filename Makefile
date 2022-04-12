@@ -1,4 +1,4 @@
-.PHONY: all test check check_spec check_stack check_stack_riscv64 check_stack_arm package test_package test_cross prove clean
+.PHONY: all test check check_spec check_stack check_stack_riscv64 check_stack_arm package test_package test_cross test_integration prove clean
 
 TMPDIR := $(shell mktemp -d)
 FILE_LIST := $(shell mktemp)
@@ -124,7 +124,7 @@ libarm: build/arm/lib/libspdm.a
 
 libriscv64: build/riscv64/lib/libspdm.a
 
-test: test_validate test_responder test_cross lib
+test: test_validate test_responder test_cross lib test_integration
 
 build/lib/libspdm.a: $(addprefix build/generated/,$(GENERATED)) build/generated/spdm_platform_interface.adb
 	gprbuild -j0 -P spdm
@@ -180,7 +180,7 @@ build/generated:
 build/generated/%: build/debug/generated/% build/generated
 	grep -v "Ada.Text_IO" $< > $@
 
-build/tests/proxy build/tests/responder: $(addprefix build/debug/generated/,$(GENERATED)) build/spdm_emu/bin/spdm_responder_emu tests/tests.gpr tests/*.ad?
+build/tests/proxy build/tests/responder build/tests/requester: $(addprefix build/debug/generated/,$(GENERATED)) build/spdm_emu/bin/spdm_responder_emu tests/tests.gpr tests/*.ad?
 	gprbuild -p tests/tests.gpr -s
 
 build/certificates:
@@ -206,6 +206,9 @@ test_validate_static: | $(RFLX)
 
 test_responder: build/tests/responder build/tests/proxy build/spdm_emu/bin/spdm_requester_emu build/certificates
 	tools/run_responder.expect
+
+test_integration: build/tests/responder build/tests/proxy build/tests/requester build/certificates
+	tests/integration/V407-039.expect
 
 $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx:
 	python3 -m venv $(TMPDIR)/venv
