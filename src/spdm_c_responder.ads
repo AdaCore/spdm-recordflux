@@ -2,9 +2,11 @@ with System;
 with RFLX.SPDM;
 with RFLX.SPDM_Responder.Session;
 with RFLX.SPDM_Responder.Digests_Data;
+with RFLX.SPDM_Responder.Signature;
 with RFLX.SPDM.Certificate_Response;
 with RFLX.SPDM.Nonce;
 with RFLX.SPDM.DMTF_Measurement_Field;
+with RFLX.RFLX_Types;
 
 package SPDM_C_Responder with
    SPARK_Mode,
@@ -202,5 +204,21 @@ is
    procedure Plat_Get_DMTF_Measurement_Field (Ctx    : in out Context;
                                               Index  :        RFLX.SPDM.Index;
                                               Result :    out RFLX.SPDM.DMTF_Measurement_Field.Structure);
+
+   overriding
+   procedure Plat_Get_Meas_Signature_Length (Ctx    : in out Context;
+                                             Result :    out RFLX.SPDM.Signature_Length);
+
+   overriding
+   procedure Plat_Get_Meas_Signature (Ctx              : in out Context;
+                                      Unsigned_Message :        RFLX.RFLX_Types.Bytes;
+                                      Nonce_Offset     :        RFLX.SPDM.Length_24;
+                                      Result           :    out RFLX.SPDM_Responder.Signature.Structure);
+
+   overriding
+   procedure Plat_Update_Meas_Signature (Ctx     : in out Context;
+                                         Message :        RFLX.RFLX_Types.Bytes;
+                                         Reset   :        Boolean;
+                                         Result  :    out Boolean);
 
 end SPDM_C_Responder;

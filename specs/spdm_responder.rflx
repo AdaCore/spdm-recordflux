@@ -128,11 +128,10 @@ package SPDM_Responder is
 
       with function Plat_Get_Meas_Signature_Length return SPDM::Signature_Length;
 
-      with function Plat_Get_Meas_Signature (Unsigned_Message : SPDM::Response) return Signature;
+      with function Plat_Get_Meas_Signature (Unsigned_Message : Opaque;
+                                             Nonce_Offset     : SPDM::Length_24) return Signature;
 
-      with function Plat_Update_Meas_Signature_Resp (Message : SPDM::Response; Reset : Boolean) return Boolean;
-
-      with function Plat_Update_Meas_Signature_Req (Message : SPDM::Request; Reset : Boolean) return Boolean;
+      with function Plat_Update_Meas_Signature (Message : Opaque; Reset : Boolean) return Boolean;
 
    session Session with
       Initial => Init,
@@ -815,13 +814,15 @@ package SPDM_Responder is
       is
          Success : Boolean;
       begin
-         Success := Plat_Update_Meas_Signature_Req (Request, Reset_Measurement_Sig);
+         Success := Plat_Update_Meas_Signature (Request'Opaque, Reset_Measurement_Sig);
          Reset_Measurement_Sig := False;
       transition
          goto Prepare_Measurements_Number_Of_Indices
             if Request.Get_Measurements_Request_Measurement_Operation = 0 and Success
          goto Prepare_Measurements_Records
             if Success
+         goto Error_Unspecified
+      exception
          goto Error_Unspecified
       end Prepare_Measurements;
 
@@ -873,31 +874,54 @@ package SPDM_Responder is
          Unsigned : SPDM::Response;
          Signature_Length : SPDM::Signature_Length;
          Signature : Signature;
+         Measurement_Record : SPDM::Measurement_Record;
+         Nonce_Offset : SPDM::Length_24;
       begin
-         Unsigned := Response;
-         Signature_Length := Plat_Get_Meas_Signature_Length;
-         Signature := Plat_Get_Meas_Signature (Unsigned);
-         Response := SPDM::Response'
-            (Meas_Cap                                        => Unsigned.Meas_Cap,
-             Hash_Type                                       => Unsigned.Hash_Type,
-             Hash_Length                                     => Unsigned.Hash_Length,
-             Signature_Length                                => Signature_Length,
-             Exchange_Data_Length                            => Unsigned.Exchange_Data_Length,
-             Handshake_In_The_Clear                          => Unsigned.Handshake_In_The_Clear,
-             Major_Version                                   => Unsigned.Major_Version,
-             Minor_Version                                   => Unsigned.Major_Version,
-             Code                                            => Unsigned.Code,
-             Measurements_Response_Number_Of_Indices         => Unsigned.Measurements_Response_Number_Of_Indices,
+         Measurement_Record := [for R in Response.Measurements_Response_Measurement_Record => R];
+         Unsigned := SPDM::Response'
+            (Meas_Cap                                        => Response.Meas_Cap,
+             Hash_Type                                       => Response.Hash_Type,
+             Hash_Length                                     => Response.Hash_Length,
+             Signature_Length                                => Response.Signature_Length,
+             Exchange_Data_Length                            => Response.Exchange_Data_Length,
+             Handshake_In_The_Clear                          => Response.Handshake_In_The_Clear,
+             Major_Version                                   => Response.Major_Version,
+             Minor_Version                                   => Response.Major_Version,
+             Code                                            => Response.Code,
+             Measurements_Response_Number_Of_Indices         => Response.Measurements_Response_Number_Of_Indices,
              Measurements_Response_Reserved_1                => 0,
-             Measurements_Response_Slot_ID                   => Unsigned.Measurements_Response_Slot_ID,
-             Measurements_Response_Number_Of_Blocks          => Unsigned.Measurements_Response_Number_Of_Blocks,
+             Measurements_Response_Slot_ID                   => Response.Measurements_Response_Slot_ID,
+             Measurements_Response_Number_Of_Blocks          => Response.Measurements_Response_Number_Of_Blocks,
              Measurements_Response_Measurement_Record_Length =>
-               Unsigned.Measurements_Response_Measurement_Record_Length,
-             Measurements_Response_Measurement_Record        => Unsigned.Measurements_Response_Measurement_Record,
-             Measurements_Response_Nonce_Data                => Unsigned.Measurements_Response_Nonce_Data,
-             Measurements_Response_Opaque_Length             => Unsigned.Measurements_Response_Opaque_Length,
-             Measurements_Response_Opaque_Data               => Unsigned.Measurements_Response_Opaque_Data,
-             Measurements_Response_Signature                 => Signature.Data);
+               Response.Measurements_Response_Measurement_Record_Length,
+             Measurements_Response_Measurement_Record        => Measurement_Record,
+             Measurements_Response_Nonce_Data                => Response.Measurements_Response_Nonce_Data,
+             Measurements_Response_Opaque_Length             => Response.Measurements_Response_Opaque_Length,
+             Measurements_Response_Opaque_Data               => Response.Measurements_Response_Opaque_Data);
+         Signature_Length := Plat_Get_Meas_Signature_Length;
+         Nonce_Offset := Unsigned.Measurements_Response_Measurement_Record_Length + 8;
+         Signature := Plat_Get_Meas_Signature (Unsigned'Opaque, Nonce_Offset);
+         --  Response := SPDM::Response'
+         --     (Meas_Cap                                        => Unsigned.Meas_Cap,
+         --      Hash_Type                                       => Unsigned.Hash_Type,
+         --      Hash_Length                                     => Unsigned.Hash_Length,
+         --      Signature_Length                                => Signature_Length,
+         --      Exchange_Data_Length                            => Unsigned.Exchange_Data_Length,
+         --      Handshake_In_The_Clear                          => Unsigned.Handshake_In_The_Clear,
+         --      Major_Version                                   => Unsigned.Major_Version,
+         --      Minor_Version                                   => Unsigned.Major_Version,
+         --      Code                                            => Unsigned.Code,
+         --      Measurements_Response_Number_Of_Indices         => Unsigned.Measurements_Response_Number_Of_Indices,
+         --      Measurements_Response_Reserved_1                => 0,
+         --      Measurements_Response_Slot_ID                   => Unsigned.Measurements_Response_Slot_ID,
+         --      Measurements_Response_Number_Of_Blocks          => Unsigned.Measurements_Response_Number_Of_Blocks,
+         --      Measurements_Response_Measurement_Record_Length =>
+         --        Unsigned.Measurements_Response_Measurement_Record_Length,
+         --      Measurements_Response_Measurement_Record        => Unsigned.Measurements_Response_Measurement_Record,
+         --      Measurements_Response_Nonce_Data                => Unsigned.Measurements_Response_Nonce_Data,
+         --      Measurements_Response_Opaque_Length             => Unsigned.Measurements_Response_Opaque_Length,
+         --      Measurements_Response_Opaque_Data               => Unsigned.Measurements_Response_Opaque_Data,
+         --      Measurements_Response_Signature                 => Signature.Data);
       transition
          goto Send_Measurements
       exception
@@ -940,10 +964,12 @@ package SPDM_Responder is
       is
          Success : Boolean;
       begin
-         Success := Plat_Update_Meas_Signature_Resp (Response, Reset_Measurement_Sig);
+         Success := Plat_Update_Meas_Signature (Response'Opaque, Reset_Measurement_Sig);
       transition
          goto Send_Measurements
             if Success
+         goto Error_Unspecified
+      exception
          goto Error_Unspecified
       end Update_Measurement_Signature;
 

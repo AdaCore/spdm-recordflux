@@ -620,12 +620,13 @@ is
    procedure Plat_Get_Nonce (Ctx    : in out Context;
                              Result :    out RFLX.SPDM.Nonce.Structure)
    is
-      procedure C_Interface (Nonce : out RFLX.RFLX_Types.Bytes) with
+      procedure C_Interface (Instance :     System.Address;
+                             Nonce    : out RFLX.RFLX_Types.Bytes) with
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_nonce";
    begin
-      C_Interface (Result.Data);
+      C_Interface (Ctx.Instance, Result.Data);
    end Plat_Get_Nonce;
 
    overriding
@@ -655,5 +656,64 @@ is
       Result.Measurement_Value_Representation := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Value_Representation));
       Result.Measurement_Value_Type := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Value_Type));
    end Plat_Get_DMTF_Measurement_Field;
+
+   overriding
+   procedure Plat_Get_Meas_Signature_Length (Ctx    : in out Context;
+                                             Result :    out RFLX.SPDM.Signature_Length)
+   is
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_meas_signature_length";
+   begin
+      Result := RFLX.SPDM.Signature_Length (C_Interface (Ctx.Instance));
+   end Plat_Get_Meas_Signature_Length;
+
+   overriding
+   procedure Plat_Get_Meas_Signature (Ctx              : in out Context;
+                                      Unsigned_Message :        RFLX.RFLX_Types.Bytes;
+                                      Nonce_Offset     :        RFLX.SPDM.Length_24;
+                                      Result           :    out RFLX.SPDM_Responder.Signature.Structure)
+   is
+      procedure C_Interface (Instance         :        System.Address;
+                             Message          :        System.Address;
+                             Message_Length   :        Interfaces.C.unsigned;
+                             Nonce_Offset     :        Interfaces.C.unsigned;
+                             Signature        :    out RFLX.RFLX_Types.Bytes;
+                             Signature_Length : in out Interfaces.C.unsigned) with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_meas_signature";
+      Signature_Length : Interfaces.C.unsigned := Result.Data'Length;
+   begin
+      C_Interface (Ctx.Instance,
+                   Unsigned_Message'Address,
+                   Unsigned_Message'Length,
+                   Interfaces.C.unsigned (Nonce_Offset),
+                   Result.Data,
+                   Signature_Length);
+      Result.Length := RFLX.SPDM.Signature_Length (Signature_Length);
+   end Plat_Get_Meas_Signature;
+
+   overriding
+   procedure Plat_Update_Meas_Signature (Ctx     : in out Context;
+                                         Message :        RFLX.RFLX_Types.Bytes;
+                                         Reset   :        Boolean;
+                                         Result  :    out Boolean)
+   is
+      use type Interfaces.C.int;
+      function C_Interface (Instance : System.Address;
+                            Message  : System.Address;
+                            Size     : Interfaces.C.unsigned;
+                            Reset    : Interfaces.C.int) return Interfaces.C.int with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_update_meas_signature";
+   begin
+      Result := C_Interface (Ctx.Instance,
+                             Message'Address,
+                             Message'Length,
+                             (if Reset then 1 else 0)) = 0;
+   end Plat_Update_Meas_Signature;
 
 end SPDM_C_Responder;

@@ -6,6 +6,8 @@ struct instance {
     unsigned char base_hash_algo;
     long base_asym_algo;
     unsigned char measurement_hash_algo;
+    int valid_nonce;
+    unsigned char nonce[32];
 };
 
 void spdm_platform_initialize(instance_t **instance)
@@ -14,6 +16,7 @@ void spdm_platform_initialize(instance_t **instance)
     if(!*instance){
         errx(1, "failed to create instance");
     }
+    memset(*instance, 0, sizeof(instance_t));
 }
 
 unsigned char spdm_platform_config_ct_exponent(void) {
@@ -274,11 +277,14 @@ unsigned char spdm_platform_get_number_of_indices (__attribute__((unused)) insta
     return sizeof(measurements) / sizeof(const char *);
 }
 
-void spdm_platform_get_nonce(__unused_cross__ void *nonce)
+void spdm_platform_get_nonce(instance_t *instance,
+                             __unused_cross__ void *nonce)
 {
-    if(getrandom(nonce, 32, 0) < 0){
+    if(getrandom(instance->nonce, 32, 0) < 0){
         errx(2, "failed to get nonce");
     }
+    instance->valid_nonce = 1;
+    memcpy(nonce, instance->nonce, 32);
 }
 
 
@@ -302,4 +308,32 @@ void spdm_platform_get_dmtf_measurement_field(instance_t *instance,
         memcpy(buffer, measurement, length);
         *size = length;
     }
+}
+
+unsigned spdm_platform_get_meas_signature_length (instance_t *instance)
+{
+    return spdm_get_measurement_hash_size(instance->measurement_hash_algo);
+}
+
+void spdm_platform_get_meas_signature (instance_t *instance,
+                                       __attribute__((unused)) void *message,
+                                       __attribute__((unused)) unsigned message_length,
+                                       __attribute__((unused)) unsigned nonce_offset,
+                                       __attribute__((unused)) void *signature,
+                                       __attribute__((unused)) unsigned *signature_length)
+{
+    if(!instance->valid_nonce){
+        *signature_length = 0;
+        return;
+    }
+    instance->valid_nonce = 0;
+    memcpy(message + nonce_offset, instance->nonce, 32);
+}
+
+int spdm_platform_update_meas_signature (__attribute__((unused)) instance_t *instance,
+                                         __attribute__((unused)) void *message,
+                                         __attribute__((unused)) unsigned size,
+                                         __attribute__((unused)) int reset)
+{
+    return 1;
 }

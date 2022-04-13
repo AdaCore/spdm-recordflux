@@ -10,7 +10,7 @@ package SPDM is
    type Length_24 is mod 2 ** 24;
    type Index is range 0 .. 2 ** 8 - 1 with Size => 8;
 
-   type Signature_Length is range 0 .. 512 with Size => 10;
+   type Signature_Length is range 0 .. 512 with Size => 16;
    type Exchange_Data_Length is range 96 .. 512 with Size => 10;
    type Hash_Length is range 0 .. 64 with Size => 8;
 

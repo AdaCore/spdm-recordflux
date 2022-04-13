@@ -87,7 +87,7 @@ void spdm_platform_get_certificate_data (instance_t *instance,
 
 unsigned char spdm_platform_get_number_of_indices (instance_t *instance);
 
-void spdm_platform_get_nonce(void *nonce);
+void spdm_platform_get_nonce(instance_t *instance, void *nonce);
 
 void spdm_platform_get_dmtf_measurement_field (instance_t *instance,
                                                unsigned index,
@@ -95,5 +95,19 @@ void spdm_platform_get_dmtf_measurement_field (instance_t *instance,
                                                unsigned *type,
                                                unsigned *size,
                                                void *buffer);
+
+unsigned spdm_platform_get_meas_signature_length (instance_t *instance);
+
+void spdm_platform_get_meas_signature (instance_t *instance,
+                                       void *message,
+                                       unsigned message_length,
+                                       unsigned nonce_offset,
+                                       void *signature,
+                                       unsigned *signature_length);
+
+int spdm_platform_update_meas_signature (instance_t *instance,
+                                         void *message,
+                                         unsigned size,
+                                         int reset);
 
 #endif // __SPDM_PLATFORM_INTERFACE__
