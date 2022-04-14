@@ -140,8 +140,8 @@ test_cross: build/arm/example/main build/riscv64/example/main libarm libriscv64
 
 check: check_spec check_stack
 
-check_spec: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_responder.rfi specs/spdm_emu.rflx specs/spdm_proxy.rflx specs/spdm_requester.rflx | $(RFLX)
-	$(RFLX) check specs/spdm_responder.rflx specs/spdm_proxy.rflx specs/spdm_requester.rflx
+check_spec: $(wildcard specs/*.rflx) | $(RFLX)
+	$(RFLX) check $^
 
 check_stack: check_stack_riscv64 check_stack_arm
 
