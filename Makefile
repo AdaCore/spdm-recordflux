@@ -112,7 +112,9 @@ GENERATED := rflx.ads \
     rflx-spdm-nonce.adb \
     rflx-spdm-nonce.ads \
     rflx-spdm-dmtf_measurement_field.adb \
-    rflx-spdm-dmtf_measurement_field.ads
+    rflx-spdm-dmtf_measurement_field.ads \
+    rflx-spdm_responder-signature.adb \
+    rflx-spdm_responder-signature.ads
 
 ifdef LOCAL_RFLX
 RFLX = $(shell command -v python3) $(shell command -v rflx)

@@ -713,7 +713,7 @@ is
       Result := C_Interface (Ctx.Instance,
                              Message'Address,
                              Message'Length,
-                             (if Reset then 1 else 0)) = 0;
+                             (if Reset then 1 else 0)) /= 0;
    end Plat_Update_Meas_Signature;
 
 end SPDM_C_Responder;

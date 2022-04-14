@@ -8,6 +8,7 @@ struct instance {
     unsigned char measurement_hash_algo;
     int valid_nonce;
     unsigned char nonce[32];
+    void *measurement_hash_ctx;
 };
 
 void spdm_platform_initialize(instance_t **instance)
@@ -210,7 +211,7 @@ long spdm_platform_select_rbba(unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
     return 0;
 }
 
-void spdm_platform_get_digests_data(instance_t *instance, char *data, long *length, unsigned char *slot_mask)
+void spdm_platform_get_digests_data(__unused_cross__ instance_t *instance, char *data, long *length, unsigned char *slot_mask)
 {
     for (long i = 0; i < *length; i++)
     {
@@ -310,30 +311,62 @@ void spdm_platform_get_dmtf_measurement_field(instance_t *instance,
     }
 }
 
-unsigned spdm_platform_get_meas_signature_length (instance_t *instance)
+unsigned spdm_platform_get_meas_signature_length (__unused_cross__ instance_t *instance)
 {
     return spdm_get_measurement_hash_size(instance->measurement_hash_algo);
 }
 
 void spdm_platform_get_meas_signature (instance_t *instance,
-                                       __attribute__((unused)) void *message,
+                                       void *message,
                                        __attribute__((unused)) unsigned message_length,
-                                       __attribute__((unused)) unsigned nonce_offset,
-                                       __attribute__((unused)) void *signature,
-                                       __attribute__((unused)) unsigned *signature_length)
+                                       __unused_cross__ unsigned nonce_offset,
+                                       __unused_cross__ void *signature,
+                                       unsigned *signature_length)
 {
+    __unused_cross__ const spdm_version_number_t version = {0, 0, 1, 1};
+    __unused_cross__ const unsigned hash_size = spdm_get_hash_size(instance->measurement_hash_algo);
+    __unused_cross__ unsigned char hash[hash_size];
     if(!instance->valid_nonce){
         *signature_length = 0;
         return;
     }
     instance->valid_nonce = 0;
     memcpy(message + nonce_offset, instance->nonce, 32);
+    if(!spdm_hash_final(instance->measurement_hash_algo, instance->measurement_hash_ctx, hash)){
+        spdm_hash_free(instance->measurement_hash_algo, instance->measurement_hash_ctx);
+        return;
+    }
+    spdm_platform_update_meas_signature(instance, message, message_length, 1);
+    if(!spdm_responder_data_sign(version,
+                                 SPDM_MEASUREMENTS,
+                                 instance->base_asym_algo,
+                                 instance->measurement_hash_algo,
+                                 1,
+                                 hash,
+                                 hash_size,
+                                 signature,
+                                 (uintn *)signature_length)){
+        *signature_length = 0;
+    }
 }
 
-int spdm_platform_update_meas_signature (__attribute__((unused)) instance_t *instance,
-                                         __attribute__((unused)) void *message,
-                                         __attribute__((unused)) unsigned size,
-                                         __attribute__((unused)) int reset)
+int spdm_platform_update_meas_signature (instance_t *instance,
+                                         __unused_cross__ void *message,
+                                         __unused_cross__ unsigned size,
+                                         int reset)
 {
-    return 1;
+    if(!instance->measurement_hash_ctx){
+        instance->measurement_hash_ctx = spdm_hash_new(instance->measurement_hash_algo);
+        if(!instance->measurement_hash_ctx){
+            return 1;
+        }
+    }
+    boolean result = spdm_hash_update(instance->measurement_hash_algo,
+                                      instance->measurement_hash_ctx,
+                                      message,
+                                      size);
+    if(reset){
+        spdm_hash_free(instance->measurement_hash_algo, instance->measurement_hash_ctx);
+    }
+    return result;
 }

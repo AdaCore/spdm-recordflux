@@ -37,6 +37,7 @@ project Tests is
                                         "-lspdm_responder_lib",
                                         "-lmalloclib",
                                         "-lmemlib",
+                                        "-lrnglib_std",
                                         "-Wl,--end-group");
    end Linker;
 
