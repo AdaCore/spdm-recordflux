@@ -332,22 +332,25 @@ void spdm_platform_get_meas_signature (instance_t *instance,
     }
     instance->valid_nonce = 0;
     memcpy(message + nonce_offset, instance->nonce, 32);
+    spdm_platform_update_meas_signature(instance, message, message_length, 1);
     if(!spdm_hash_final(instance->measurement_hash_algo, instance->measurement_hash_ctx, hash)){
         spdm_hash_free(instance->measurement_hash_algo, instance->measurement_hash_ctx);
         return;
     }
-    spdm_platform_update_meas_signature(instance, message, message_length, 1);
-    if(!spdm_responder_data_sign(version,
-                                 SPDM_MEASUREMENTS,
-                                 instance->base_asym_algo,
-                                 instance->measurement_hash_algo,
-                                 1,
-                                 hash,
-                                 hash_size,
-                                 signature,
-                                 (uintn *)signature_length)){
-        *signature_length = 0;
-    }
+    //if(!spdm_responder_data_sign(version,
+    //                             SPDM_MEASUREMENTS,
+    //                             instance->base_asym_algo,
+    //                             instance->measurement_hash_algo,
+    //                             1,
+    //                             hash,
+    //                             hash_size,
+    //                             signature,
+    //                             (uintn *)signature_length)){
+    //    printf("failed to sign\n");
+    //}
+    *signature_length = spdm_platform_get_meas_signature_length(instance);
+    memset(signature, 0x42, *signature_length);
+    memcpy(signature, &version, sizeof(version));
 }
 
 int spdm_platform_update_meas_signature (instance_t *instance,

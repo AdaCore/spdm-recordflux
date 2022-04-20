@@ -38,7 +38,9 @@ package SPDM_Responder is
 
    type Signature is
       message
-         Length : SPDM::Signature_Length;
+         Length : SPDM::Signature_Length
+            then Data
+               if Length > 0;
          Data   : Opaque with
             Size => Length * 8;
       end message;
@@ -901,27 +903,27 @@ package SPDM_Responder is
          Signature_Length := Plat_Get_Meas_Signature_Length;
          Nonce_Offset := Unsigned.Measurements_Response_Measurement_Record_Length + 8;
          Signature := Plat_Get_Meas_Signature (Unsigned'Opaque, Nonce_Offset);
-         --  Response := SPDM::Response'
-         --     (Meas_Cap                                        => Unsigned.Meas_Cap,
-         --      Hash_Type                                       => Unsigned.Hash_Type,
-         --      Hash_Length                                     => Unsigned.Hash_Length,
-         --      Signature_Length                                => Signature_Length,
-         --      Exchange_Data_Length                            => Unsigned.Exchange_Data_Length,
-         --      Handshake_In_The_Clear                          => Unsigned.Handshake_In_The_Clear,
-         --      Major_Version                                   => Unsigned.Major_Version,
-         --      Minor_Version                                   => Unsigned.Major_Version,
-         --      Code                                            => Unsigned.Code,
-         --      Measurements_Response_Number_Of_Indices         => Unsigned.Measurements_Response_Number_Of_Indices,
-         --      Measurements_Response_Reserved_1                => 0,
-         --      Measurements_Response_Slot_ID                   => Unsigned.Measurements_Response_Slot_ID,
-         --      Measurements_Response_Number_Of_Blocks          => Unsigned.Measurements_Response_Number_Of_Blocks,
-         --      Measurements_Response_Measurement_Record_Length =>
-         --        Unsigned.Measurements_Response_Measurement_Record_Length,
-         --      Measurements_Response_Measurement_Record        => Unsigned.Measurements_Response_Measurement_Record,
-         --      Measurements_Response_Nonce_Data                => Unsigned.Measurements_Response_Nonce_Data,
-         --      Measurements_Response_Opaque_Length             => Unsigned.Measurements_Response_Opaque_Length,
-         --      Measurements_Response_Opaque_Data               => Unsigned.Measurements_Response_Opaque_Data,
-         --      Measurements_Response_Signature                 => Signature.Data);
+         Response := SPDM::Response'
+            (Meas_Cap                                        => Unsigned.Meas_Cap,
+             Hash_Type                                       => Unsigned.Hash_Type,
+             Hash_Length                                     => Unsigned.Hash_Length,
+             Signature_Length                                => Signature.Length,
+             Exchange_Data_Length                            => Unsigned.Exchange_Data_Length,
+             Handshake_In_The_Clear                          => Unsigned.Handshake_In_The_Clear,
+             Major_Version                                   => Unsigned.Major_Version,
+             Minor_Version                                   => Unsigned.Major_Version,
+             Code                                            => Unsigned.Code,
+             Measurements_Response_Number_Of_Indices         => Unsigned.Measurements_Response_Number_Of_Indices,
+             Measurements_Response_Reserved_1                => 0,
+             Measurements_Response_Slot_ID                   => Unsigned.Measurements_Response_Slot_ID,
+             Measurements_Response_Number_Of_Blocks          => Unsigned.Measurements_Response_Number_Of_Blocks,
+             Measurements_Response_Measurement_Record_Length =>
+               Unsigned.Measurements_Response_Measurement_Record_Length,
+             Measurements_Response_Measurement_Record        => Measurement_Record,
+             Measurements_Response_Nonce_Data                => Unsigned.Measurements_Response_Nonce_Data,
+             Measurements_Response_Opaque_Length             => Unsigned.Measurements_Response_Opaque_Length,
+             Measurements_Response_Opaque_Data               => Unsigned.Measurements_Response_Opaque_Data,
+             Measurements_Response_Signature                 => Signature.Data);
       transition
          goto Send_Measurements
       exception
