@@ -169,11 +169,11 @@ build/spdm_emu:
 	mkdir -p build/spdm_emu
 
 build/spdm_dump/bin/spdm_dump: build/spdm_dump
-	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Release -DCRYPTO=mbedtls -S contrib/dmtf/spdm-dump -B build/spdm_dump
+	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Debug -DCRYPTO=mbedtls -S contrib/dmtf/spdm-dump -B build/spdm_dump
 	make -C build/spdm_dump -j$(shell nproc)
 
 build/spdm_emu/bin/spdm_%_emu: build/spdm_emu
-	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Release -DCRYPTO=mbedtls -S contrib/dmtf/spdm-emu -B build/spdm_emu
+	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Debug -DCRYPTO=mbedtls -S contrib/dmtf/spdm-emu -B build/spdm_emu
 	make -C build/spdm_emu -j$(shell nproc)
 
 build/debug/generated/%: specs/spdm.rflx specs/spdm_responder.rflx specs/spdm_emu.rflx specs/spdm_proxy.rflx specs/spdm_requester.rflx | $(RFLX)

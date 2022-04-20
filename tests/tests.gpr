@@ -18,7 +18,8 @@ project Tests is
 
    package Compiler is
       for Default_Switches ("Ada") use ("-g");
-      for Default_Switches ("C") use ("-W",
+      for Default_Switches ("C") use ("-g",
+                                      "-W",
                                       "-Wall",
                                       "-Wextra",
                                       "-Werror",
