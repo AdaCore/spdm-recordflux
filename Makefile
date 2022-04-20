@@ -111,7 +111,7 @@ GENERATED := rflx.ads \
     rflx-spdm_requester-request.ads
 
 ifdef LOCAL_RFLX
-RFLX = $(shell command -v rflx)
+RFLX = $(shell command -v python3) $(shell command -v rflx)
 else
 RFLX = $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx
 endif
