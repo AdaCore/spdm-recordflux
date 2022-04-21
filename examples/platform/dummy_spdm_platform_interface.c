@@ -333,34 +333,32 @@ void spdm_platform_get_meas_signature (instance_t *instance,
     __unused_cross__ const spdm_version_number_t version = {0, 0, 1, 1};
     __unused_cross__ const unsigned hash_size = spdm_get_hash_size(instance->measurement_hash_algo);
     __unused_cross__ unsigned char hash[hash_size];
-    __attribute__((unused)) uintn sig_size = *signature_length;
+    uintn sig_size = *signature_length;
     if(!instance->valid_nonce){
         *signature_length = 0;
         return;
     }
     instance->valid_nonce = 0;
     memcpy(message + nonce_offset, instance->nonce, 32);
-    spdm_platform_update_meas_signature(instance, message, message_length, 1);
+    spdm_platform_update_meas_signature(instance, message, message_length, 0);
     if(!spdm_hash_final(instance->measurement_hash_algo, instance->measurement_hash_ctx, hash)){
         return;
     }
     spdm_hash_free(instance->measurement_hash_algo, instance->measurement_hash_ctx);
-    //if(!spdm_responder_data_sign(version,
-    //                             SPDM_MEASUREMENTS,
-    //                             instance->base_asym_algo,
-    //                             instance->measurement_hash_algo,
-    //                             1,
-    //                             (const uint8 *)&hash,
-    //                             hash_size,
-    //                             signature,
-    //                             &sig_size)){
-    //    sig_size = 0;
-    //    printf("failed to sign\n");
-    //}
-    //*signature_length = sig_size;
-    *signature_length = spdm_get_asym_signature_size(instance->base_asym_algo);
-    memset(signature, 0x42, *signature_length);
-    memcpy(signature, &version, sizeof(version));
+    instance->measurement_hash_ctx = 0;
+    if(!spdm_responder_data_sign(version,
+                                 SPDM_MEASUREMENTS,
+                                 instance->base_asym_algo,
+                                 instance->measurement_hash_algo,
+                                 1,
+                                 (const uint8 *)&hash,
+                                 hash_size,
+                                 signature,
+                                 &sig_size)){
+        sig_size = 0;
+        printf("failed to sign\n");
+    }
+    *signature_length = sig_size;
     printf("signature_length=%u\n", *signature_length);
 }
 
@@ -381,6 +379,7 @@ int spdm_platform_update_meas_signature (instance_t *instance,
                                       size);
     if(reset){
         spdm_hash_free(instance->measurement_hash_algo, instance->measurement_hash_ctx);
+        instance->measurement_hash_ctx = 0;
     }
     return result;
 }
