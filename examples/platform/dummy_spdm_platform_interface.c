@@ -217,23 +217,44 @@ long spdm_platform_select_rbba(__attribute__((unused)) instance_t *instance,
     return 0;
 }
 
-void spdm_platform_get_digests_data(__unused_cross__ instance_t *instance, char *data, long *length, unsigned char *slot_mask)
+void spdm_platform_get_digests_data(__unused_cross__ instance_t *instance,
+                                    __unused_cross__ char *data,
+                                    long *length,
+                                    unsigned char *slot_mask)
 {
-    for (long i = 0; i < *length; i++)
-    {
-        data[i] = 0x00;
+    __unused_cross__ void *raw_data;
+    __unused_cross__ uintn size = 0;
+    const long hash_size = spdm_get_hash_size(instance->base_hash_algo);
+    boolean res = read_responder_public_certificate_chain(instance->base_hash_algo,
+                                                          instance->base_asym_algo,
+                                                          &raw_data, &size,
+                                                          NULL, NULL);
+    if(!res){
+        errx(0, "failed to get certificate");
     }
-
+    if(*length < hash_size){
+        *length = 0;
+        *slot_mask = 0;
+        return;
+    }
+    res = spdm_hash_all(instance->base_hash_algo, raw_data, size, (void *)data);
+    if(!res){
+        errx(1, "failed to hash certificate");
+    }
+    if(*length < 2 * hash_size){
+        *length = hash_size;
+        *slot_mask = 1;
+        return;
+    }
+    memcpy(data + hash_size, data, hash_size);
+    if(*length < 3 * hash_size){
+        *length = 2 * hash_size;
+        *slot_mask = 3;
+        return;
+    }
+    memcpy(data + 2 * hash_size, data, hash_size);
     *slot_mask = 7;
-
-    // measurment_hash_size is a static variable set to the size of the currently
-    // selected hash in spdm_platform_select_measurement_hash_algo (in bytes)
-    *length = 3 * spdm_get_measurement_hash_size(instance->measurement_hash_algo);
-
-    for (long i = 0; i < *length; i++)
-    {
-        data[i] = 0x42;
-    }
+    *length = 3 * hash_size;
 }
 
 unsigned char spdm_platform_validate_certificate_request(__attribute__((unused)) instance_t *instance,

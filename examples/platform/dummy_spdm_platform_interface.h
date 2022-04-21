@@ -28,6 +28,7 @@
 #define spdm_hash_free(...)
 #define spdm_hash_update(...) 1
 #define spdm_hash_final(...) 1
+#define spdm_hash_all(...) 1
 #define spdm_responder_data_sign(...) 1
 #define spdm_get_asym_signature_size(...) 0
 typedef struct {
