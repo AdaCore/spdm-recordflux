@@ -119,11 +119,18 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
                         "Hash_Length: 48\n"
                     )
                 elif m_type == "Response":
+                    # Only some measurement responses contain signatures. Since these
+                    # messages are usually short we just assume that the longest of them
+                    # are the signed ones.
+                    signed_measurement_length = max(len(data) for name, data in messages if name == "SPDM_MEASUREMENTS")
+                    signature_length = 96
+                    if message_name == "SPDM_MEASUREMENTS" and len(message_data) < signed_measurement_length:
+                        signature_length = 0
                     config.write(
                         "Meas_Cap: 2\n"
                         "Hash_Type: 1\n"
                         "Hash_Length: 48\n"
-                        "Signature_Length: 96\n"
+                        f"Signature_Length: {signature_length}\n"
                         "Handshake_In_The_Clear: True\n"
                         "Exchange_Data_Length: 96\n"
                     )

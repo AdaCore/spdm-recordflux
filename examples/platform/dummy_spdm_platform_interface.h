@@ -29,6 +29,7 @@
 #define spdm_hash_update(...) 1
 #define spdm_hash_final(...) 1
 #define spdm_responder_data_sign(...) 1
+#define spdm_get_asym_signature_size(...) 0
 typedef struct {
     unsigned char alpha;
     unsigned char update_version_number;

@@ -114,6 +114,7 @@ unsigned char spdm_platform_select_measurement_hash_algo(instance_t *instance,
         // No mode set, unsupported
         instance->measurement_hash_algo = 0;
     }
+    printf("instance->measurement_hash_algo=%u\n", instance->measurement_hash_algo);
     return instance->measurement_hash_algo;
 }
 
@@ -138,6 +139,7 @@ long spdm_platform_select_base_asym_algo(instance_t *instance,
     else if (tpm_alg_rsapss_2048) instance->base_asym_algo = 2;
     else if (tpm_alg_rsassa_2048) instance->base_asym_algo = 1;
     else errx(3, "No Base Asym Algo selected");
+    printf("instance->base_asym_algo=%ld\n", instance->base_asym_algo);
     return instance->base_asym_algo;
 }
 
@@ -156,6 +158,7 @@ unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
     else if (tpm_alg_sha_384) instance->base_hash_algo = 2;
     else if (tpm_alg_sha_256) instance->base_hash_algo = 1;
     else errx(3, "No Base Hash Algo selected");
+    printf("instance->base_hash_algo=%u\n", instance->base_hash_algo);
     return instance->base_hash_algo;
 }
 
@@ -326,6 +329,7 @@ void spdm_platform_get_meas_signature (instance_t *instance,
     __unused_cross__ const spdm_version_number_t version = {0, 0, 1, 1};
     __unused_cross__ const unsigned hash_size = spdm_get_hash_size(instance->measurement_hash_algo);
     __unused_cross__ unsigned char hash[hash_size];
+    __attribute__((unused)) uintn sig_size = *signature_length;
     if(!instance->valid_nonce){
         *signature_length = 0;
         return;
@@ -334,23 +338,26 @@ void spdm_platform_get_meas_signature (instance_t *instance,
     memcpy(message + nonce_offset, instance->nonce, 32);
     spdm_platform_update_meas_signature(instance, message, message_length, 1);
     if(!spdm_hash_final(instance->measurement_hash_algo, instance->measurement_hash_ctx, hash)){
-        spdm_hash_free(instance->measurement_hash_algo, instance->measurement_hash_ctx);
         return;
     }
+    spdm_hash_free(instance->measurement_hash_algo, instance->measurement_hash_ctx);
     //if(!spdm_responder_data_sign(version,
     //                             SPDM_MEASUREMENTS,
     //                             instance->base_asym_algo,
     //                             instance->measurement_hash_algo,
     //                             1,
-    //                             hash,
+    //                             (const uint8 *)&hash,
     //                             hash_size,
     //                             signature,
-    //                             (uintn *)signature_length)){
+    //                             &sig_size)){
+    //    sig_size = 0;
     //    printf("failed to sign\n");
     //}
-    *signature_length = spdm_platform_get_meas_signature_length(instance);
+    //*signature_length = sig_size;
+    *signature_length = spdm_get_asym_signature_size(instance->base_asym_algo);
     memset(signature, 0x42, *signature_length);
     memcpy(signature, &version, sizeof(version));
+    printf("signature_length=%u\n", *signature_length);
 }
 
 int spdm_platform_update_meas_signature (instance_t *instance,
