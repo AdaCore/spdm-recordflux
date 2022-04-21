@@ -6,22 +6,22 @@ typedef struct instance instance_t;
 
 void spdm_platform_initialize(instance_t **instance);
 
-unsigned char spdm_platform_config_ct_exponent(void);
-unsigned char spdm_platform_config_cap_mac(void);
-unsigned char spdm_platform_config_cap_encrypt(void);
-unsigned char spdm_platform_config_cap_meas_fresh(void);
-unsigned char spdm_platform_config_cap_meas(void);
-unsigned char spdm_platform_config_cap_chal(void);
-unsigned char spdm_platform_config_cap_cert(void);
-unsigned char spdm_platform_config_cap_cache(void);
-unsigned char spdm_platform_config_cap_handshake_in_the_clear(void);
-unsigned char spdm_platform_config_cap_key_upd(void);
-unsigned char spdm_platform_config_cap_hbeat(void);
-unsigned char spdm_platform_config_cap_encap(void);
-unsigned char spdm_platform_config_cap_psk(void);
-unsigned char spdm_platform_config_cap_key_ex(void);
-unsigned char spdm_platform_config_cap_mut_auth(void);
-unsigned char spdm_platform_config_cap_pub_key_id(void);
+unsigned char spdm_platform_config_ct_exponent(instance_t *instance);
+unsigned char spdm_platform_config_cap_mac(instance_t *instance);
+unsigned char spdm_platform_config_cap_encrypt(instance_t *instance);
+unsigned char spdm_platform_config_cap_meas_fresh(instance_t *instance);
+unsigned char spdm_platform_config_cap_meas(instance_t *instance);
+unsigned char spdm_platform_config_cap_chal(instance_t *instance);
+unsigned char spdm_platform_config_cap_cert(instance_t *instance);
+unsigned char spdm_platform_config_cap_cache(instance_t *instance);
+unsigned char spdm_platform_config_cap_handshake_in_the_clear(instance_t *instance);
+unsigned char spdm_platform_config_cap_key_upd(instance_t *instance);
+unsigned char spdm_platform_config_cap_hbeat(instance_t *instance);
+unsigned char spdm_platform_config_cap_encap(instance_t *instance);
+unsigned char spdm_platform_config_cap_psk(instance_t *instance);
+unsigned char spdm_platform_config_cap_key_ex(instance_t *instance);
+unsigned char spdm_platform_config_cap_mut_auth(instance_t *instance);
+unsigned char spdm_platform_config_cap_pub_key_id(instance_t *instance);
 
 unsigned char spdm_platform_select_measurement_hash_algo(instance_t *instance,
                                                          unsigned char tpm_alg_sha_256,
@@ -51,18 +51,21 @@ unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
                                                   unsigned char tpm_alg_sha3_384,
                                                   unsigned char tpm_alg_sha3_512);
 
-unsigned char spdm_platform_select_dhe(unsigned char secp521r1,
+unsigned char spdm_platform_select_dhe(instance_t *instance,
+                                       unsigned char secp521r1,
                                        unsigned char secp384r1,
                                        unsigned char secp256r1,
                                        unsigned char ffdhe4096,
                                        unsigned char ffdhe3072,
                                        unsigned char ffdhe2048);
 
-unsigned char spdm_platform_select_aead(unsigned char chacha20_poly1305,
+unsigned char spdm_platform_select_aead(instance_t *instance,
+                                        unsigned char chacha20_poly1305,
                                         unsigned char aes_256_gcm,
                                         unsigned char aes_128_gcm);
 
-long spdm_platform_select_rbba(unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
+long spdm_platform_select_rbba(instance_t *instance,
+                               unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
                                unsigned char ra_tpm_alg_rsapss_4096,
                                unsigned char ra_tpm_alg_rsassa_4096,
                                unsigned char ra_tpm_alg_ecdsa_ecc_nist_p256,
@@ -74,7 +77,8 @@ long spdm_platform_select_rbba(unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
 
 void spdm_platform_get_digests_data(instance_t *instance, char *data, long *length, unsigned char *slot_mask);
 
-unsigned char spdm_platform_validate_certificate_request(unsigned char slot,
+unsigned char spdm_platform_validate_certificate_request(instance_t *instance,
+                                                         unsigned char slot,
                                                          unsigned short offset,
                                                          unsigned short length);
 

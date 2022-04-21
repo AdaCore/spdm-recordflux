@@ -20,70 +20,70 @@ void spdm_platform_initialize(instance_t **instance)
     memset(*instance, 0, sizeof(instance_t));
 }
 
-unsigned char spdm_platform_config_ct_exponent(void) {
+unsigned char spdm_platform_config_ct_exponent(__attribute__((unused)) instance_t *instance) {
     return 10;
 }
 
-unsigned char spdm_platform_config_cap_mac(void) {
+unsigned char spdm_platform_config_cap_mac(__attribute__((unused)) instance_t *instance) {
     return 1;
 }
 
-unsigned char spdm_platform_config_cap_encrypt(void) {
+unsigned char spdm_platform_config_cap_encrypt(__attribute__((unused)) instance_t *instance) {
     return 1;
 }
 
-unsigned char spdm_platform_config_cap_meas_fresh(void) {
+unsigned char spdm_platform_config_cap_meas_fresh(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_meas(void) {
+unsigned char spdm_platform_config_cap_meas(__attribute__((unused)) instance_t *instance) {
     //  The Responder supports MEASUREMENTS response and can perform signature generation.
     return 2;
 }
 
-unsigned char spdm_platform_config_cap_chal(void) {
+unsigned char spdm_platform_config_cap_chal(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_cert(void) {
+unsigned char spdm_platform_config_cap_cert(__attribute__((unused)) instance_t *instance) {
     //  Supported in WP 2.3.7
     return 1;
 }
 
-unsigned char spdm_platform_config_cap_cache(void) {
+unsigned char spdm_platform_config_cap_cache(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_handshake_in_the_clear(void) {
+unsigned char spdm_platform_config_cap_handshake_in_the_clear(__attribute__((unused)) instance_t *instance) {
     return 1;
 }
 
-unsigned char spdm_platform_config_cap_key_upd(void) {
+unsigned char spdm_platform_config_cap_key_upd(__attribute__((unused)) instance_t *instance) {
     //  Supported in WP 2.3.8
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_hbeat(void) {
+unsigned char spdm_platform_config_cap_hbeat(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_encap(void) {
+unsigned char spdm_platform_config_cap_encap(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_psk(void) {
+unsigned char spdm_platform_config_cap_psk(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_key_ex(void) {
+unsigned char spdm_platform_config_cap_key_ex(__attribute__((unused)) instance_t *instance) {
     return 1;
 }
 
-unsigned char spdm_platform_config_cap_mut_auth(void) {
+unsigned char spdm_platform_config_cap_mut_auth(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_pub_key_id(void) {
+unsigned char spdm_platform_config_cap_pub_key_id(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
@@ -162,7 +162,8 @@ unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
     return instance->base_hash_algo;
 }
 
-unsigned char spdm_platform_select_dhe(unsigned char secp521r1,
+unsigned char spdm_platform_select_dhe(__attribute__((unused)) instance_t *instance,
+                                       unsigned char secp521r1,
                                        unsigned char secp384r1,
                                        unsigned char secp256r1,
                                        unsigned char ffdhe4096,
@@ -179,7 +180,8 @@ unsigned char spdm_platform_select_dhe(unsigned char secp521r1,
     return 0;
 }
 
-unsigned char spdm_platform_select_aead(unsigned char chacha20_poly1305,
+unsigned char spdm_platform_select_aead(__attribute__((unused)) instance_t *instance,
+                                        unsigned char chacha20_poly1305,
                                         unsigned char aes_256_gcm,
                                         unsigned char aes_128_gcm)
 {
@@ -191,7 +193,8 @@ unsigned char spdm_platform_select_aead(unsigned char chacha20_poly1305,
 }
 
 
-long spdm_platform_select_rbba(unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
+long spdm_platform_select_rbba(__attribute__((unused)) instance_t *instance,
+                               unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
                                unsigned char ra_tpm_alg_rsapss_4096,
                                unsigned char ra_tpm_alg_rsassa_4096,
                                unsigned char ra_tpm_alg_ecdsa_ecc_nist_p256,
@@ -233,7 +236,8 @@ void spdm_platform_get_digests_data(__unused_cross__ instance_t *instance, char 
     }
 }
 
-unsigned char spdm_platform_validate_certificate_request(unsigned char slot,
+unsigned char spdm_platform_validate_certificate_request(__attribute__((unused)) instance_t *instance,
+                                                         unsigned char slot,
                                                          __unused_cross__ unsigned short offset,
                                                          __unused_cross__ unsigned short length)
 {

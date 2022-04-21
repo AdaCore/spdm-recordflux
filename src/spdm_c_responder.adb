@@ -22,15 +22,15 @@ is
       (Ctx    : in out Context;
        Result :    out RFLX.SPDM.CT_Exponent)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_ct_exponent";
    begin
-      if not RFLX.SPDM.Valid_CT_Exponent (RFLX.RFLX_Types.U64 (C_Interface)) then
+      if not RFLX.SPDM.Valid_CT_Exponent (RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance))) then
          raise Constraint_Error;
       end if;
-      Result := RFLX.SPDM.CT_Exponent (C_Interface);
+      Result := RFLX.SPDM.CT_Exponent (C_Interface (Ctx.Instance));
    end Plat_Cfg_CT_Exponent;
 
    overriding
@@ -38,13 +38,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_mac";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_MAC;
 
    overriding
@@ -52,13 +52,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_encrypt";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Encrypt;
 
    overriding
@@ -66,13 +66,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_meas_fresh";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Meas_Fresh;
 
    overriding
@@ -80,11 +80,11 @@ is
       (Ctx    : in out Context;
        Result :    out RFLX.SPDM.Meas_Cap)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_meas";
-      Value : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface);
+      Value : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
    begin
       if not RFLX.SPDM.Valid_Meas_Cap (Value) then
          raise Constraint_Error;
@@ -97,13 +97,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_chal";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Chal;
 
    overriding
@@ -111,13 +111,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_cert";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Cert;
 
    overriding
@@ -125,13 +125,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_cache";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Cache;
 
    overriding
@@ -139,13 +139,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_handshake_in_the_clear";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Handshake_In_The_Clear;
 
    overriding
@@ -153,13 +153,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_key_upd";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Key_Upd;
 
    overriding
@@ -167,13 +167,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_hbeat";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Hbeat;
 
    overriding
@@ -181,13 +181,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_encap";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Encap;
 
    overriding
@@ -195,11 +195,11 @@ is
       (Ctx    : in out Context;
        Result :    out RFLX.SPDM.PSK_Resp_Cap)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_psk";
-      Value : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface);
+      Value : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
    begin
       if not RFLX.SPDM.Valid_PSK_Resp_Cap (Value) then
          raise Constraint_Error;
@@ -212,13 +212,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_key_ex";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Key_Ex;
 
    overriding
@@ -226,13 +226,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_mut_auth";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Mut_Auth;
 
    overriding
@@ -240,13 +240,13 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean)
    is
-      function C_Interface return Interfaces.C.unsigned_char with
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_pub_key_id";
       use type Interfaces.C.unsigned_char;
    begin
-      Result := C_Interface > 0;
+      Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Pub_Key_ID;
 
    function C_Bool (Value : Boolean) return Interfaces.C.unsigned_char is
@@ -396,7 +396,8 @@ is
        Result        :    out RFLX.SPDM_Responder.DHE_Algo)
    is
       function C_Interface
-         (SecP521r1 : Interfaces.C.unsigned_char;
+         (Instance  : System.Address;
+          SecP521r1 : Interfaces.C.unsigned_char;
           SecP384r1 : Interfaces.C.unsigned_char;
           SecP256r1 : Interfaces.C.unsigned_char;
           FFDHE4096 : Interfaces.C.unsigned_char;
@@ -409,7 +410,8 @@ is
       Value : constant RFLX.RFLX_Types.U64 :=
          RFLX.RFLX_Types.U64
             (C_Interface
-               (SecP521r1 => C_Bool (Req_SecP521r1),
+               (Instance  => Ctx.Instance,
+                SecP521r1 => C_Bool (Req_SecP521r1),
                 SecP384r1 => C_Bool (Req_SecP384r1),
                 SecP256r1 => C_Bool (Req_SecP256r1),
                 FFDHE4096 => C_Bool (Req_FFDHE4096),
@@ -431,7 +433,8 @@ is
        Result                :    out RFLX.SPDM_Responder.AEAD_Algo)
    is
       function C_Interface
-         (AA_ChaCha20_Poly1305 : Interfaces.C.unsigned_char;
+         (Instance             : System.Address;
+          AA_ChaCha20_Poly1305 : Interfaces.C.unsigned_char;
           AA_AES_256_GCM       : Interfaces.C.unsigned_char;
           AA_AES_128_GCM       : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char
       with
@@ -441,7 +444,8 @@ is
       Value : constant RFLX.RFLX_Types.U64 :=
          RFLX.RFLX_Types.U64
             (C_Interface
-               (AA_ChaCha20_Poly1305 => C_Bool (Req_ChaCha20_Poly1305),
+               (Instance             => Ctx.Instance,
+                AA_ChaCha20_Poly1305 => C_Bool (Req_ChaCha20_Poly1305),
                 AA_AES_256_GCM       => C_Bool (Req_AES_256_GCM),
                 AA_AES_128_GCM       => C_Bool (Req_AES_128_GCM)));
    begin
@@ -466,7 +470,8 @@ is
        Result                          :    out RFLX.SPDM.Base_Asym_Algo)
    is
       function C_Interface
-         (RA_TPM_ALG_ECDSA_ECC_NIST_P384 : Interfaces.C.unsigned_char;
+         (Instance                       : System.Address;
+          RA_TPM_ALG_ECDSA_ECC_NIST_P384 : Interfaces.C.unsigned_char;
           RA_TPM_ALG_RSAPSS_4096         : Interfaces.C.unsigned_char;
           RA_TPM_ALG_RSASSA_4096         : Interfaces.C.unsigned_char;
           RA_TPM_ALG_ECDSA_ECC_NIST_P256 : Interfaces.C.unsigned_char;
@@ -482,7 +487,8 @@ is
       Value : constant RFLX.RFLX_Types.U64 :=
          (RFLX.RFLX_Types.U64
             (C_Interface
-               (RA_TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P384),
+               (Instance                       => Ctx.Instance,
+                RA_TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P384),
                 RA_TPM_ALG_RSAPSS_4096         => C_Bool (Req_TPM_ALG_RSAPSS_4096),
                 RA_TPM_ALG_RSASSA_4096         => C_Bool (Req_TPM_ALG_RSASSA_4096),
                 RA_TPM_ALG_ECDSA_ECC_NIST_P256 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P256),
@@ -542,9 +548,10 @@ is
        Length :        RFLX.SPDM.Length_16;
        Result :    out Boolean)
    is
-      function C_Interface (Slot   : Interfaces.C.unsigned_char;
-                            Offset : Interfaces.C.unsigned_short;
-                            Length : Interfaces.C.unsigned_short) return Interfaces.C.unsigned_char
+      function C_Interface (Instance : System.Address;
+                            Slot     : Interfaces.C.unsigned_char;
+                            Offset   : Interfaces.C.unsigned_short;
+                            Length   : Interfaces.C.unsigned_short) return Interfaces.C.unsigned_char
       with
          Import        => True,
          Convention    => C,
@@ -552,9 +559,10 @@ is
       use type Interfaces.C.unsigned_char;
       use type Interfaces.C.unsigned_short;
    begin
-      Result := 0 /= C_Interface (Slot   => Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
-                                  Offset => Interfaces.C.unsigned_short (Offset),
-                                  Length => Interfaces.C.unsigned_short (Length));
+      Result := 0 /= C_Interface (Instance => Ctx.Instance,
+                                  Slot     => Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
+                                  Offset   => Interfaces.C.unsigned_short (Offset),
+                                  Length   => Interfaces.C.unsigned_short (Length));
    end Plat_Valid_Certificate_Request;
 
    overriding
