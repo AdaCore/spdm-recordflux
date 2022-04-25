@@ -269,14 +269,6 @@ package SPDM is
 
    -- 10.11 GET_MEASUREMENTS request and MEASUREMENTS response message
 
-   --  The value 0 queries the responder for the total number of measurements
-   --  available. The value 255 requests all measurements. The values 1 to 254
-   --  request the measurement at the index corresponding to that value.
-   --  type Measurement_Operation is
-   --     (Get_Number_Of_Measurements => 0,
-   --      Get_All_Measurements       => 255)
-   --     with Size => 8, Always_Valid;
-
    type Narrow_Slot is
       (NS_0                   => 16#0#,
        NS_1                   => 16#1#,
@@ -300,6 +292,9 @@ package SPDM is
          Reserved_1 : Reserved_7;
          Generate_Signature : Boolean;
          Measurement_Operation : Index
+         --  The value 0 queries the responder for the total number of measurements
+         --  available. The value 255 requests all measurements. The values 1 to 254
+         --  request the measurement at the index corresponding to that value.
             then Nonce
                if Generate_Signature = True
             then null

@@ -41,8 +41,8 @@ package SPDM_Responder is
          Length : SPDM::Signature_Length
             then Data
                if Length > 0;
-         Data   : Opaque with
-            Size => Length * 8;
+         Data : Opaque
+            with Size => Length * 8;
       end message;
 
    generic
@@ -152,7 +152,7 @@ package SPDM_Responder is
       Req_Base_Asym_Alg_List : SPDM::Req_Alg_Structs;
       Key_Schedule_List      : SPDM::Req_Alg_Structs;
       Resp_Alg_Structs       : SPDM::Resp_Alg_Structs;
-      Reset_Measurement_Sig : Boolean;
+      Reset_Measurement_Sig  : Boolean;
    begin
       state Init
       is

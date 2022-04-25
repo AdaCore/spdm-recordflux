@@ -586,9 +586,10 @@ is
          External_Name => "spdm_platform_get_certificate_data";
       use type Interfaces.C.unsigned_short;
       use type RFLX.SPDM.Length_16;
-      Max_Length : constant RFLX.SPDM.Length_16 := 508;
-      Cert_Length : Interfaces.C.unsigned_short;
-      Total_Length : Interfaces.C.unsigned_short;
+      Max_Length               : constant RFLX.SPDM.Length_16 := 508;
+      Cert_Length              : Interfaces.C.unsigned_short;
+      Total_Length             : Interfaces.C.unsigned_short;
+      Portion_Remainder_Length : RFLX.RFLX_Types.U64;
    begin
       if Length <= Max_Length then
          Cert_Length := Interfaces.C.unsigned_short (Length);
@@ -604,11 +605,20 @@ is
       Result.Slot := Slot;
       Result.Param_2 := 0;
       if Cert_Length = Interfaces.C.unsigned_short (Max_Length) then
-         Result.Portion_Length := RFLX.SPDM.Portion_Length_16 (Max_Length);
+         Portion_Remainder_Length := RFLX.RFLX_Types.U64 (Max_Length);
       else
-         Result.Portion_Length := RFLX.SPDM.Portion_Length_16 (Cert_Length);
+         Portion_Remainder_Length := RFLX.RFLX_Types.U64 (Cert_Length);
       end if;
-      Result.Remainder_Length := RFLX.SPDM.Length_16 (Total_Length - Cert_Length - Interfaces.C.unsigned_short (Offset));
+      if not RFLX.SPDM.Valid_Length_16 (Portion_Remainder_Length) then
+         raise Constraint_Error;
+      end if;
+      Result.Portion_Length := RFLX.SPDM.To_Actual (Portion_Remainder_Length);
+      Portion_Remainder_Length :=
+         RFLX.RFLX_Types.U64 (Total_Length - Cert_Length - Interfaces.C.unsigned_short (Offset));
+      if not RFLX.SPDM.Valid_Length_16 (Portion_Remainder_Length) then
+         raise Constraint_Error;
+      end if;
+      Result.Remainder_Length := RFLX.SPDM.To_Actual (Portion_Remainder_Length);
    end Plat_Get_Certificate_Response;
 
    overriding
@@ -620,8 +630,12 @@ is
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_number_of_indices";
+      Count : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
    begin
-      Result := RFLX.SPDM.Measurement_Count (C_Interface (Instance => Ctx.Instance));
+      if not RFLX.SPDM.Valid_Measurement_Count (Count) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM.To_Actual (Count);
    end Plat_Get_Number_Of_Indices;
 
    overriding
@@ -661,6 +675,12 @@ is
                    Value_Type,
                    Interfaces.C.unsigned (Result.Measurement_Value_Length),
                    Result.Measurement_Value);
+      if
+         not RFLX.SPDM.Valid_DMTF_Spec_Measurement_Value_Representation (RFLX.RFLX_Types.U64 (Value_Representation))
+         or not RFLX.SPDM.Valid_DMTF_Spec_Measurement_Value_Type (RFLX.RFLX_Types.U64 (Value_Type))
+      then
+         raise Constraint_Error;
+      end if;
       Result.Measurement_Value_Representation := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Value_Representation));
       Result.Measurement_Value_Type := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Value_Type));
    end Plat_Get_DMTF_Measurement_Field;
@@ -673,8 +693,12 @@ is
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_meas_signature_length";
+      Sig_Length : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
    begin
-      Result := RFLX.SPDM.Signature_Length (C_Interface (Ctx.Instance));
+      if not RFLX.SPDM.Valid_Signature_Length (Sig_Length) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM.To_Actual (Sig_Length);
    end Plat_Get_Meas_Signature_Length;
 
    overriding
@@ -700,7 +724,10 @@ is
                    Interfaces.C.unsigned (Nonce_Offset),
                    Result.Data,
                    Signature_Length);
-      Result.Length := RFLX.SPDM.Signature_Length (Signature_Length);
+      if not RFLX.SPDM.Valid_Signature_Length (RFLX.RFLX_Types.U64 (Signature_Length)) then
+         raise Constraint_Error;
+      end if;
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Signature_Length));
    end Plat_Get_Meas_Signature;
 
    overriding
