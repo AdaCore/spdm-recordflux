@@ -827,6 +827,8 @@ package SPDM_Responder is
       transition
          goto Prepare_Measurements_Number_Of_Indices
             if Request.Get_Measurements_Request_Measurement_Operation = 0 and Success
+         goto Prepare_Measurements_All
+            if Request.Get_Measurements_Request_Measurement_Operation = 255 and Success
          goto Prepare_Measurements_Records
             if Success
          goto Error_Unspecified
@@ -834,12 +836,21 @@ package SPDM_Responder is
          goto Error_Unspecified
       end Prepare_Measurements;
 
+      state Prepare_Measurements_All
+      is
+         Number_Of_Indices : SPDM::Measurement_Count;
+      begin
+         Number_Of_Indices := Plat_Get_Number_Of_Indices;
+         Current_Measurement := 1;
+         Last_Measurement := Number_Of_Indices;
+      transition
+         goto Prepare_Measurements_Records
+      end Prepare_Measurements_All;
+
       state Prepare_Measurements_Records
       is
          Measurement_Field : SPDM::DMTF_Measurement_Field;
-         Nonce : SPDM::Nonce;
       begin
-         Nonce := Plat_Get_Nonce;
          Measurement_Field := Plat_Get_DMTF_Measurement_Field (Current_Measurement);
          Measurement_Record'Append (SPDM::Measurement_Block'
             (Index                                             =>
@@ -850,6 +861,20 @@ package SPDM_Responder is
              DMTF_Measurement_Measurement_Value_Type           => Measurement_Field.Measurement_Value_Type,
              DMTF_Measurement_Measurement_Value_Length         => Measurement_Field.Measurement_Value_Length,
              DMTF_Measurement_Measurement_Value                => Measurement_Field.Measurement_Value));
+         Current_Measurement := Current_Measurement + 1;
+      transition
+         goto Prepare_Measurements_Records
+            if Current_Measurement <= Last_Measurement
+         goto Prepare_Measurements_Response
+      exception
+         goto Error_Unspecified
+      end Prepare_Measurements_Records;
+
+      state Prepare_Measurements_Response
+      is
+         Nonce : SPDM::Nonce;
+      begin
+         Nonce := Plat_Get_Nonce;
          Response := SPDM::Response'(Meas_Cap                              => SPDM::Meas_Unsupported,
                                      Hash_Type                             => SPDM::No_Measurement,
                                      Hash_Length                           => Hash_Length,
@@ -868,16 +893,13 @@ package SPDM_Responder is
                                      Measurements_Response_Nonce_Data => Nonce.Data,
                                      Measurements_Response_Opaque_Length => 0,
                                      Measurements_Response_Opaque_Data => []);
-         Current_Measurement := Current_Measurement + 1;
       transition
-         goto Prepare_Measurements_Records
-            if Current_Measurement <= Last_Measurement
          goto Prepare_Measurements_Sign
             if Request.Get_Measurements_Request_Generate_Signature
          goto Update_Measurement_Signature
       exception
          goto Error_Unspecified
-      end Prepare_Measurements_Records;
+      end Prepare_Measurements_Response;
 
       state Prepare_Measurements_Sign
       is

@@ -294,11 +294,11 @@ void spdm_platform_get_certificate_data (__unused_cross__ instance_t *instance,
     memcpy(data, &((unsigned char *)raw_data)[offset], *length);
 }
 
-const char *measurements[] = {"[6:0]=00h immutable rom",
-                              "[6:0]=01h mutable firmware",
-                              "[6:0]=02h hardware configuration",
-                              "[6:0]=03h firmware configuration",
-                              "[6:0]=04h measurement manifest"};
+const char *measurements[] = {"00h",
+                              "01h",
+                              "02h",
+                              "03h",
+                              "04h"};
 
 
 unsigned char spdm_platform_get_number_of_indices (__attribute__((unused)) instance_t *instance)
