@@ -153,6 +153,9 @@ package SPDM_Responder is
       Key_Schedule_List      : SPDM::Req_Alg_Structs;
       Resp_Alg_Structs       : SPDM::Resp_Alg_Structs;
       Reset_Measurement_Sig  : Boolean;
+      Measurement_Record     : SPDM::Measurement_Record;
+      Current_Measurement    : SPDM::Index;
+      Last_Measurement       : SPDM::Index;
    begin
       state Init
       is
@@ -818,6 +821,9 @@ package SPDM_Responder is
       begin
          Success := Plat_Update_Meas_Signature (Request'Opaque, Reset_Measurement_Sig);
          Reset_Measurement_Sig := False;
+         Measurement_Record'Reset;
+         Current_Measurement := Request.Get_Measurements_Request_Measurement_Operation;
+         Last_Measurement := Request.Get_Measurements_Request_Measurement_Operation;
       transition
          goto Prepare_Measurements_Number_Of_Indices
             if Request.Get_Measurements_Request_Measurement_Operation = 0 and Success
@@ -830,12 +836,11 @@ package SPDM_Responder is
 
       state Prepare_Measurements_Records
       is
-         Measurement_Record : SPDM::Measurement_Record;
          Measurement_Field : SPDM::DMTF_Measurement_Field;
          Nonce : SPDM::Nonce;
       begin
          Nonce := Plat_Get_Nonce;
-         Measurement_Field := Plat_Get_DMTF_Measurement_Field (Request.Get_Measurements_Request_Measurement_Operation);
+         Measurement_Field := Plat_Get_DMTF_Measurement_Field (Current_Measurement);
          Measurement_Record'Append (SPDM::Measurement_Block'
             (Index                                             =>
                Request.Get_Measurements_Request_Measurement_Operation,
@@ -863,7 +868,10 @@ package SPDM_Responder is
                                      Measurements_Response_Nonce_Data => Nonce.Data,
                                      Measurements_Response_Opaque_Length => 0,
                                      Measurements_Response_Opaque_Data => []);
+         Current_Measurement := Current_Measurement + 1;
       transition
+         goto Prepare_Measurements_Records
+            if Current_Measurement <= Last_Measurement
          goto Prepare_Measurements_Sign
             if Request.Get_Measurements_Request_Generate_Signature
          goto Update_Measurement_Signature
@@ -876,10 +884,8 @@ package SPDM_Responder is
          Unsigned : SPDM::Response;
          Signature_Length : SPDM::Signature_Length;
          Signature : Signature;
-         Measurement_Record : SPDM::Measurement_Record;
          Nonce_Offset : SPDM::Length_24;
       begin
-         Measurement_Record := [for R in Response.Measurements_Response_Measurement_Record => R];
          Unsigned := SPDM::Response'
             (Meas_Cap                                        => Response.Meas_Cap,
              Hash_Type                                       => Response.Hash_Type,
@@ -932,7 +938,6 @@ package SPDM_Responder is
 
       state Prepare_Measurements_Number_Of_Indices
       is
-         Measurement_Record : SPDM::Measurement_Record;
          Number_Of_Indices : SPDM::Measurement_Count;
          Nonce : SPDM::Nonce;
       begin
