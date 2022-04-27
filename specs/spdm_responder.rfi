@@ -11,9 +11,12 @@ Session:
                 Req_Base_Asym_Alg_List: 100
                 Key_Schedule_List: 100
                 Resp_Alg_Structs: 100
+                Measurement_Record: 512
             Local:
                 Prepare_Digests:
                     Digests_Data: 515
                 Prepare_Algorithms:
                     Ext_Asym: 100
                     Ext_Hash: 100
+                Prepare_Measurements_Sign:
+                    Unsigned: 1280
