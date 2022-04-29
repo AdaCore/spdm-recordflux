@@ -132,13 +132,13 @@ libriscv64: build/riscv64/lib/libspdm.a
 
 test: test_validate test_responder test_cross lib test_integration
 
-build/lib/libspdm.a: $(addprefix build/generated/,$(GENERATED)) build/generated/spdm_platform_interface.adb
+build/lib/libspdm.a: $(addprefix build/generated/,$(GENERATED))
 	gprbuild -j0 -P spdm
 
-build/%/lib/libspdm.a: $(addprefix build/generated/,$(GENERATED)) build/generated/spdm_platform_interface.adb
+build/%/lib/libspdm.a: $(addprefix build/generated/,$(GENERATED))
 	gprbuild -j0 -P spdm -XTARGET=$*
 
-build/%/example/main: $(addprefix build/generated/,$(GENERATED)) build/generated/spdm_platform_interface.adb
+build/%/example/main: $(addprefix build/generated/,$(GENERATED))
 	gprbuild -j0 -P examples/build.gpr -XTARGET=$*
 	test -f $@
 
@@ -159,7 +159,7 @@ build/%/gnatstack/example/gnatstack.log: build/%/gnatstack/example/main
 	gnatstack -Wa -l10 -v -f $@ -P examples/build.gpr -XCHECK_STACK=True -XTARGET=$* | tee $@.tmp
 	mv $@.tmp $@
 
-build/%/gnatstack/example/main: $(addprefix build/generated/,$(GENERATED)) build/generated/spdm_platform_interface.adb
+build/%/gnatstack/example/main: $(addprefix build/generated/,$(GENERATED))
 	gprbuild -j0 -P examples/build.gpr -XCHECK_STACK=True -XTARGET=$*
 
 build/spdm_dump:
@@ -250,9 +250,6 @@ test_package: build/spdm_$(GITREV).tar
 	PATH="$(TMPDIR)/package_test_venv/bin:$(PATH)" make -C $(TMPDIR)/package_test lib
 	# static library must exist
 	test -f $(TMPDIR)/package_test/build/lib/libspdm.a
-
-build/generated/spdm_platform_interface.adb: include/spdm_platform_interface.ads
-	gnatstub --output-dir=$(dir $@) --no-exception --force $<
 
 prove: $(addprefix build/generated/,$(GENERATED))
 	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder -u responder_multiple_responders -u responder_select
