@@ -682,13 +682,14 @@ package SPDM is
       end message
          with Byte_Order => Low_Order_First;
 
-   -- 10.9 CHALLENGE request and CHALLENGE_AUTH response messages
-
    type Measurement_Summary_Hash_Type is
       (No_Measurement   => 16#00#,
        TCB_Measurement  => 16#01#,
        All_Measurements => 16#FF#)
    with Size => 8;
+
+#if FEATURE_CHALLENGE_AUTH then
+   -- 10.9 CHALLENGE request and CHALLENGE_AUTH response messages
 
    type Challenge_Request is
       message
@@ -727,7 +728,7 @@ package SPDM is
             with Size => 8 * Signature_Length;
       end message
          with Byte_Order => Low_Order_First;
-
+#end if;
    -- 10.12 ERROR response message
 
    type Error_Code is
@@ -828,6 +829,7 @@ package SPDM is
       end message
          with Byte_Order => Low_Order_First;
 
+#if FEATURE_RESPOND_IF_READY then
    -- 10.13 RESPOND_IF_READY request message format
 
    type Respond_If_Ready_Request is
@@ -835,7 +837,8 @@ package SPDM is
          Original_Request_Code : Request_Code;
          Token : Token;
       end message;
-
+#end if;
+#if FEATURE_KEY_EXCHANGE then
    -- 10.16 KEY_EXCHANGE request and KEY_EXCHANGE_RSP response messages
 
    type Session_ID is mod 2 ** 16;
@@ -973,7 +976,7 @@ package SPDM is
          Reserved_1 : Reserved_8;
          Reserved_2 : Reserved_8;
       end message;
-
+#end if;
    -- 8.2 Generic SPDM message format
 
    type Request (Hash_Length          : Hash_Length;
@@ -997,12 +1000,15 @@ package SPDM is
                if Code = Get_Digests
             then Get_Certificate_Request
                if Code = Get_Certificate
+#if FEATURE_CHALLENGE_AUTH then
             then Challenge_Request
                if Code = Challenge
-            then Get_Measurements_Request
-               if Code = Get_Measurements and Minor_Version = 1
+#end if;
+#if FEATURE_RESPOND_IF_READY then
             then Respond_If_Ready_Request
                if Code = Respond_If_Ready
+#end if;
+#if FEATURE_KEY_EXCHANGE then
             then Key_Exchange_Request
                if Code = Key_Exchange and Minor_Version = 1
             then Finish_Request
@@ -1010,7 +1016,10 @@ package SPDM is
             then Key_Update_Request
                if Code = Key_Update and Minor_Version = 1
             then End_Session_Request
-               if Code = End_Session and Minor_Version = 1;
+               if Code = End_Session and Minor_Version = 1
+#end if;
+            then Get_Measurements_Request
+               if Code = Get_Measurements and Minor_Version = 1;
          Get_Version_Request : Get_Version_Request
             then null;
          Get_Capabilities_Request : Get_Capabilities_Request
@@ -1021,12 +1030,17 @@ package SPDM is
             then null;
          Get_Certificate_Request : Get_Certificate_Request
             then null;
+#if FEATURE_CHALLENGE_AUTH then
          Challenge_Request : Challenge_Request
             then null;
+#end if;
          Get_Measurements_Request : Get_Measurements_Request
             then null;
+#if FEATURE_RESPOND_IF_READY then
          Respond_If_Ready_Request : Respond_If_Ready_Request
             then null;
+#end if;
+#if FEATURE_KEY_EXCHANGE then
          Key_Exchange_Request : Key_Exchange_Request (Exchange_Data_Length => Exchange_Data_Length)
             then null;
          Finish_Request : Finish_Request (Signature_Length => Signature_Length,
@@ -1035,6 +1049,7 @@ package SPDM is
          Key_Update_Request : Key_Update_Request
             then null;
          End_Session_Request : End_Session_Request;
+#end if;
       end message
          with Byte_Order => Low_Order_First;
 
@@ -1063,12 +1078,13 @@ package SPDM is
                if Code = Digests
             then Certificate_Response
                if Code = Certificate and Minor_Version = 1
+#if FEATURE_CHALLENGE_AUTH then
             then Challenge_Auth_Response
                if Code = Challenge_Auth and Minor_Version = 1
+#end if;
             then Measurements_Response
                if Code = Measurements and Minor_Version = 1
-            then Error_Response
-               if Code = Error and Minor_Version = 1
+#if FEATURE_KEY_EXCHANGE then
             then Key_Exchange_Response
                if Code = Key_Exchange_RSP and Minor_Version = 1
             then Finish_Response
@@ -1076,7 +1092,10 @@ package SPDM is
             then Key_Update_ACK_Response
                if Code = Key_Update_ACK and Minor_Version = 1
             then End_Session_Response
-               if Code = End_Session_ACK and Minor_Version = 1;
+               if Code = End_Session_ACK and Minor_Version = 1
+#end if;
+            then Error_Response
+               if Code = Error and Minor_Version = 1;
          Version_Response : Version_Response
             then null;
          Capabilities_Response : Capabilities_Response
@@ -1087,15 +1106,18 @@ package SPDM is
             then null;
          Certificate_Response : Certificate_Response
             then null;
+#if FEATURE_CHALLENGE_AUTH then
          Challenge_Auth_Response : Challenge_Auth_Response (Meas_Cap         => Meas_Cap,
                                                             Hash_Type        => Hash_Type,
                                                             Hash_Length      => Hash_Length,
                                                             Signature_Length => Signature_Length)
             then null;
+#end if;
          Measurements_Response : Measurements_Response (Signature_Length => Signature_Length)
             then null;
          Error_Response : Error_Response
             then null;
+#if FEATURE_KEY_EXCHANGE then
          Key_Exchange_Response : Key_Exchange_Response (Exchange_Data_Length   => Exchange_Data_Length,
                                                         Hash_Length            => Hash_Length,
                                                         Signature_Length       => Signature_Length,
@@ -1107,6 +1129,7 @@ package SPDM is
          Key_Update_ACK_Response : Key_Update_Ack_Response
             then null;
          End_Session_Response : End_Session_Response;
+#end if;
       end message
          with Byte_Order => Low_Order_First;
 
