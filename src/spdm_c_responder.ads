@@ -206,10 +206,6 @@ is
                                               Result :    out RFLX.SPDM.DMTF_Measurement_Field.Structure);
 
    overriding
-   procedure Plat_Get_Meas_Signature_Length (Ctx    : in out Context;
-                                             Result :    out RFLX.SPDM.Signature_Length);
-
-   overriding
    procedure Plat_Get_Meas_Signature (Ctx              : in out Context;
                                       Unsigned_Message :        RFLX.RFLX_Types.Bytes;
                                       Nonce_Offset     :        RFLX.SPDM.Length_24;

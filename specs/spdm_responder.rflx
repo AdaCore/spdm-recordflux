@@ -128,8 +128,6 @@ package SPDM_Responder is
 
       with function Plat_Get_DMTF_Measurement_Field (Index : SPDM::Index) return SPDM::DMTF_Measurement_Field;
 
-      with function Plat_Get_Meas_Signature_Length return SPDM::Signature_Length;
-
       with function Plat_Get_Meas_Signature (Unsigned_Message : Opaque;
                                              Nonce_Offset     : SPDM::Length_24) return Signature;
 
@@ -903,54 +901,44 @@ package SPDM_Responder is
 
       state Prepare_Measurements_Sign
       is
-         Unsigned : SPDM::Response;
-         Signature_Length : SPDM::Signature_Length;
-         Signature : Signature;
-         Nonce_Offset : SPDM::Length_24;
+         Signature              : Signature;
+         Nonce_Offset           : SPDM::Length_24;
+         Major_Version          : SPDM::Major_Version;
+         Minor_Version          : SPDM::Minor_Version;
+         Code                   : SPDM::Response_Code;
+         Number_Of_Indices      : SPDM::Measurement_Count;
+         Slot_ID                : SPDM::Narrow_Slot;
+         Number_Of_Blocks       : SPDM::Block_Count;
+         Nonce                  : SPDM::Nonce;
       begin
-         Unsigned := SPDM::Response'
-            (Meas_Cap                                        => Response.Meas_Cap,
-             Hash_Type                                       => Response.Hash_Type,
-             Hash_Length                                     => Response.Hash_Length,
-             Signature_Length                                => Response.Signature_Length,
-             Exchange_Data_Length                            => Response.Exchange_Data_Length,
-             Handshake_In_The_Clear                          => Response.Handshake_In_The_Clear,
-             Major_Version                                   => Response.Major_Version,
-             Minor_Version                                   => Response.Major_Version,
-             Code                                            => Response.Code,
-             Measurements_Response_Number_Of_Indices         => Response.Measurements_Response_Number_Of_Indices,
-             Measurements_Response_Reserved_1                => 0,
-             Measurements_Response_Slot_ID                   => Response.Measurements_Response_Slot_ID,
-             Measurements_Response_Number_Of_Blocks          => Response.Measurements_Response_Number_Of_Blocks,
-             Measurements_Response_Measurement_Record_Length =>
-               Response.Measurements_Response_Measurement_Record_Length,
-             Measurements_Response_Measurement_Record        => Measurement_Record,
-             Measurements_Response_Nonce_Data                => Response.Measurements_Response_Nonce_Data,
-             Measurements_Response_Opaque_Length             => Response.Measurements_Response_Opaque_Length,
-             Measurements_Response_Opaque_Data               => Response.Measurements_Response_Opaque_Data);
-         Signature_Length := Plat_Get_Meas_Signature_Length;
-         Nonce_Offset := Unsigned.Measurements_Response_Measurement_Record_Length + 8;
-         Signature := Plat_Get_Meas_Signature (Unsigned'Opaque, Nonce_Offset);
-         Response := SPDM::Response'
-            (Meas_Cap                                        => Unsigned.Meas_Cap,
-             Hash_Type                                       => Unsigned.Hash_Type,
-             Hash_Length                                     => Unsigned.Hash_Length,
+         Major_Version          := Response.Major_Version;
+         Minor_Version          := Response.Minor_Version;
+         Code                   := Response.Code;
+         Number_Of_Indices      := Response.Measurements_Response_Number_Of_Indices;
+         Slot_ID                := Response.Measurements_Response_Slot_ID;
+         Number_Of_Blocks       := Response.Measurements_Response_Number_Of_Blocks;
+         Nonce                  := SPDM::Nonce'(Data => Response.Measurements_Response_Nonce_Data);
+         Nonce_Offset           := Response.Measurements_Response_Measurement_Record_Length + 8;
+         Signature              := Plat_Get_Meas_Signature (Response'Opaque, Nonce_Offset);
+         Response               := SPDM::Response'
+            (Meas_Cap                                        => SPDM::Meas_Unsupported,
+             Hash_Type                                       => SPDM::No_Measurement,
+             Hash_Length                                     => 0,
              Signature_Length                                => Signature.Length,
-             Exchange_Data_Length                            => Unsigned.Exchange_Data_Length,
-             Handshake_In_The_Clear                          => Unsigned.Handshake_In_The_Clear,
-             Major_Version                                   => Unsigned.Major_Version,
-             Minor_Version                                   => Unsigned.Major_Version,
-             Code                                            => Unsigned.Code,
-             Measurements_Response_Number_Of_Indices         => Unsigned.Measurements_Response_Number_Of_Indices,
+             Exchange_Data_Length                            => 512,
+             Handshake_In_The_Clear                          => True,
+             Major_Version                                   => Major_Version,
+             Minor_Version                                   => Major_Version,
+             Code                                            => Code,
+             Measurements_Response_Number_Of_Indices         => Number_Of_Indices,
              Measurements_Response_Reserved_1                => 0,
-             Measurements_Response_Slot_ID                   => Unsigned.Measurements_Response_Slot_ID,
-             Measurements_Response_Number_Of_Blocks          => Unsigned.Measurements_Response_Number_Of_Blocks,
-             Measurements_Response_Measurement_Record_Length =>
-               Unsigned.Measurements_Response_Measurement_Record_Length,
+             Measurements_Response_Slot_ID                   => Slot_ID,
+             Measurements_Response_Number_Of_Blocks          => Number_Of_Blocks,
+             Measurements_Response_Measurement_Record_Length => Measurement_Record'Size / 8,
              Measurements_Response_Measurement_Record        => Measurement_Record,
-             Measurements_Response_Nonce_Data                => Unsigned.Measurements_Response_Nonce_Data,
-             Measurements_Response_Opaque_Length             => Unsigned.Measurements_Response_Opaque_Length,
-             Measurements_Response_Opaque_Data               => Unsigned.Measurements_Response_Opaque_Data,
+             Measurements_Response_Nonce_Data                => Nonce.Data,
+             Measurements_Response_Opaque_Length             => 0,
+             Measurements_Response_Opaque_Data               => [],
              Measurements_Response_Signature                 => Signature.Data);
       transition
          goto Send_Measurements

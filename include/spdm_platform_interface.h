@@ -100,8 +100,6 @@ void spdm_platform_get_dmtf_measurement_field (instance_t *instance,
                                                unsigned *size,
                                                void *buffer);
 
-unsigned spdm_platform_get_meas_signature_length (instance_t *instance);
-
 void spdm_platform_get_meas_signature (instance_t *instance,
                                        void *message,
                                        unsigned message_length,

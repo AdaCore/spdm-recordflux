@@ -686,22 +686,6 @@ is
    end Plat_Get_DMTF_Measurement_Field;
 
    overriding
-   procedure Plat_Get_Meas_Signature_Length (Ctx    : in out Context;
-                                             Result :    out RFLX.SPDM.Signature_Length)
-   is
-      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned with
-         Import,
-         Convention => C,
-         External_Name => "spdm_platform_get_meas_signature_length";
-      Sig_Length : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
-   begin
-      if not RFLX.SPDM.Valid_Signature_Length (Sig_Length) then
-         raise Constraint_Error;
-      end if;
-      Result := RFLX.SPDM.To_Actual (Sig_Length);
-   end Plat_Get_Meas_Signature_Length;
-
-   overriding
    procedure Plat_Get_Meas_Signature (Ctx              : in out Context;
                                       Unsigned_Message :        RFLX.RFLX_Types.Bytes;
                                       Nonce_Offset     :        RFLX.SPDM.Length_24;

@@ -339,11 +339,6 @@ void spdm_platform_get_dmtf_measurement_field(instance_t *instance,
     }
 }
 
-unsigned spdm_platform_get_meas_signature_length (__unused_cross__ instance_t *instance)
-{
-    return spdm_get_measurement_hash_size(instance->measurement_hash_algo);
-}
-
 void spdm_platform_get_meas_signature (instance_t *instance,
                                        void *message,
                                        __attribute__((unused)) unsigned message_length,
