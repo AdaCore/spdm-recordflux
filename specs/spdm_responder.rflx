@@ -154,6 +154,7 @@ package SPDM_Responder is
       Measurement_Record     : SPDM::Measurement_Record;
       Current_Measurement    : SPDM::Index;
       Last_Measurement       : SPDM::Index;
+      Error_Code             : SPDM::Error_Code;
    begin
       state Init
       is
@@ -1024,25 +1025,20 @@ package SPDM_Responder is
       state Error_Invalid_Request
       is
       begin
-         Response :=
-            SPDM::Response'(Meas_Cap                       => SPDM::Meas_Unsupported,
-                            Hash_Type                      => SPDM::No_Measurement,
-                            Hash_Length                    => 64,
-                            Signature_Length               => 512,
-                            Exchange_Data_Length           => 512,
-                            Handshake_In_The_Clear         => True,
-                            Major_Version                  => 1,
-                            Minor_Version                  => 1,
-                            Code                           => SPDM::Error,
-                            Error_Response_Error_Code      => SPDM::Invalid_Request,
-                            Error_Response_Zero_Error_Data => 0);
+         Error_Code := SPDM::Invalid_Request;
       transition
-         goto Send_Error
-      exception
-         goto End_Session
+         goto Error_Zero_Data
       end Error_Invalid_Request;
 
       state Error_Unspecified
+      is
+      begin
+         Error_Code := SPDM::Unspecified;
+      transition
+         goto Error_Zero_Data
+      end Error_Unspecified;
+
+      state Error_Zero_Data
       is
       begin
          Response :=
@@ -1055,13 +1051,13 @@ package SPDM_Responder is
                             Major_Version                  => 1,
                             Minor_Version                  => 1,
                             Code                           => SPDM::Error,
-                            Error_Response_Error_Code      => SPDM::Unspecified,
+                            Error_Response_Error_Code      => Error_Code,
                             Error_Response_Zero_Error_Data => 0);
       transition
          goto Send_Error
       exception
          goto End_Session
-      end Error_Unspecified;
+      end Error_Zero_Data;
 
       state Send_Error
       is
