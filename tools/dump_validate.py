@@ -52,7 +52,14 @@ def extract_secrets(log_file: Path) -> Tuple[Optional[str], Optional[str]]:
     return dhe_secret, psk
 
 
-def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
+def dump(
+    pcap_file: Path,
+    out_dir: Path,
+    dhe_secret: str,
+    psk: str,
+    challenge_auth: bool,
+    key_exchange: bool,
+) -> int:
     packets: Dict[str, List[Tuple[str, bytes]]] = {}
     spdm_dump = ["spdm_dump", "-r", str(pcap_file), "-x"]
     if dhe_secret and psk:
@@ -77,6 +84,27 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
             else:
                 packets[current_type] = [(current_name, data)]
             current_name = None
+
+    disabled_messages = []
+
+    if not challenge_auth:
+        disabled_messages.extend(
+            ["SPDM_CHALLENGE", "SPDM_CHALLENGE_AUTH"]
+        )
+
+    if not key_exchange:
+        disabled_messages.extend(
+            [
+                "SPDM_END_SESSION",
+                "SPDM_END_SESSION_ACK",
+                "SPDM_FINISH",
+                "SPDM_FINISH_RSP",
+                "SPDM_KEY_EXCHANGE",
+                "SPDM_KEY_EXCHANGE_RSP",
+                "SPDM_KEY_UPDATE",
+                "SPDM_KEY_UPDATE_ACK",
+            ]
+        )
 
     for line in output.split("\n"):
         try:
@@ -106,7 +134,10 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
         valid = out_dir / m_type / "valid"
         os.makedirs(str(valid), exist_ok=True)
         for message_name, message_data in messages:
-            if message_name in unsupported_messages:
+            if (
+                message_name in unsupported_messages
+                or message_name in disabled_messages
+            ):
                 continue
             basename = valid / f"{sha1(message_data).hexdigest()}_{message_name}"
             with (basename.with_suffix(".raw")).open("wb") as message:
@@ -122,9 +153,16 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
                     # Only some measurement responses contain signatures. Since these
                     # messages are usually short we just assume that the longest of them
                     # are the signed ones.
-                    signed_measurement_length = max(len(data) for name, data in messages if name == "SPDM_MEASUREMENTS")
+                    signed_measurement_length = max(
+                        len(data)
+                        for name, data in messages
+                        if name == "SPDM_MEASUREMENTS"
+                    )
                     signature_length = 96
-                    if message_name == "SPDM_MEASUREMENTS" and len(message_data) < signed_measurement_length:
+                    if (
+                        message_name == "SPDM_MEASUREMENTS"
+                        and len(message_data) < signed_measurement_length
+                    ):
                         signature_length = 0
                     config.write(
                         "Meas_Cap: 2\n"
@@ -135,14 +173,36 @@ def dump(pcap_file: Path, out_dir: Path, dhe_secret: str, psk: str) -> int:
                         "Exchange_Data_Length: 96\n"
                     )
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", type=Path, help="pcap file", required=True)
     parser.add_argument("-o", "--out", type=Path, help="output dir", required=True)
     parser.add_argument("-l", "--log", type=Path, help="spdm_emu log file")
+    parser.add_argument(
+        "--FEATURE_CHALLENGE_AUTH",
+        choices=["True", "False"],
+        default="False",
+        help="extract CHALLENGE_AUTH related messages",
+    )
+    parser.add_argument(
+        "--FEATURE_KEY_EXCHANGE",
+        choices=["True", "False"],
+        default="False",
+        help="extract KEY_EXCHANGE related messages",
+    )
     args = parser.parse_args(sys.argv[1:])
     dhe_secret: str = None
     psk: str = None
     if args.log:
         dhe_secret, psk = extract_secrets(args.log)
-    exit(dump(args.file, args.out, dhe_secret, psk))
+    exit(
+        dump(
+            args.file,
+            args.out,
+            dhe_secret,
+            psk,
+            challenge_auth=args.FEATURE_CHALLENGE_AUTH == "True",
+            key_exchange=args.FEATURE_KEY_EXCHANGE == "True",
+        )
+    )

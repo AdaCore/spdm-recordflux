@@ -1,9 +1,12 @@
 .PHONY: all test check check_spec check_stack check_stack_riscv64 check_stack_arm package test_package test_cross test_integration prove clean
 
 # Features: set to "True" or "False"
-FEATURE_CHALLENGE_AUTH ?= False
-FEATURE_RESPOND_IF_READY ?= False
-FEATURE_KEY_EXCHANGE ?= False
+FEATURE_CHALLENGE_AUTH ?= True
+FEATURE_RESPOND_IF_READY ?= True
+FEATURE_KEY_EXCHANGE ?= True
+
+FEATURES = CHALLENGE_AUTH=$(FEATURE_CHALLENGE_AUTH),KEY_EXCHANGE=$(FEATURE_KEY_EXCHANGE),RESPOND_IF_READY=$(FEATURE_RESPOND_IF_READY)
+VALIDATE_STATIC = test_validate_static_base
 
 TMPDIR := $(shell mktemp -d)
 FILE_LIST := $(shell mktemp)
@@ -105,6 +108,7 @@ GENERATED += \
     rflx-spdm-challenge_auth_response.ads \
     rflx-spdm-challenge_request.adb \
     rflx-spdm-challenge_request.ads
+VALIDATE_STATIC += test_validate_static_challenge_auth
 endif
 
 ifeq ($(FEATURE_KEY_EXCHANGE),True)
@@ -125,6 +129,7 @@ GENERATED += \
     rflx-spdm-end_session_request.ads \
     rflx-spdm-end_session_response.adb \
     rflx-spdm-end_session_response.ads
+VALIDATE_STATIC += test_validate_static_key_exchange
 endif
 
 ifeq ($(FEATURE_RESPOND_IF_READY),True)
@@ -134,14 +139,14 @@ GENERATED += \
 endif
 
 SPECIFICATIONS = \
-	build/specs/spdm_emu.rflx \
-	build/specs/spdm_proxy.rflx \
-	build/specs/spdm_requester.rflx \
-	build/specs/spdm_responder.rflx \
-	build/specs/spdm.rflx \
+	build/specs/$(FEATURES)/spdm_emu.rflx \
+	build/specs/$(FEATURES)/spdm_proxy.rflx \
+	build/specs/$(FEATURES)/spdm_requester.rflx \
+	build/specs/$(FEATURES)/spdm_responder.rflx \
+	build/specs/$(FEATURES)/spdm.rflx \
 
 INTEGRATION_FILES = \
-	build/specs/spdm_responder.rfi \
+	build/specs/$(FEATURES)/spdm_responder.rfi \
 
 ifdef LOCAL_RFLX
 RFLX = $(shell command -v python3) $(shell command -v rflx)
@@ -176,8 +181,8 @@ check: check_spec check_stack
 check_spec: $(SPECIFICATIONS) | $(INTEGRATION_FILES) $(RFLX)
 	$(RFLX) check $^
 
-build/specs/%: specs/%
-	mkdir -p build/specs
+build/specs/$(FEATURES)/%: specs/%
+	mkdir -p $(dir $@)
 	gnatprep \
 		-u \
 		-DFEATURE_CHALLENGE_AUTH=$(FEATURE_CHALLENGE_AUTH) \
@@ -232,19 +237,33 @@ build/certificates:
 
 test_validate: test_validate_libspdm test_validate_static
 
-test_validate_libspdm: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump build/certificates | $(RFLX)
+test_validate_libspdm: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump build/certificates | build/specs/$(FEATURES)/spdm.rflx $(RFLX)
 	mkdir -p $(TMPDIR)/spdm build
 	rm -f build/validate_libspdm_request.log build/validate_libspdm_response.log
 	tools/run_emu.sh $(TMPDIR)/test_validate.pcap
-	PATH="build/spdm_dump/bin:$(PATH)" tools/dump_validate.py -f $(TMPDIR)/test_validate.pcap -l $(TMPDIR)/test_validate.pcap.log -o $(TMPDIR)/spdm
-	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_libspdm_request.log -v $(TMPDIR)/spdm/Request/valid build/specs/spdm.rflx SPDM::Request
-	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_libspdm_response.log -v $(TMPDIR)/spdm/Response/valid build/specs/spdm.rflx SPDM::Response
+	PATH="build/spdm_dump/bin:$(PATH)" tools/dump_validate.py --FEATURE_CHALLENGE_AUTH=$(FEATURE_CHALLENGE_AUTH) --FEATURE_KEY_EXCHANGE=$(FEATURE_KEY_EXCHANGE) -f $(TMPDIR)/test_validate.pcap -l $(TMPDIR)/test_validate.pcap.log -o $(TMPDIR)/spdm
+	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_libspdm_request.log -v $(TMPDIR)/spdm/Request/valid build/specs/$(FEATURES)/spdm.rflx SPDM::Request
+	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_libspdm_response.log -v $(TMPDIR)/spdm/Response/valid build/specs/$(FEATURES)/spdm.rflx SPDM::Response
 
-test_validate_static: | $(RFLX)
+test_validate_static: $(VALIDATE_STATIC)
+
+test_validate_static_base: | build/specs/$(FEATURES)/spdm.rflx $(RFLX)
 	mkdir -p build
 	rm -f build/validate_static_request.log build/validate_static_response.log
-	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_request.log -v tests/data/spdm/Request/valid build/specs/spdm.rflx SPDM::Request
-	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_response.log -v tests/data/spdm/Response/valid build/specs/spdm.rflx SPDM::Response
+	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_request.log -v tests/data/spdm/Request/valid build/specs/$(FEATURES)/spdm.rflx SPDM::Request
+	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_response.log -v tests/data/spdm/Response/valid build/specs/$(FEATURES)/spdm.rflx SPDM::Response
+
+test_validate_static_challenge_auth: | build/specs/$(FEATURES)/spdm.rflx $(RFLX)
+	mkdir -p build
+	rm -f build/validate_static_request.log build/validate_static_response.log
+	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_request_feature_challenge_auth.log -v tests/data/spdm/Request/valid_feature_challenge_auth build/specs/$(FEATURES)/spdm.rflx SPDM::Request
+	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_response_feature_challenge_auth.log -v tests/data/spdm/Response/valid_feature_challenge_auth build/specs/$(FEATURES)/spdm.rflx SPDM::Response
+
+test_validate_static_key_exchange: | build/specs/$(FEATURES)/spdm.rflx $(RFLX)
+	mkdir -p build
+	rm -f build/validate_static_request.log build/validate_static_response.log
+	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_request_feature_key_exchange.log -v tests/data/spdm/Request/valid_feature_key_exchange build/specs/$(FEATURES)/spdm.rflx SPDM::Request
+	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_response_feature_key_exchange.log -v tests/data/spdm/Response/valid_feature_key_exchange build/specs/$(FEATURES)/spdm.rflx SPDM::Response
 
 test_responder: build/tests/responder build/tests/proxy build/spdm_emu/bin/spdm_requester_emu build/certificates
 	tools/run_responder.expect
