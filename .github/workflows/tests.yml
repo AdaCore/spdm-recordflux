@@ -62,3 +62,10 @@ jobs:
               env:
                 SPDM_IGNORE_CHALLENGE_AUTH: 1
               run: make
+            - name: Check spec (all features off)
+              env:
+                SPDM_IGNORE_CHALLENGE_AUTH: 1
+                FEATURE_CHALLENGE_AUTH: False
+                FEATURE_KEY_EXCHANGE: False
+                FEATURE_RESPOND_IF_READY: False
+              run: make check_spec
