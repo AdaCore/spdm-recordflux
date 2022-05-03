@@ -88,9 +88,7 @@ def dump(
     disabled_messages = []
 
     if not challenge_auth:
-        disabled_messages.extend(
-            ["SPDM_CHALLENGE", "SPDM_CHALLENGE_AUTH"]
-        )
+        disabled_messages.extend(["SPDM_CHALLENGE", "SPDM_CHALLENGE_AUTH"])
 
     if not key_exchange:
         disabled_messages.extend(
@@ -180,15 +178,15 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--out", type=Path, help="output dir", required=True)
     parser.add_argument("-l", "--log", type=Path, help="spdm_emu log file")
     parser.add_argument(
-        "--FEATURE_CHALLENGE_AUTH",
-        choices=["True", "False"],
-        default="False",
+        "--feature_challenge_auth",
+        action="store_true",
+        default=False,
         help="extract CHALLENGE_AUTH related messages",
     )
     parser.add_argument(
-        "--FEATURE_KEY_EXCHANGE",
-        choices=["True", "False"],
-        default="False",
+        "--feature_key_exchange",
+        action="store_true",
+        default=False,
         help="extract KEY_EXCHANGE related messages",
     )
     args = parser.parse_args(sys.argv[1:])
@@ -202,7 +200,7 @@ if __name__ == "__main__":
             args.out,
             dhe_secret,
             psk,
-            challenge_auth=args.FEATURE_CHALLENGE_AUTH == "True",
-            key_exchange=args.FEATURE_KEY_EXCHANGE == "True",
+            challenge_auth=args.feature_challenge_auth,
+            key_exchange=args.feature_key_exchange,
         )
     )
