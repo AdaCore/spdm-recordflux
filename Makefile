@@ -138,12 +138,19 @@ GENERATED += \
     rflx-spdm-respond_if_ready_request.ads
 endif
 
-SPECIFICATIONS = \
-	build/specs/$(FEATURES)/spdm_emu.rflx \
-	build/specs/$(FEATURES)/spdm_proxy.rflx \
-	build/specs/$(FEATURES)/spdm_requester.rflx \
-	build/specs/$(FEATURES)/spdm_responder.rflx \
-	build/specs/$(FEATURES)/spdm.rflx \
+SOURCE_SPECIFICATIONS = \
+	specs/spdm_emu.rflx \
+	specs/spdm_proxy.rflx \
+	specs/spdm_requester.rflx \
+	specs/spdm_responder.rflx \
+	specs/spdm.rflx \
+
+MISSING_SPECIFICATIONS = $(filter-out $(SOURCE_SPECIFICATIONS),$(wildcard specs/*.rflx))
+ifneq ($(MISSING_SPECIFICATIONS),)
+$(error Unhandled specifications: $(MISSING_SPECIFICATIONS))
+endif
+
+SPECIFICATIONS = $(addprefix build/specs/$(FEATURES)/, $(foreach spec, $(SOURCE_SPECIFICATIONS), $(notdir $(spec))))
 
 INTEGRATION_FILES = \
 	build/specs/$(FEATURES)/spdm_responder.rfi \
