@@ -271,6 +271,8 @@ package SPDM_Responder is
          Cap_Mut_Auth               := Plat_Cfg_Cap_Mut_Auth;
          Cap_Pub_Key_ID             := Plat_Cfg_Cap_Pub_Key_ID;
 
+         --  The spec only specifies that the responder sends the capabilities it supports
+         --  without taking into account what the requester supports.
          Response :=
             SPDM::Response'(Meas_Cap                                         => Cap_Meas,
                             Hash_Type                                        => SPDM::No_Measurement,
@@ -302,6 +304,24 @@ package SPDM_Responder is
                             Capabilities_Response_Mut_Auth_Cap               => Cap_Mut_Auth,
                             Capabilities_Response_Reserved_4                 => 0,
                             Capabilities_Response_Pub_Key_ID_Cap             => Cap_Pub_Key_ID);
+
+         --  ISSUE: Componolit/RecordFlux#1012
+         --  --  For the behaviour when responding the responder has to take the
+         --  --  capabilities supported by the requester into account.
+         --  CT_Exponent                := Plat_Cfg_CT_Exponent;  --  Min(Resp.CT_Exp, Req.CT_Exp)?
+         --  Cap_MAC                    := Plat_Cfg_Cap_MAC and Request.Get_Capabilities_Request_MAC_Cap;
+         --  Cap_Encrypt                := Plat_Cfg_Cap_Encrypt and Request.Get_Capabilities_Request_Encrypt_Cap;
+         --  Cap_Chal                   := Plat_Cfg_Cap_Chal and Request.Get_Capabilities_Request_Chal_Cap;
+         --  Cap_Cert                   := Plat_Cfg_Cap_Cert and Request.Get_Capabilities_Request_Cert_Cap;
+         --  Cap_Handshake_In_The_Clear :=
+         --     Plat_Cfg_Cap_Handshake_In_The_Clear and Request.Get_Capabilities_Request_Handshake_In_The_Clear_Cap;
+         --  Cap_Key_Upd                := Plat_Cfg_Cap_Key_Upd and Request.Get_Capabilities_Request_Key_Upd_Cap;
+         --  Cap_Hbeat                  := Plat_Cfg_Cap_Hbeat and Request.Get_Capabilities_Request_Hbeat_Cap;
+         --  Cap_Encap                  := Plat_Cfg_Cap_Encap and Request.Get_Capabilities_Request_Encap_Cap;
+         --  --  Cap_PSK                    := Plat_Cfg_Cap_PSK and Request.Get_Capabilities_Request_PSK_Cap; ?
+         --  Cap_Key_Ex                 := Plat_Cfg_Cap_Key_Ex and Request.Get_Capabilities_Request_Key_Ex_Cap;
+         --  Cap_Mut_Auth               := Plat_Cfg_Cap_Mut_Auth and Request.Get_Capabilities_Request_Mut_Auth_Cap;
+         --  Cap_Pub_Key_ID             := Plat_Cfg_Cap_Pub_Key_ID and Request.Get_Capabilities_Request_Pub_Key_ID_Cap;
       transition
          goto Send_Capabilities
       exception
@@ -336,7 +356,7 @@ package SPDM_Responder is
                       if A.Alg_Type = SPDM::DHE => A];
       transition
          goto Prepare_Algorithms_DHE
-            if DHE_List'Size > 0
+            if DHE_List'Size > 0 and Cap_Key_Ex
          goto Check_Algorithms_AEAD_Cipher_Suite
       exception
          goto Error_Unspecified
@@ -397,7 +417,7 @@ package SPDM_Responder is
                                     if A.Alg_Type = SPDM::AEAD_Cipher_Suite => A];
       transition
          goto Prepare_Algorithms_AEAD_Cipher_Suite
-            if AEAD_Cipher_Suite_List'Size > 0
+            if AEAD_Cipher_Suite_List'Size > 0 and Cap_Key_Ex
          goto Check_Algorithms_Req_Base_Asym_Alg
       exception
          goto Error_Unspecified
@@ -519,7 +539,7 @@ package SPDM_Responder is
                                if A.Alg_Type = SPDM::Key_Schedule => A];
       transition
          goto Prepare_Algorithms_Key_Schedule
-            if Key_Schedule_List'Size > 0
+            if Key_Schedule_List'Size > 0 and Cap_Key_Ex
          goto Prepare_Algorithms
       exception
          goto Error_Unspecified
