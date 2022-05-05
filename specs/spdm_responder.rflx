@@ -155,6 +155,24 @@ package SPDM_Responder is
       Current_Measurement    : SPDM::Index;
       Last_Measurement       : SPDM::Index;
       Error_Code             : SPDM::Error_Code;
+
+      --  Capabilities
+      CT_Exponent                : SPDM::CT_Exponent;
+      Cap_MAC                    : Boolean;
+      Cap_Encrypt                : Boolean;
+      Cap_Meas_Fresh             : Boolean;
+      Cap_Meas                   : SPDM::Meas_Cap;
+      Cap_Chal                   : Boolean;
+      Cap_Cert                   : Boolean;
+      Cap_Cache                  : Boolean;
+      Cap_Handshake_In_The_Clear : Boolean;
+      Cap_Key_Upd                : Boolean;
+      Cap_Hbeat                  : Boolean;
+      Cap_Encap                  : Boolean;
+      Cap_PSK                    : SPDM::PSK_Resp_Cap;
+      Cap_Key_Ex                 : Boolean;
+      Cap_Mut_Auth               : Boolean;
+      Cap_Pub_Key_ID             : Boolean;
    begin
       state Init
       is
@@ -193,12 +211,12 @@ package SPDM_Responder is
       state Prepare_Version
       is
       begin
-         Response := SPDM::Response'(Meas_Cap                                    => SPDM::Meas_Unsupported,
+         Response := SPDM::Response'(Meas_Cap                                    => Cap_Meas,
                                      Hash_Type                                   => SPDM::No_Measurement,
                                      Hash_Length                                 => 0,
-                                     Signature_Length                            => 512,
+                                     Signature_Length                            => 0,
                                      Exchange_Data_Length                        => 512,
-                                     Handshake_In_The_Clear                      => True,
+                                     Handshake_In_The_Clear                      => Cap_Handshake_In_The_Clear,
                                      Major_Version                               => 1,
                                      Minor_Version                               => 0,
                                      Code                                        => SPDM::Version,
@@ -235,22 +253,6 @@ package SPDM_Responder is
 
       state Prepare_Capabilities
       is
-         CT_Exponent                : SPDM::CT_Exponent;
-         Cap_MAC                    : Boolean;
-         Cap_Encrypt                : Boolean;
-         Cap_Meas_Fresh             : Boolean;
-         Cap_Meas                   : SPDM::Meas_Cap;
-         Cap_Chal                   : Boolean;
-         Cap_Cert                   : Boolean;
-         Cap_Cache                  : Boolean;
-         Cap_Handshake_In_The_Clear : Boolean;
-         Cap_Key_Upd                : Boolean;
-         Cap_Hbeat                  : Boolean;
-         Cap_Encap                  : Boolean;
-         Cap_PSK                    : SPDM::PSK_Resp_Cap;
-         Cap_Key_Ex                 : Boolean;
-         Cap_Mut_Auth               : Boolean;
-         Cap_Pub_Key_ID             : Boolean;
       begin
          CT_Exponent                := Plat_Cfg_CT_Exponent;
          Cap_MAC                    := Plat_Cfg_Cap_MAC;
@@ -270,12 +272,12 @@ package SPDM_Responder is
          Cap_Pub_Key_ID             := Plat_Cfg_Cap_Pub_Key_ID;
 
          Response :=
-            SPDM::Response'(Meas_Cap                                         => SPDM::Meas_Unsupported,
+            SPDM::Response'(Meas_Cap                                         => Cap_Meas,
                             Hash_Type                                        => SPDM::No_Measurement,
                             Hash_Length                                      => 0,
-                            Signature_Length                                 => 512,
+                            Signature_Length                                 => 0,
                             Exchange_Data_Length                             => 512,
-                            Handshake_In_The_Clear                           => True,
+                            Handshake_In_The_Clear                           => Cap_Handshake_In_The_Clear,
                             Major_Version                                    => 1,
                             Minor_Version                                    => 1,
                             Code                                             => SPDM::Capabilities,
@@ -580,12 +582,12 @@ package SPDM_Responder is
                               Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA3_512);
 
          Response :=
-            SPDM::Response'(Meas_Cap                                          => SPDM::Meas_Unsupported,
+            SPDM::Response'(Meas_Cap                                          => Cap_Meas,
                             Hash_Type                                         => SPDM::No_Measurement,
                             Hash_Length                                       => 0,
-                            Signature_Length                                  => 512,
+                            Signature_Length                                  => 0,
                             Exchange_Data_Length                              => 512,
-                            Handshake_In_The_Clear                            => True,
+                            Handshake_In_The_Clear                            => Cap_Handshake_In_The_Clear,
                             Major_Version                                     => 1,
                             Minor_Version                                     => 1,
                             Code                                              => SPDM::Algorithms,
@@ -691,12 +693,12 @@ package SPDM_Responder is
          Slot_6_Present := Digests_Data.Slot_6_Present;
          Slot_7_Present := Digests_Data.Slot_7_Present;
 
-         Response := SPDM::Response'(Meas_Cap                                    => SPDM::Meas_Unsupported,
+         Response := SPDM::Response'(Meas_Cap                                    => Cap_Meas,
                                      Hash_Type                                   => SPDM::No_Measurement,
                                      Hash_Length                                 => Hash_Length,
-                                     Signature_Length                            => 512,
+                                     Signature_Length                            => 0,
                                      Exchange_Data_Length                        => 512,
-                                     Handshake_In_The_Clear                      => True,
+                                     Handshake_In_The_Clear                      => Cap_Handshake_In_The_Clear,
                                      Major_Version                               => 1,
                                      Minor_Version                               => 1,
                                      Code                                        => SPDM::Digests,
@@ -764,12 +766,12 @@ package SPDM_Responder is
          Cert_Portion_Length   := Cert.Portion_Length;
          Cert_Remainder_Length := Cert.Remainder_Length;
 
-         Response := SPDM::Response'(Meas_Cap                              => SPDM::Meas_Unsupported,
+         Response := SPDM::Response'(Meas_Cap                              => Cap_Meas,
                                      Hash_Type                             => SPDM::No_Measurement,
                                      Hash_Length                           => Hash_Length,
-                                     Signature_Length                      => 512,
+                                     Signature_Length                      => 0,
                                      Exchange_Data_Length                  => 512,
-                                     Handshake_In_The_Clear                => True,
+                                     Handshake_In_The_Clear                => Cap_Handshake_In_The_Clear,
                                      Major_Version                         => 1,
                                      Minor_Version                         => 1,
                                      Code                                  => SPDM::Certificate,
@@ -874,12 +876,12 @@ package SPDM_Responder is
          Nonce : SPDM::Nonce;
       begin
          Nonce := Plat_Get_Nonce;
-         Response := SPDM::Response'(Meas_Cap                              => SPDM::Meas_Unsupported,
+         Response := SPDM::Response'(Meas_Cap                              => Cap_Meas,
                                      Hash_Type                             => SPDM::No_Measurement,
                                      Hash_Length                           => Hash_Length,
                                      Signature_Length                      => 0,
                                      Exchange_Data_Length                  => 512,
-                                     Handshake_In_The_Clear                => True,
+                                     Handshake_In_The_Clear                => Cap_Handshake_In_The_Clear,
                                      Major_Version                         => 1,
                                      Minor_Version                         => 1,
                                      Code                                  => SPDM::Measurements,
@@ -922,12 +924,12 @@ package SPDM_Responder is
          Nonce_Offset           := Response.Measurements_Response_Measurement_Record_Length + 8;
          Signature              := Plat_Get_Meas_Signature (Response'Opaque, Nonce_Offset);
          Response               := SPDM::Response'
-            (Meas_Cap                                        => SPDM::Meas_Unsupported,
+            (Meas_Cap                                        => Cap_Meas,
              Hash_Type                                       => SPDM::No_Measurement,
              Hash_Length                                     => 0,
              Signature_Length                                => Signature.Length,
              Exchange_Data_Length                            => 512,
-             Handshake_In_The_Clear                          => True,
+             Handshake_In_The_Clear                          => Cap_Handshake_In_The_Clear,
              Major_Version                                   => Major_Version,
              Minor_Version                                   => Major_Version,
              Code                                            => Code,
@@ -954,12 +956,12 @@ package SPDM_Responder is
       begin
          Nonce := Plat_Get_Nonce;
          Number_Of_Indices := Plat_Get_Number_Of_Indices;
-         Response := SPDM::Response'(Meas_Cap                              => SPDM::Meas_Unsupported,
+         Response := SPDM::Response'(Meas_Cap                              => Cap_Meas,
                                      Hash_Type                             => SPDM::No_Measurement,
                                      Hash_Length                           => Hash_Length,
                                      Signature_Length                      => 0,
                                      Exchange_Data_Length                  => 512,
-                                     Handshake_In_The_Clear                => True,
+                                     Handshake_In_The_Clear                => Cap_Handshake_In_The_Clear,
                                      Major_Version                         => 1,
                                      Minor_Version                         => 1,
                                      Code                                  => SPDM::Measurements,
@@ -1005,12 +1007,12 @@ package SPDM_Responder is
       is
       begin
          Response :=
-            SPDM::Response'(Meas_Cap                             => SPDM::Meas_Unsupported,
+            SPDM::Response'(Meas_Cap                             => Cap_Meas,
                             Hash_Type                            => SPDM::No_Measurement,
                             Hash_Length                          => 64,
-                            Signature_Length                     => 512,
+                            Signature_Length                     => 0,
                             Exchange_Data_Length                 => 512,
-                            Handshake_In_The_Clear               => True,
+                            Handshake_In_The_Clear               => Cap_Handshake_In_The_Clear,
                             Major_Version                        => 1,
                             Minor_Version                        => 1,
                             Code                                 => SPDM::Error,
@@ -1042,12 +1044,12 @@ package SPDM_Responder is
       is
       begin
          Response :=
-            SPDM::Response'(Meas_Cap                       => SPDM::Meas_Unsupported,
+            SPDM::Response'(Meas_Cap                       => Cap_Meas,
                             Hash_Type                      => SPDM::No_Measurement,
                             Hash_Length                    => 64,
-                            Signature_Length               => 512,
+                            Signature_Length               => 0,
                             Exchange_Data_Length           => 512,
-                            Handshake_In_The_Clear         => True,
+                            Handshake_In_The_Clear         => Cap_Handshake_In_The_Clear,
                             Major_Version                  => 1,
                             Minor_Version                  => 1,
                             Code                           => SPDM::Error,
