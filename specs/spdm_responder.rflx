@@ -227,6 +227,8 @@ package SPDM_Responder is
                                      Version_Response_Version_Number_Entries     => Supp_Versions);
       transition
          goto Send_Version
+            if Response'Valid
+         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Version;
@@ -324,6 +326,8 @@ package SPDM_Responder is
          --  Cap_Pub_Key_ID             := Plat_Cfg_Cap_Pub_Key_ID and Request.Get_Capabilities_Request_Pub_Key_ID_Cap;
       transition
          goto Send_Capabilities
+            if Response'Valid
+         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Capabilities;
@@ -651,6 +655,8 @@ package SPDM_Responder is
          Hash_Length := 32;
       transition
          goto Send_Algorithms
+            if Response'Valid
+         goto Error_Unspecified
       end Set_Hash_Len_32;
 
       --  ISSUE: Componolit/RecordFlux#907
@@ -660,6 +666,8 @@ package SPDM_Responder is
          Hash_Length := 48;
       transition
          goto Send_Algorithms
+            if Response'Valid
+         goto Error_Unspecified
       end Set_Hash_Len_48;
 
       --  ISSUE: Componolit/RecordFlux#907
@@ -669,6 +677,8 @@ package SPDM_Responder is
          Hash_Length := 64;
       transition
          goto Send_Algorithms
+            if Response'Valid
+         goto Error_Unspecified
       end Set_Hash_Len_64;
 
       state Send_Algorithms
@@ -734,6 +744,8 @@ package SPDM_Responder is
                                      Digests_Response_Digests_Data               => Digests_Data.Value);
       transition
          goto Send_Digests
+            if Response'Valid
+         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Digests;
@@ -802,6 +814,8 @@ package SPDM_Responder is
                                      Certificate_Response_Cert_Chain       => Cert.Cert_Chain);
       transition
          goto Send_Certificate
+            if Response'Valid
+         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Certificate;
@@ -918,6 +932,8 @@ package SPDM_Responder is
          goto Prepare_Measurements_Sign
             if Request.Get_Measurements_Request_Generate_Signature
          goto Update_Measurement_Signature
+            if Response'Valid
+         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Measurements_Response;
@@ -965,6 +981,8 @@ package SPDM_Responder is
              Measurements_Response_Signature                 => Signature.Data);
       transition
          goto Send_Measurements
+            if Response'Valid
+         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Measurements_Sign;
@@ -996,6 +1014,8 @@ package SPDM_Responder is
                                      Measurements_Response_Opaque_Data => []);
       transition
          goto Update_Measurement_Signature
+            if Response'Valid
+         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Measurements_Number_Of_Indices;
@@ -1040,6 +1060,8 @@ package SPDM_Responder is
                             Error_Response_Request_Response_Code => Request.Code);
       transition
          goto Send_Error
+            if Response'Valid
+         goto End_Session
       exception
          goto End_Session
       end Error_Unsupported_Request;
@@ -1077,6 +1099,8 @@ package SPDM_Responder is
                             Error_Response_Zero_Error_Data => 0);
       transition
          goto Send_Error
+            if Response'Valid
+         goto End_Session
       exception
          goto End_Session
       end Error_Zero_Data;
