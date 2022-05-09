@@ -23,6 +23,7 @@ package SPDM is
    type Reserved_3 is range 0 .. 0 with Size => 3;
    type Reserved_4 is range 0 .. 0 with Size => 4;
    type Reserved_5 is range 0 .. 0 with Size => 5;
+   type Reserved_6 is range 0 .. 0 with Size => 6;
    type Reserved_7 is range 0 .. 0 with Size => 7;
    type Reserved_8 is range 0 .. 0 with Size => 8;
    type Reserved_15 is range 0 .. 0 with Size => 15;

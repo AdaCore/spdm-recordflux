@@ -3,6 +3,7 @@ with RFLX.SPDM;
 with RFLX.SPDM_Responder.Session;
 with RFLX.SPDM_Responder.Digests_Data;
 with RFLX.SPDM_Responder.Signature;
+with RFLX.SPDM_Responder.Exchange_Data;
 with RFLX.SPDM.Certificate_Response;
 with RFLX.SPDM.Nonce;
 with RFLX.SPDM.DMTF_Measurement_Field;
@@ -216,5 +217,23 @@ is
                                          Message :        RFLX.RFLX_Types.Bytes;
                                          Reset   :        Boolean;
                                          Result  :    out Boolean);
+
+   overriding
+   procedure Plat_Get_Exchange_Data (Ctx           : in out Context;
+                                     Exchange_Data :        RFLX.RFLX_Types.Bytes;
+                                     Result        :    out RFLX.SPDM_Responder.Exchange_Data.Structure);
+
+   overriding
+   procedure Plat_Get_Heartbeat_Period (Ctx    : in out Context;
+                                        Result :    out RFLX.SPDM.Heartbeat_Period);
+
+   overriding
+   procedure Plat_Get_Session_ID (Ctx            : in out Context;
+                                  Req_Session_ID :        RFLX.SPDM.Session_ID;
+                                  Result         :    out RFLX.SPDM.Session_ID);
+
+   overriding
+   procedure Plat_Use_Mutual_Auth (Ctx    : in out Context;
+                                   Result :    out Boolean);
 
 end SPDM_C_Responder;

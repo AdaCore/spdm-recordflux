@@ -112,4 +112,15 @@ int spdm_platform_update_meas_signature (instance_t *instance,
                                          unsigned size,
                                          int reset);
 
+void spdm_platform_get_exchange_data (instance_t *instance,
+                                      void *data,
+                                      unsigned size);
+
+unsigned char spdm_platform_get_heartbeat_period (instance_t *instance);
+
+unsigned short spdm_platform_get_session_id (instance_t *instance,
+                                             unsigned short session_id);
+
+unsigned char spdm_platform_use_mutual_auth (instance_t *instance);
+
 #endif // __SPDM_PLATFORM_INTERFACE__

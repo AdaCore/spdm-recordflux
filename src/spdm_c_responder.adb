@@ -735,4 +735,74 @@ is
                              (if Reset then 1 else 0)) /= 0;
    end Plat_Update_Meas_Signature;
 
+   overriding
+   procedure Plat_Get_Exchange_Data (Ctx           : in out Context;
+                                     Exchange_Data :        RFLX.RFLX_Types.Bytes;
+                                     Result        :    out RFLX.SPDM_Responder.Exchange_Data.Structure)
+   is
+      use type RFLX.RFLX_Types.Index;
+      procedure C_Interface (Instance : System.Address;
+                             Data     : System.Address;
+                             Size     : Interfaces.C.unsigned) with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_exchange_data";
+      Size : constant Interfaces.C.unsigned := Exchange_Data'Length;
+   begin
+      Result.Data (Result.Data'First .. Result.Data'First + Exchange_Data'Length - 1) := Exchange_Data;
+      C_Interface (Ctx.Instance, Result.Data'Address, Size);
+      if not RFLX.SPDM.Valid_Exchange_Data_Length (RFLX.RFLX_Types.U64 (Size)) then
+         raise Constraint_Error;
+      end if;
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Size));
+   end Plat_Get_Exchange_Data;
+
+   overriding
+   procedure Plat_Get_Heartbeat_Period (Ctx    : in out Context;
+                                        Result :    out RFLX.SPDM.Heartbeat_Period)
+   is
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_heartbeat_period";
+      Period : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
+   begin
+      if not RFLX.SPDM.Valid_Heartbeat_Period (Period) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM.To_Actual (Period);
+   end Plat_Get_Heartbeat_Period;
+
+   overriding
+   procedure Plat_Get_Session_ID (Ctx            : in out Context;
+                                  Req_Session_ID :        RFLX.SPDM.Session_ID;
+                                  Result         :    out RFLX.SPDM.Session_ID)
+   is
+      function C_Interface (Instance   : System.Address;
+                            Session_ID : Interfaces.C.unsigned_short) return Interfaces.C.unsigned_short with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_session_id";
+      Session_ID : constant RFLX.RFLX_Types.U64 :=
+         RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance, Interfaces.C.unsigned_short (Req_Session_ID)));
+   begin
+      if not RFLX.SPDM.Valid_Session_ID (Session_ID) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM.To_Actual (Session_ID);
+   end Plat_Get_Session_ID;
+
+   overriding
+   procedure Plat_Use_Mutual_Auth (Ctx    : in out Context;
+                                   Result :    out Boolean)
+   is
+      use type Interfaces.C.unsigned_char;
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_use_mutual_auth";
+   begin
+      Result := C_Interface (Ctx.Instance) > 0;
+   end Plat_Use_Mutual_Auth;
+
 end SPDM_C_Responder;

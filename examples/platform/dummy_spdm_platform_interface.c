@@ -399,3 +399,24 @@ int spdm_platform_update_meas_signature (instance_t *instance,
                                       size);
     return result;
 }
+
+void spdm_platform_get_exchange_data (__attribute__((unused)) instance_t *instance,
+                                      __attribute__((unused)) void *data,
+                                      __attribute__((unused)) unsigned size)
+{}
+
+unsigned char spdm_platform_get_heartbeat_period (__attribute__((unused)) instance_t *instance)
+{
+    return 0;
+}
+
+unsigned short spdm_platform_get_session_id (__attribute__((unused)) instance_t *instance,
+                                             unsigned short session_id)
+{
+    return ~session_id;
+}
+
+unsigned char spdm_platform_use_mutual_auth (__attribute__((unused)) instance_t *instance)
+{
+    return 0;
+}

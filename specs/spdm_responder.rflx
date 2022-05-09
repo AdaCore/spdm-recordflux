@@ -45,6 +45,14 @@ package SPDM_Responder is
             with Size => Length * 8;
       end message;
 
+   type Exchange_Data is
+      message
+         Length : SPDM::Exchange_Data_Length;
+         Pad : SPDM::Reserved_6;
+         Data : Opaque
+            with Size => Length * 8;
+      end message;
+
    generic
       Transport : Channel with Readable, Writable;
       with function Plat_Cfg_CT_Exponent return SPDM::CT_Exponent;
@@ -136,6 +144,14 @@ package SPDM_Responder is
 
       with function Plat_Update_Meas_Signature (Message : Opaque; Reset : Boolean) return Boolean;
 
+      with function Plat_Get_Exchange_Data (Exchange_Data : Opaque) return Exchange_Data;
+
+      with function Plat_Get_Heartbeat_Period return SPDM::Heartbeat_Period;
+
+      with function Plat_Get_Session_ID (Req_Session_ID : SPDM::Session_ID) return SPDM::Session_ID;
+
+      with function Plat_Use_Mutual_Auth return Boolean;
+
    session Session with
       Initial => Init,
       Final => End_Session
@@ -221,7 +237,7 @@ package SPDM_Responder is
       begin
          Response := SPDM::Response'(Meas_Cap                                    => Cap_Meas,
                                      Hash_Type                                   => SPDM::No_Measurement,
-                                     Hash_Length                                 => 0,
+                                     Hash_Length                                 => Hash_Length,
                                      Signature_Length                            => 0,
                                      Exchange_Data_Length                        => 512,
                                      Handshake_In_The_Clear                      => Cap_Handshake_In_The_Clear,
@@ -289,7 +305,7 @@ package SPDM_Responder is
          Response :=
             SPDM::Response'(Meas_Cap                                         => Cap_Meas,
                             Hash_Type                                        => SPDM::No_Measurement,
-                            Hash_Length                                      => 0,
+                            Hash_Length                                      => Hash_Length,
                             Signature_Length                                 => 0,
                             Exchange_Data_Length                             => 512,
                             Handshake_In_The_Clear                           => Cap_Handshake_In_The_Clear,
@@ -633,7 +649,7 @@ package SPDM_Responder is
          Response :=
             SPDM::Response'(Meas_Cap                                          => Cap_Meas,
                             Hash_Type                                         => SPDM::No_Measurement,
-                            Hash_Length                                       => 0,
+                            Hash_Length                                       => Hash_Length,
                             Signature_Length                                  => 0,
                             Exchange_Data_Length                              => 512,
                             Handshake_In_The_Clear                            => Cap_Handshake_In_The_Clear,
@@ -719,6 +735,8 @@ package SPDM_Responder is
             if Request'Valid and Request.Code = SPDM::Get_Certificate
          goto Prepare_Measurements
             if Request'Valid and Request.Code = SPDM::Get_Measurements
+         goto Prepare_Key_Exchange
+            if Request'Valid and Request.Code = SPDM::Key_Exchange
          goto Error_Unsupported_Request
             if Request'Valid
          goto Error_Invalid_Request
@@ -977,6 +995,55 @@ package SPDM_Responder is
       exception
          goto Error_Unspecified
       end Update_Measurement_Signature;
+
+      state Prepare_Key_Exchange
+      is
+         Nonce : SPDM::Nonce;
+         Exchange_Data : Exchange_Data;
+         Heartbeat_Period : SPDM::Heartbeat_Period;
+         Use_Mutual_Auth : Boolean;
+         Session_ID : SPDM::Session_ID;
+      begin
+         Nonce := Plat_Get_Nonce;
+         Exchange_Data := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
+         Heartbeat_Period := Plat_Get_Heartbeat_Period;
+         Use_Mutual_Auth := Plat_Use_Mutual_Auth;
+         Session_ID := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
+         Response :=
+            SPDM::Response'(Meas_Cap                                       => Cap_Meas,
+                            Hash_Type                                      => SPDM::No_Measurement,
+                            -- Hash_Length, FIXME: separate hash calculation required
+                            Hash_Length                                    => 0,
+                            Signature_Length                               => 0,
+                            Exchange_Data_Length                           => Exchange_Data.Length,
+                            Handshake_In_The_Clear                         => Cap_Handshake_In_The_Clear,
+                            Major_Version                                  => 1,
+                            Minor_Version                                  => 1,
+                            Code                                           => SPDM::Key_Exchange_RSP,
+                            Key_Exchange_Response_Heartbeat_Period         => Heartbeat_Period,
+                            Key_Exchange_Response_Param_2                  => 0,
+                            Key_Exchange_Response_Resp_Session_ID          => Session_ID,
+                            Key_Exchange_Response_Reserved_1               => 0,
+                            --  Both Mutual_Auth_Implicit and Mutual_Auth_Encapsulated
+                            --  require Encapsulated requests that are not supported.
+                            Key_Exchange_Response_Mutual_Auth_Implicit     => False,
+                            Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
+                            Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
+                            Key_Exchange_Response_Reserved_2               => 0,
+                            Key_Exchange_Response_Slot_ID_Param            => SPDM::NS_0,
+                            Key_Exchange_Response_Random_Data              => Nonce.Data,
+                            Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
+                            Key_Exchange_Response_Measurement_Summary_Hash => [],
+                            Key_Exchange_Response_Opaque_Data_Length       => 0,
+                            Key_Exchange_Response_Opaque_Data              => [],
+                            Key_Exchange_Response_Signature                => []);
+      transition
+         goto Send_Idle
+            if Response'Valid
+         goto Error_Unspecified
+      exception
+         goto Error_Unspecified
+      end Prepare_Key_Exchange;
 
       state Error_Unsupported_Request
       is
