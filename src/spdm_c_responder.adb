@@ -483,7 +483,7 @@ is
       with
          Import        => True,
          Convention    => C,
-         External_Name => "spdm_platform_select_rbba";
+         External_Name => "spdm_platform_select_rbaa";
       Value : constant RFLX.RFLX_Types.U64 :=
          (RFLX.RFLX_Types.U64
             (C_Interface

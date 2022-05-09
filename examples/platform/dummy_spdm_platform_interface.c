@@ -193,7 +193,7 @@ unsigned char spdm_platform_select_aead(__attribute__((unused)) instance_t *inst
 }
 
 
-long spdm_platform_select_rbba(__attribute__((unused)) instance_t *instance,
+long spdm_platform_select_rbaa(__attribute__((unused)) instance_t *instance,
                                unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
                                unsigned char ra_tpm_alg_rsapss_4096,
                                unsigned char ra_tpm_alg_rsassa_4096,

@@ -64,7 +64,7 @@ unsigned char spdm_platform_select_aead(instance_t *instance,
                                         unsigned char aes_256_gcm,
                                         unsigned char aes_128_gcm);
 
-long spdm_platform_select_rbba(instance_t *instance,
+long spdm_platform_select_rbaa(instance_t *instance,
                                unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
                                unsigned char ra_tpm_alg_rsapss_4096,
                                unsigned char ra_tpm_alg_rsassa_4096,
