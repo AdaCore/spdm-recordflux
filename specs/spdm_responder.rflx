@@ -184,6 +184,7 @@ package SPDM_Responder is
                                          Minor_Version         => 1,
                                          Major_Version         => 1));
          Hash_Length := 0;
+         Reset_Measurement_Sig := True;
          --  FIXME: Reset all state
       transition
          goto Receive_Get_Version
@@ -654,7 +655,7 @@ package SPDM_Responder is
       begin
          Hash_Length := 32;
       transition
-         goto Send_Algorithms
+         goto Send_Idle
             if Response'Valid
          goto Error_Unspecified
       end Set_Hash_Len_32;
@@ -665,7 +666,7 @@ package SPDM_Responder is
       begin
          Hash_Length := 48;
       transition
-         goto Send_Algorithms
+         goto Send_Idle
             if Response'Valid
          goto Error_Unspecified
       end Set_Hash_Len_48;
@@ -676,30 +677,34 @@ package SPDM_Responder is
       begin
          Hash_Length := 64;
       transition
-         goto Send_Algorithms
+         goto Send_Idle
             if Response'Valid
          goto Error_Unspecified
       end Set_Hash_Len_64;
 
-      state Send_Algorithms
+      state Send_Idle
       is
       begin
          Transport'Write (Response);
       transition
-         goto Receive_Get_Digests
-      end Send_Algorithms;
+         goto Receive_Idle
+      end Send_Idle;
 
-      state Receive_Get_Digests
+      state Receive_Idle
       is
       begin
          Transport'Read (Request);
       transition
          goto Prepare_Digests
             if Request'Valid and Request.Code = SPDM::Get_Digests
+         goto Check_Certificate
+            if Request'Valid and Request.Code = SPDM::Get_Certificate
+         goto Prepare_Measurements
+            if Request'Valid and Request.Code = SPDM::Get_Measurements
          goto Error_Unsupported_Request
             if Request'Valid
          goto Error_Invalid_Request
-      end Receive_Get_Digests;
+      end Receive_Idle;
 
       state Prepare_Digests
       is
@@ -713,6 +718,7 @@ package SPDM_Responder is
          Slot_6_Present : SPDM::Slot_Present;
          Slot_7_Present : SPDM::Slot_Present;
       begin
+         Reset_Measurement_Sig := True;
          Digests_Data := Plat_Get_Digests_Data (Measurement_Hash_Algo);
          Slot_0_Present := Digests_Data.Slot_0_Present;
          Slot_1_Present := Digests_Data.Slot_1_Present;
@@ -743,37 +749,18 @@ package SPDM_Responder is
                                      Digests_Response_Slot_Mask_Slot_0_Present   => Slot_0_Present,
                                      Digests_Response_Digests_Data               => Digests_Data.Value);
       transition
-         goto Send_Digests
+         goto Send_Idle
             if Response'Valid
          goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Digests;
 
-      state Send_Digests
-      is
-      begin
-         Transport'Write (Response);
-      transition
-         goto Receive_Get_Certificate
-      end Send_Digests;
-
-      state Receive_Get_Certificate
-      is
-      begin
-         Transport'Read (Request);
-      transition
-         goto Check_Certificate
-            if Request'Valid and Request.Code = SPDM::Get_Certificate
-         goto Error_Unsupported_Request
-            if Request'Valid
-         goto Error_Invalid_Request
-      end Receive_Get_Certificate;
-
       state Check_Certificate
       is
          Valid : Boolean;
       begin
+         Reset_Measurement_Sig := True;
          Slot   := Request.Get_Certificate_Request_Slot;
          Offset := Request.Get_Certificate_Request_Offset;
          Length := Request.Get_Certificate_Request_Length;
@@ -813,42 +800,12 @@ package SPDM_Responder is
                                      Certificate_Response_Remainder_Length => Cert_Remainder_Length,
                                      Certificate_Response_Cert_Chain       => Cert.Cert_Chain);
       transition
-         goto Send_Certificate
+         goto Send_Idle
             if Response'Valid
          goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Certificate;
-
-      state Send_Certificate
-      is
-      begin
-         Transport'Write (Response);
-      transition
-         goto Receive_Get_Certificate
-            if Response.Certificate_Response_Remainder_Length > 0
-         goto Reset_Measurements_Signature
-      end Send_Certificate;
-
-      state Reset_Measurements_Signature
-      is
-      begin
-         Reset_Measurement_Sig := True;
-      transition
-         goto Receive_Get_Measurements
-      end Reset_Measurements_Signature;
-
-      state Receive_Get_Measurements
-      is
-      begin
-         Transport'Read (Request);
-      transition
-         goto Prepare_Measurements
-            if Request'Valid and Request.Code = SPDM::Get_Measurements
-         goto Error_Unsupported_Request
-            if Request'Valid
-         goto Error_Invalid_Request
-      end Receive_Get_Measurements;
 
       state Prepare_Measurements
       is
@@ -979,8 +936,9 @@ package SPDM_Responder is
              Measurements_Response_Opaque_Length             => 0,
              Measurements_Response_Opaque_Data               => [],
              Measurements_Response_Signature                 => Signature.Data);
+         Reset_Measurement_Sig := True;
       transition
-         goto Send_Measurements
+         goto Send_Idle
             if Response'Valid
          goto Error_Unspecified
       exception
@@ -992,6 +950,7 @@ package SPDM_Responder is
          Number_Of_Indices : SPDM::Measurement_Count;
          Nonce : SPDM::Nonce;
       begin
+         Reset_Measurement_Sig := True;
          Nonce := Plat_Get_Nonce;
          Number_Of_Indices := Plat_Get_Number_Of_Indices;
          Response := SPDM::Response'(Meas_Cap                              => Cap_Meas,
@@ -1026,22 +985,12 @@ package SPDM_Responder is
       begin
          Success := Plat_Update_Meas_Signature (Response'Opaque, Reset_Measurement_Sig);
       transition
-         goto Send_Measurements
+         goto Send_Idle
             if Success
          goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Update_Measurement_Signature;
-
-      state Send_Measurements
-      is
-      begin
-         Transport'Write (Response);
-      transition
-         goto Receive_Get_Measurements
-         --  TODO: Leave measurements cycle after last measurements response
-         --  We possibly need a state that accepts multiple different requests instead.
-      end Send_Measurements;
 
       state Error_Unsupported_Request
       is
