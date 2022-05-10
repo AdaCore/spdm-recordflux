@@ -60,11 +60,6 @@ is
        Result :    out Boolean);
 
    overriding
-   procedure Plat_Cfg_Cap_Handshake_In_The_Clear
-      (Ctx    : in out Context;
-       Result :    out Boolean);
-
-   overriding
    procedure Plat_Cfg_Cap_Key_Upd
       (Ctx    : in out Context;
        Result :    out Boolean);
@@ -85,11 +80,6 @@ is
        Result :    out RFLX.SPDM.PSK_Resp_Cap);
 
    overriding
-   procedure Plat_Cfg_Cap_Key_Ex
-      (Ctx    : in out Context;
-       Result :    out Boolean);
-
-   overriding
    procedure Plat_Cfg_Cap_Mut_Auth
       (Ctx    : in out Context;
        Result :    out Boolean);
@@ -98,7 +88,17 @@ is
    procedure Plat_Cfg_Cap_Pub_Key_ID
       (Ctx    : in out Context;
        Result :    out Boolean);
+#if FEATURE_KEY_EXCHANGE then
+   overriding
+   procedure Plat_Cfg_Cap_Key_Ex
+      (Ctx    : in out Context;
+       Result :    out Boolean);
 
+   overriding
+   procedure Plat_Cfg_Cap_Handshake_In_The_Clear
+      (Ctx    : in out Context;
+       Result :    out Boolean);
+#end if;
    overriding
    procedure Plat_Cfg_Sel_Measurement_Hash_Algo
       (Ctx                  : in out Context;
@@ -135,7 +135,7 @@ is
        TPM_ALG_SHA3_384 :        Boolean;
        TPM_ALG_SHA3_512 :        Boolean;
        Result           :    out RFLX.SPDM.Base_Hash_Algo);
-
+#if FEATURE_KEY_EXCHANGE then
    overriding
    procedure Plat_Cfg_Sel_DHE
       (Ctx           : in out Context;
@@ -154,7 +154,7 @@ is
        Req_AES_256_GCM       :        Boolean;
        Req_AES_128_GCM       :        Boolean;
        Result                :    out RFLX.SPDM_Responder.AEAD_Algo);
-
+#end if;
    overriding
    procedure Plat_Cfg_Sel_RBAA
       (Ctx                             : in out Context;

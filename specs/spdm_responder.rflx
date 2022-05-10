@@ -55,14 +55,16 @@ package SPDM_Responder is
       with function Plat_Cfg_Cap_Chal return Boolean;
       with function Plat_Cfg_Cap_Cert return Boolean;
       with function Plat_Cfg_Cap_Cache return Boolean;
-      with function Plat_Cfg_Cap_Handshake_In_The_Clear return Boolean;
       with function Plat_Cfg_Cap_Key_Upd return Boolean;
       with function Plat_Cfg_Cap_Hbeat return Boolean;
       with function Plat_Cfg_Cap_Encap return Boolean;
       with function Plat_Cfg_Cap_PSK return SPDM::PSK_Resp_Cap;
-      with function Plat_Cfg_Cap_Key_Ex return Boolean;
       with function Plat_Cfg_Cap_Mut_Auth return Boolean;
       with function Plat_Cfg_Cap_Pub_Key_ID return Boolean;
+#if FEATURE_KEY_EXCHANGE then
+      with function Plat_Cfg_Cap_Key_Ex return Boolean;
+      with function Plat_Cfg_Cap_Handshake_In_The_Clear return Boolean;
+#end if;
       with function Plat_Cfg_Sel_Measurement_Hash_Algo
          (TPM_ALG_SHA_256     : Boolean;
           TPM_ALG_SHA_384     : Boolean;
@@ -86,6 +88,7 @@ package SPDM_Responder is
                                                  TPM_ALG_SHA3_256 : Boolean;
                                                  TPM_ALG_SHA3_384 : Boolean;
                                                  TPM_ALG_SHA3_512 : Boolean) return SPDM::Base_Hash_Algo;
+#if FEATURE_KEY_EXCHANGE then
       with function Plat_Cfg_Sel_DHE
          (Req_SecP521r1 : Boolean;
           Req_SecP384r1 : Boolean;
@@ -98,7 +101,7 @@ package SPDM_Responder is
          (Req_ChaCha20_Poly1305 : Boolean;
           Req_AES_256_GCM       : Boolean;
           Req_AES_128_GCM       : Boolean) return SPDM_Responder::AEAD_Algo;
-
+#end if;
       with function Plat_Cfg_Sel_RBAA
          (Req_TPM_ALG_ECDSA_ECC_NIST_P384 : Boolean;
           Req_TPM_ALG_RSAPSS_4096         : Boolean;
@@ -145,17 +148,18 @@ package SPDM_Responder is
       Slot                   : SPDM::Slot;
       Offset                 : SPDM::Offset;
       Length                 : SPDM::Length_16;
-      DHE_List               : SPDM::Req_Alg_Structs;
-      AEAD_Cipher_Suite_List : SPDM::Req_Alg_Structs;
       Req_Base_Asym_Alg_List : SPDM::Req_Alg_Structs;
-      Key_Schedule_List      : SPDM::Req_Alg_Structs;
       Resp_Alg_Structs       : SPDM::Resp_Alg_Structs;
       Reset_Measurement_Sig  : Boolean := True;
       Measurement_Record     : SPDM::Measurement_Record;
       Current_Measurement    : SPDM::Index;
       Last_Measurement       : SPDM::Index;
       Error_Code             : SPDM::Error_Code;
-
+#if FEATURE_KEY_EXCHANGE then
+      DHE_List               : SPDM::Req_Alg_Structs;
+      AEAD_Cipher_Suite_List : SPDM::Req_Alg_Structs;
+      Key_Schedule_List      : SPDM::Req_Alg_Structs;
+#end if;
       --  Capabilities
       CT_Exponent                : SPDM::CT_Exponent  := 0;
       Cap_MAC                    : Boolean            := False;
@@ -261,14 +265,19 @@ package SPDM_Responder is
          Cap_Chal                   := Plat_Cfg_Cap_Chal;
          Cap_Cert                   := Plat_Cfg_Cap_Cert;
          Cap_Cache                  := Plat_Cfg_Cap_Cache;
-         Cap_Handshake_In_The_Clear := Plat_Cfg_Cap_Handshake_In_The_Clear;
          Cap_Key_Upd                := Plat_Cfg_Cap_Key_Upd;
          Cap_Hbeat                  := Plat_Cfg_Cap_Hbeat;
          Cap_Encap                  := Plat_Cfg_Cap_Encap;
          Cap_PSK                    := Plat_Cfg_Cap_PSK;
-         Cap_Key_Ex                 := Plat_Cfg_Cap_Key_Ex;
          Cap_Mut_Auth               := Plat_Cfg_Cap_Mut_Auth;
          Cap_Pub_Key_ID             := Plat_Cfg_Cap_Pub_Key_ID;
+#if FEATURE_KEY_EXCHANGE then
+         Cap_Key_Ex                 := Plat_Cfg_Cap_Key_Ex;
+         Cap_Handshake_In_The_Clear := Plat_Cfg_Cap_Handshake_In_The_Clear;
+#else
+         Cap_Key_Ex                 := False;
+         Cap_Handshake_In_The_Clear := False;
+#end if;
 
          --  The spec only specifies that the responder sends the capabilities it supports
          --  without taking into account what the requester supports.
@@ -339,13 +348,17 @@ package SPDM_Responder is
       begin
          Transport'Read (Request);
       transition
+#if FEATURE_KEY_EXCHANGE then
          goto Check_Algorithms_DHE
+            if Request'Valid and Request.Code = SPDM::Negotiate_Algorithms and Cap_Key_Ex
+#end if;
+         goto Check_Algorithms_Req_Base_Asym_Alg
             if Request'Valid and Request.Code = SPDM::Negotiate_Algorithms
          goto Error_Unsupported_Request
             if Request'Valid
          goto Error_Invalid_Request
       end Receive_Negotiate_Algorithms;
-
+#if FEATURE_KEY_EXCHANGE then
       state Check_Algorithms_DHE
       is
       begin
@@ -354,7 +367,7 @@ package SPDM_Responder is
                       if A.Alg_Type = SPDM::DHE => A];
       transition
          goto Prepare_Algorithms_DHE
-            if DHE_List'Size > 0 and Cap_Key_Ex
+            if DHE_List'Size > 0
          goto Check_Algorithms_AEAD_Cipher_Suite
       exception
          goto Error_Unspecified
@@ -457,7 +470,7 @@ package SPDM_Responder is
       exception
          goto Error_Unspecified
       end Prepare_Algorithms_AEAD_Cipher_Suite;
-
+#end if;
       state Check_Algorithms_Req_Base_Asym_Alg
       is
       begin
@@ -466,7 +479,11 @@ package SPDM_Responder is
       transition
          goto Prepare_Algorithms_Req_Base_Asym_Alg
             if Req_Base_Asym_Alg_List'Size > 0
+#if FEATURE_KEY_EXCHANGE then
          goto Check_Algorithms_Key_Schedule
+            if Cap_Key_Ex
+#end if;
+         goto Prepare_Algorithms
       exception
          goto Error_Unspecified
       end Check_Algorithms_Req_Base_Asym_Alg;
@@ -525,11 +542,16 @@ package SPDM_Responder is
                Alg_External                     => [])
          );
       transition
+#if FEATURE_KEY_EXCHANGE then
          goto Check_Algorithms_Key_Schedule
+            if Cap_Key_Ex
+#end if;
+         goto Prepare_Algorithms
       exception
          goto Error_Unspecified
       end Prepare_Algorithms_Req_Base_Asym_Alg;
 
+#if FEATURE_KEY_EXCHANGE then
       state Check_Algorithms_Key_Schedule
       is
       begin
@@ -563,7 +585,7 @@ package SPDM_Responder is
       exception
          goto Error_Unspecified
       end Prepare_Algorithms_Key_Schedule;
-
+#end if;
       state Prepare_Algorithms
       is
          Base_Hash_Sel : SPDM::Base_Hash_Algo;

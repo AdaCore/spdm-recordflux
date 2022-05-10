@@ -143,6 +143,10 @@ GENERATED += \
     rflx-spdm-respond_if_ready_request.ads
 endif
 
+GENERATED += \
+    spdm_c_responder.adb \
+    spdm_c_responder.ads
+
 SOURCE_SPECIFICATIONS = \
 	specs/spdm_emu.rflx \
 	specs/spdm_proxy.rflx \
@@ -228,6 +232,15 @@ build/spdm_dump/bin/spdm_dump: build/spdm_dump
 build/spdm_emu/bin/spdm_%_emu: build/spdm_emu
 	cmake -DARCH=x64 -DTOOLCHAIN=GCC -DTARGET=Debug -DCRYPTO=mbedtls -S contrib/dmtf/spdm-emu -B build/spdm_emu
 	make -C build/spdm_emu -j$(shell nproc)
+
+build/debug/generated/spdm_c_responder.%: src/spdm_c_responder.%
+	mkdir -p build/debug/generated
+	gnatprep \
+		-u \
+		-DFEATURE_CHALLENGE_AUTH=$(FEATURE_CHALLENGE_AUTH) \
+		-DFEATURE_RESPOND_IF_READY=$(FEATURE_RESPOND_IF_READY) \
+		-DFEATURE_KEY_EXCHANGE=$(FEATURE_KEY_EXCHANGE) \
+		$< $@
 
 build/debug/generated/%: $(SPECIFICATIONS) | $(INTEGRATION_FILES) $(RFLX)
 	mkdir -p build/debug/generated

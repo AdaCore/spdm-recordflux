@@ -135,20 +135,6 @@ is
    end Plat_Cfg_Cap_Cache;
 
    overriding
-   procedure Plat_Cfg_Cap_Handshake_In_The_Clear
-      (Ctx    : in out Context;
-       Result :    out Boolean)
-   is
-      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_cap_handshake_in_the_clear";
-      use type Interfaces.C.unsigned_char;
-   begin
-      Result := C_Interface (Ctx.Instance) > 0;
-   end Plat_Cfg_Cap_Handshake_In_The_Clear;
-
-   overriding
    procedure Plat_Cfg_Cap_Key_Upd
       (Ctx    : in out Context;
        Result :    out Boolean)
@@ -208,20 +194,6 @@ is
    end Plat_Cfg_Cap_PSK;
 
    overriding
-   procedure Plat_Cfg_Cap_Key_Ex
-      (Ctx    : in out Context;
-       Result :    out Boolean)
-   is
-      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_cap_key_ex";
-      use type Interfaces.C.unsigned_char;
-   begin
-      Result := C_Interface (Ctx.Instance) > 0;
-   end Plat_Cfg_Cap_Key_Ex;
-
-   overriding
    procedure Plat_Cfg_Cap_Mut_Auth
       (Ctx    : in out Context;
        Result :    out Boolean)
@@ -248,7 +220,35 @@ is
    begin
       Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Pub_Key_ID;
+#if FEATURE_KEY_EXCHANGE then
+   overriding
+   procedure Plat_Cfg_Cap_Key_Ex
+      (Ctx    : in out Context;
+       Result :    out Boolean)
+   is
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_cap_key_ex";
+      use type Interfaces.C.unsigned_char;
+   begin
+      Result := C_Interface (Ctx.Instance) > 0;
+   end Plat_Cfg_Cap_Key_Ex;
 
+   overriding
+   procedure Plat_Cfg_Cap_Handshake_In_The_Clear
+      (Ctx    : in out Context;
+       Result :    out Boolean)
+   is
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_cap_handshake_in_the_clear";
+      use type Interfaces.C.unsigned_char;
+   begin
+      Result := C_Interface (Ctx.Instance) > 0;
+   end Plat_Cfg_Cap_Handshake_In_The_Clear;
+#end if;
    function C_Bool (Value : Boolean) return Interfaces.C.unsigned_char is
       (if Value then 1 else 0);
 
@@ -383,7 +383,7 @@ is
       end if;
       Result := RFLX.SPDM.To_Actual (Value);
    end Plat_Cfg_Sel_Base_Hash_Algo;
-
+#if FEATURE_KEY_EXCHANGE then
    overriding
    procedure Plat_Cfg_Sel_DHE
       (Ctx           : in out Context;
@@ -454,7 +454,7 @@ is
       end if;
       Result := RFLX.SPDM_Responder.To_Actual (Value);
    end Plat_Cfg_Sel_AEAD;
-
+#end if;
    overriding
    procedure Plat_Cfg_Sel_RBAA
       (Ctx                             : in out Context;

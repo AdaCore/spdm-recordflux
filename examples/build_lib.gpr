@@ -23,7 +23,7 @@ is
    for Library_Interface use ("responder", "responder_multiple_responders", "responder_select");
 
    for Languages use ("Ada", "C");
-   for Source_Dirs use ("src", "platform", "../build/generated", "../src", "../include");
+   for Source_Dirs use ("src", "platform", "../build/generated", "../include");
 
    for Create_Missing_Dirs use "True";
    for Target use Target_Arch & "-elf";
