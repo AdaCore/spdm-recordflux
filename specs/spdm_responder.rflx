@@ -871,8 +871,6 @@ package SPDM_Responder is
          goto Prepare_Measurements_Sign
             if Request.Get_Measurements_Request_Generate_Signature
          goto Update_Measurement_Signature
-            if Response'Valid
-         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Measurements_Response;
@@ -953,8 +951,6 @@ package SPDM_Responder is
                                      Measurements_Response_Opaque_Data => []);
       transition
          goto Update_Measurement_Signature
-            if Response'Valid
-         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Measurements_Number_Of_Indices;
@@ -989,8 +985,6 @@ package SPDM_Responder is
                             Error_Response_Request_Response_Code => Request.Code);
       transition
          goto Send_Error
-            if Response'Valid
-         goto End_Session
       exception
          goto End_Session
       end Error_Unsupported_Request;
