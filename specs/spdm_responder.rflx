@@ -308,23 +308,22 @@ package SPDM_Responder is
                             Capabilities_Response_Reserved_4                 => 0,
                             Capabilities_Response_Pub_Key_ID_Cap             => Cap_Pub_Key_ID);
 
-         --  ISSUE: Componolit/RecordFlux#1012
-         --  --  For the behaviour when responding the responder has to take the
-         --  --  capabilities supported by the requester into account.
-         --  CT_Exponent                := Plat_Cfg_CT_Exponent;  --  Min(Resp.CT_Exp, Req.CT_Exp)?
-         --  Cap_MAC                    := Plat_Cfg_Cap_MAC and Request.Get_Capabilities_Request_MAC_Cap;
-         --  Cap_Encrypt                := Plat_Cfg_Cap_Encrypt and Request.Get_Capabilities_Request_Encrypt_Cap;
-         --  Cap_Chal                   := Plat_Cfg_Cap_Chal and Request.Get_Capabilities_Request_Chal_Cap;
-         --  Cap_Cert                   := Plat_Cfg_Cap_Cert and Request.Get_Capabilities_Request_Cert_Cap;
-         --  Cap_Handshake_In_The_Clear :=
-         --     Plat_Cfg_Cap_Handshake_In_The_Clear and Request.Get_Capabilities_Request_Handshake_In_The_Clear_Cap;
-         --  Cap_Key_Upd                := Plat_Cfg_Cap_Key_Upd and Request.Get_Capabilities_Request_Key_Upd_Cap;
-         --  Cap_Hbeat                  := Plat_Cfg_Cap_Hbeat and Request.Get_Capabilities_Request_Hbeat_Cap;
-         --  Cap_Encap                  := Plat_Cfg_Cap_Encap and Request.Get_Capabilities_Request_Encap_Cap;
-         --  --  Cap_PSK                    := Plat_Cfg_Cap_PSK and Request.Get_Capabilities_Request_PSK_Cap; ?
-         --  Cap_Key_Ex                 := Plat_Cfg_Cap_Key_Ex and Request.Get_Capabilities_Request_Key_Ex_Cap;
-         --  Cap_Mut_Auth               := Plat_Cfg_Cap_Mut_Auth and Request.Get_Capabilities_Request_Mut_Auth_Cap;
-         --  Cap_Pub_Key_ID             := Plat_Cfg_Cap_Pub_Key_ID and Request.Get_Capabilities_Request_Pub_Key_ID_Cap;
+         --  For the behaviour when responding the responder has to take the
+         --  capabilities supported by the requester into account.
+         -- --   CT_Exponent                := CT_Exponent;  --  Min(Resp.CT_Exp, Req.CT_Exp)?
+         Cap_MAC                    := Cap_MAC and Request.Get_Capabilities_Request_MAC_Cap;
+         Cap_Encrypt                := Cap_Encrypt and Request.Get_Capabilities_Request_Encrypt_Cap;
+         Cap_Chal                   := Cap_Chal and Request.Get_Capabilities_Request_Chal_Cap;
+         Cap_Cert                   := Cap_Cert and Request.Get_Capabilities_Request_Cert_Cap;
+         Cap_Handshake_In_The_Clear :=
+            Cap_Handshake_In_The_Clear and Request.Get_Capabilities_Request_Handshake_In_The_Clear_Cap;
+         Cap_Key_Upd                := Cap_Key_Upd and Request.Get_Capabilities_Request_Key_Upd_Cap;
+         Cap_Hbeat                  := Cap_Hbeat and Request.Get_Capabilities_Request_Hbeat_Cap;
+         Cap_Encap                  := Cap_Encap and Request.Get_Capabilities_Request_Encap_Cap;
+         --  Cap_PSK                    := Cap_PSK and Request.Get_Capabilities_Request_PSK_Cap; ?
+         Cap_Key_Ex                 := Cap_Key_Ex and Request.Get_Capabilities_Request_Key_Ex_Cap;
+         Cap_Mut_Auth               := Cap_Mut_Auth and Request.Get_Capabilities_Request_Mut_Auth_Cap;
+         Cap_Pub_Key_ID             := Cap_Pub_Key_ID and Request.Get_Capabilities_Request_Pub_Key_ID_Cap;
       transition
          goto Send_Capabilities
             if Response'Valid
