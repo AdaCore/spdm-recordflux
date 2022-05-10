@@ -84,3 +84,13 @@ $ PATH=/path/to/your/cross/gnat:$PATH make libriscv64
 ```
 
 The resulting libraries will be build/arm/lib/libspdm.a and build/riscv64/lib/libspdm.a.
+
+## Features
+
+Some features of the SPDM responder can be explicitly disabled. For that purpose the specification files contain preprocessor commands. The specification files in `specs` cannot be used without preprocessing. By default, all features are enabled. The following feature flags exist:
+
+- `FEATURE_CHALLENGE_AUTH`
+- `FEATURE_RESPOND_IF_READY`
+- `FEATURE_KEY_EXCHANGE`
+
+To disable a feature, the feature flag has to be set to `False`. For example, `make check_spec CHALLENGE_AUTH=False KEY_EXCHANGE=False RESPOND_IF_READY=False` will create specification files with all optional features disabled in `build/specs/CHALLENGE_AUTH=False,KEY_EXCHANGE=False,RESPOND_IF_READY=False/`.
