@@ -36,6 +36,13 @@ package SPDM_Responder is
             with Size => 8 * Length;
       end message;
 
+   type Hash is
+      message
+         Length : SPDM::Hash_Length;
+         Data : Opaque
+            with Size => Length * 8;
+      end message;
+
    type Signature is
       message
          Length : SPDM::Signature_Length
@@ -51,6 +58,11 @@ package SPDM_Responder is
          Pad : SPDM::Reserved_6;
          Data : Opaque
             with Size => Length * 8;
+      end message;
+
+   type Measurement_Summary is
+      message
+         Data : SPDM::Measurement_Record;
       end message;
 
    generic
@@ -135,6 +147,8 @@ package SPDM_Responder is
 
       with function Plat_Get_Number_Of_Indices return SPDM::Measurement_Count;
 
+      with function Plat_Get_Number_Of_Indices_TCB return SPDM::Measurement_Count;
+
       with function Plat_Get_Nonce return SPDM::Nonce;
 
       with function Plat_Get_DMTF_Measurement_Field (Index : SPDM::Index) return SPDM::DMTF_Measurement_Field;
@@ -151,6 +165,8 @@ package SPDM_Responder is
       with function Plat_Get_Session_ID (Req_Session_ID : SPDM::Session_ID) return SPDM::Session_ID;
 
       with function Plat_Use_Mutual_Auth return Boolean;
+
+      with function Plat_Get_Summary_Hash (Data : Opaque) return Hash;
 
    session Session with
       Initial => Init,
@@ -179,6 +195,8 @@ package SPDM_Responder is
       AEAD_Cipher_Suite_List : SPDM::Req_Alg_Structs;
       Key_Schedule_List      : SPDM::Req_Alg_Structs;
 #end if;
+      Measurement_Summary    : Boolean;
+
       --  Capabilities
       CT_Exponent                : SPDM::CT_Exponent  := 0;
       Cap_MAC                    : Boolean            := False;
@@ -850,6 +868,7 @@ package SPDM_Responder is
          Last_Measurement := Request.Get_Measurements_Request_Measurement_Operation;
          Number_Of_Indices := 0;
          Number_Of_Blocks := 0;
+         Measurement_Summary := False;
       transition
          goto Prepare_Measurements_Number_Of_Indices
             if Request.Get_Measurements_Request_Measurement_Operation = 0 and Success
@@ -901,6 +920,8 @@ package SPDM_Responder is
       transition
          goto Prepare_Measurements_Records
             if Current_Measurement <= Last_Measurement
+         goto Prepare_Key_Exchange_Hash
+            if Measurement_Summary
          goto Prepare_Measurements_Response
       exception
          goto Error_Unspecified
@@ -998,6 +1019,84 @@ package SPDM_Responder is
 
       state Prepare_Key_Exchange
       is
+      begin
+         Measurement_Record'Reset;
+         Measurement_Summary := True;
+         Current_Measurement := 1;
+      transition
+         goto Prepare_Key_Exchange_No_Hash
+            if Request.Key_Exchange_Request_Measurement_Summary_Hash_Type = SPDM::No_Measurement
+         goto Prepare_Key_Exchange_TCB_Hash
+            if Request.Key_Exchange_Request_Measurement_Summary_Hash_Type = SPDM::TCB_Measurement
+         goto Prepare_Measurements_All
+            if Request.Key_Exchange_Request_Measurement_Summary_Hash_Type = SPDM::All_Measurements
+         goto Error_Unspecified
+      end Prepare_Key_Exchange;
+
+      state Prepare_Key_Exchange_TCB_Hash
+      is
+      begin
+         Number_Of_Indices := Plat_Get_Number_Of_Indices_TCB;
+         Last_Measurement := Number_Of_Indices;
+      transition
+         goto Prepare_Measurements_Records
+      end Prepare_Key_Exchange_TCB_Hash;
+
+      state Prepare_Key_Exchange_Hash
+      is
+         Nonce : SPDM::Nonce;
+         Exchange_Data : Exchange_Data;
+         Heartbeat_Period : SPDM::Heartbeat_Period;
+         Use_Mutual_Auth : Boolean;
+         Session_ID : SPDM::Session_ID;
+         Summary : Measurement_Summary;
+         Summary_Hash : Hash;
+      begin
+         Nonce := Plat_Get_Nonce;
+         Exchange_Data := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
+         Heartbeat_Period := Plat_Get_Heartbeat_Period;
+         Use_Mutual_Auth := Plat_Use_Mutual_Auth;
+         Session_ID := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
+         --  ISSUE: Componolit/RecordFlux#1021
+         Summary := Measurement_Summary'(Data => Measurement_Record);
+         Summary_Hash := Plat_Get_Summary_Hash (Summary'Opaque);
+         Response :=
+            SPDM::Response'(Meas_Cap                                       => Cap_Meas,
+                            Hash_Type                                      => SPDM::No_Measurement,
+                            Hash_Length                                    => Summary_Hash.Length,
+                            Signature_Length                               => 0,
+                            Exchange_Data_Length                           => Exchange_Data.Length,
+                            Handshake_In_The_Clear                         => Cap_Handshake_In_The_Clear,
+                            Major_Version                                  => 1,
+                            Minor_Version                                  => 1,
+                            Code                                           => SPDM::Key_Exchange_RSP,
+                            Key_Exchange_Response_Heartbeat_Period         => Heartbeat_Period,
+                            Key_Exchange_Response_Param_2                  => 0,
+                            Key_Exchange_Response_Resp_Session_ID          => Session_ID,
+                            Key_Exchange_Response_Reserved_1               => 0,
+                            --  Both Mutual_Auth_Implicit and Mutual_Auth_Encapsulated
+                            --  require Encapsulated requests that are not supported.
+                            Key_Exchange_Response_Mutual_Auth_Implicit     => False,
+                            Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
+                            Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
+                            Key_Exchange_Response_Reserved_2               => 0,
+                            Key_Exchange_Response_Slot_ID_Param            => SPDM::NS_0,
+                            Key_Exchange_Response_Random_Data              => Nonce.Data,
+                            Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
+                            Key_Exchange_Response_Measurement_Summary_Hash => Summary_Hash.Data,
+                            Key_Exchange_Response_Opaque_Data_Length       => 0,
+                            Key_Exchange_Response_Opaque_Data              => [],
+                            Key_Exchange_Response_Signature                => []);
+      transition
+         goto Send_Idle
+            if Response'Valid
+         goto Error_Unspecified
+      exception
+         goto Error_Unspecified
+      end Prepare_Key_Exchange_Hash;
+
+      state Prepare_Key_Exchange_No_Hash
+      is
          Nonce : SPDM::Nonce;
          Exchange_Data : Exchange_Data;
          Heartbeat_Period : SPDM::Heartbeat_Period;
@@ -1012,7 +1111,6 @@ package SPDM_Responder is
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
-                            -- Hash_Length, FIXME: separate hash calculation required
                             Hash_Length                                    => 0,
                             Signature_Length                               => 0,
                             Exchange_Data_Length                           => Exchange_Data.Length,
@@ -1043,7 +1141,7 @@ package SPDM_Responder is
          goto Error_Unspecified
       exception
          goto Error_Unspecified
-      end Prepare_Key_Exchange;
+      end Prepare_Key_Exchange_No_Hash;
 
       state Error_Unsupported_Request
       is

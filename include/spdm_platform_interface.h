@@ -91,6 +91,8 @@ void spdm_platform_get_certificate_data (instance_t *instance,
 
 unsigned char spdm_platform_get_number_of_indices (instance_t *instance);
 
+unsigned char spdm_platform_get_number_of_indices_tcb (instance_t *instance);
+
 void spdm_platform_get_nonce(instance_t *instance, void *nonce);
 
 void spdm_platform_get_dmtf_measurement_field (instance_t *instance,
@@ -122,5 +124,11 @@ unsigned short spdm_platform_get_session_id (instance_t *instance,
                                              unsigned short session_id);
 
 unsigned char spdm_platform_use_mutual_auth (instance_t *instance);
+
+void spdm_platform_get_summary_hash(instance_t *instance,
+                                    void *summary,
+                                    unsigned summary_size,
+                                    void *hash,
+                                    unsigned *hash_length);
 
 #endif // __SPDM_PLATFORM_INTERFACE__

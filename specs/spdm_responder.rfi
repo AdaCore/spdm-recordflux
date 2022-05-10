@@ -20,3 +20,5 @@ Session:
                 Prepare_Algorithms:
                     Ext_Asym: 100
                     Ext_Hash: 100
+                Prepare_Key_Exchange_Hash:
+                    Summary: 548

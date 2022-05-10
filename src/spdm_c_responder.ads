@@ -4,6 +4,7 @@ with RFLX.SPDM_Responder.Session;
 with RFLX.SPDM_Responder.Digests_Data;
 with RFLX.SPDM_Responder.Signature;
 with RFLX.SPDM_Responder.Exchange_Data;
+with RFLX.SPDM_Responder.Hash;
 with RFLX.SPDM.Certificate_Response;
 with RFLX.SPDM.Nonce;
 with RFLX.SPDM.DMTF_Measurement_Field;
@@ -198,6 +199,11 @@ is
        Result :    out RFLX.SPDM.Measurement_Count);
 
    overriding
+   procedure Plat_Get_Number_Of_Indices_TCB
+      (Ctx    : in out Context;
+       Result :    out RFLX.SPDM.Measurement_Count);
+
+   overriding
    procedure Plat_Get_Nonce (Ctx    : in out Context;
                              Result :    out RFLX.SPDM.Nonce.Structure);
 
@@ -235,5 +241,10 @@ is
    overriding
    procedure Plat_Use_Mutual_Auth (Ctx    : in out Context;
                                    Result :    out Boolean);
+
+   overriding
+   procedure Plat_Get_Summary_Hash (Ctx    : in out Context;
+                                    Data   :        RFLX.RFLX_Types.Bytes;
+                                    Result :    out RFLX.SPDM_Responder.Hash.Structure);
 
 end SPDM_C_Responder;

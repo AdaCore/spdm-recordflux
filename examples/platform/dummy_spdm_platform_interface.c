@@ -306,6 +306,11 @@ unsigned char spdm_platform_get_number_of_indices (__attribute__((unused)) insta
     return sizeof(measurements) / sizeof(const char *);
 }
 
+unsigned char spdm_platform_get_number_of_indices_tcb (__attribute__((unused)) instance_t *instance)
+{
+    return sizeof(measurements) / sizeof(const char *);
+}
+
 void spdm_platform_get_nonce(instance_t *instance,
                              __unused_cross__ void *nonce)
 {
@@ -419,4 +424,17 @@ unsigned short spdm_platform_get_session_id (__attribute__((unused)) instance_t 
 unsigned char spdm_platform_use_mutual_auth (__attribute__((unused)) instance_t *instance)
 {
     return 0;
+}
+
+void spdm_platform_get_summary_hash(instance_t *instance,
+                                    void *summary,
+                                    unsigned summary_size,
+                                    void *hash,
+                                    unsigned *hash_length)
+{
+    boolean res = spdm_hash_all(instance->base_hash_algo, summary, summary_size, hash);
+    if(!res){
+        errx(1, "failed to hash summary");
+    }
+    *hash_length = spdm_get_hash_size(instance->base_hash_algo);
 }

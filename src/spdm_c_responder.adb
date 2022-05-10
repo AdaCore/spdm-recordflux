@@ -639,6 +639,23 @@ is
    end Plat_Get_Number_Of_Indices;
 
    overriding
+   procedure Plat_Get_Number_Of_Indices_Tcb
+      (Ctx    : in out Context;
+       Result :    out RFLX.SPDM.Measurement_Count)
+   is
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_number_of_indices_tcb";
+      Count : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
+   begin
+      if not RFLX.SPDM.Valid_Measurement_Count (Count) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM.To_Actual (Count);
+   end Plat_Get_Number_Of_Indices_Tcb;
+
+   overriding
    procedure Plat_Get_Nonce (Ctx    : in out Context;
                              Result :    out RFLX.SPDM.Nonce.Structure)
    is
@@ -804,5 +821,32 @@ is
    begin
       Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Use_Mutual_Auth;
+
+   overriding
+   procedure Plat_Get_Summary_Hash (Ctx    : in out Context;
+                                    Data   :        RFLX.RFLX_Types.Bytes;
+                                    Result :    out RFLX.SPDM_Responder.Hash.Structure)
+   is
+      use type RFLX.RFLX_Types.Index;
+      procedure C_Interface (Instance : System.Address;
+                             Summary  : System.Address;
+                             Size     : Interfaces.C.unsigned;
+                             Hash     : System.Address;
+                             Hash_Size : in out Interfaces.C.unsigned) with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_summary_hash";
+      Hash_Length : Interfaces.C.unsigned := Result.Data'Length;
+   begin
+      C_Interface (Ctx.Instance,
+                   Data'Address,
+                   Data'Length,
+                   Result.Data'Address,
+                   Hash_Length);
+      if not RFLX.SPDM.Valid_Hash_Length (RFLX.RFLX_Types.U64 (Hash_Length)) then
+         raise Constraint_Error;
+      end if;
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Hash_Length));
+   end Plat_Get_Summary_Hash;
 
 end SPDM_C_Responder;
