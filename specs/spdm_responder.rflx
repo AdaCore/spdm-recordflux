@@ -141,7 +141,7 @@ package SPDM_Responder is
       Response               : SPDM::Response;
       Supp_Versions          : SPDM::Version_Number_Entries;
       Measurement_Hash_Algo  : SPDM::Measurement_Hash_Algo;
-      Hash_Length            : SPDM::Hash_Length;
+      Hash_Length            : SPDM::Hash_Length := 0;
       Slot                   : SPDM::Slot;
       Offset                 : SPDM::Offset;
       Length                 : SPDM::Length_16;
@@ -150,29 +150,29 @@ package SPDM_Responder is
       Req_Base_Asym_Alg_List : SPDM::Req_Alg_Structs;
       Key_Schedule_List      : SPDM::Req_Alg_Structs;
       Resp_Alg_Structs       : SPDM::Resp_Alg_Structs;
-      Reset_Measurement_Sig  : Boolean;
+      Reset_Measurement_Sig  : Boolean := True;
       Measurement_Record     : SPDM::Measurement_Record;
       Current_Measurement    : SPDM::Index;
       Last_Measurement       : SPDM::Index;
       Error_Code             : SPDM::Error_Code;
 
       --  Capabilities
-      CT_Exponent                : SPDM::CT_Exponent;
-      Cap_MAC                    : Boolean;
-      Cap_Encrypt                : Boolean;
-      Cap_Meas_Fresh             : Boolean;
-      Cap_Meas                   : SPDM::Meas_Cap;
-      Cap_Chal                   : Boolean;
-      Cap_Cert                   : Boolean;
-      Cap_Cache                  : Boolean;
-      Cap_Handshake_In_The_Clear : Boolean;
-      Cap_Key_Upd                : Boolean;
-      Cap_Hbeat                  : Boolean;
-      Cap_Encap                  : Boolean;
-      Cap_PSK                    : SPDM::PSK_Resp_Cap;
-      Cap_Key_Ex                 : Boolean;
-      Cap_Mut_Auth               : Boolean;
-      Cap_Pub_Key_ID             : Boolean;
+      CT_Exponent                : SPDM::CT_Exponent  := 0;
+      Cap_MAC                    : Boolean            := False;
+      Cap_Encrypt                : Boolean            := False;
+      Cap_Meas_Fresh             : Boolean            := False;
+      Cap_Meas                   : SPDM::Meas_Cap     := SPDM::Meas_Unsupported;
+      Cap_Chal                   : Boolean            := False;
+      Cap_Cert                   : Boolean            := False;
+      Cap_Cache                  : Boolean            := False;
+      Cap_Handshake_In_The_Clear : Boolean            := False;
+      Cap_Key_Upd                : Boolean            := False;
+      Cap_Hbeat                  : Boolean            := False;
+      Cap_Encap                  : Boolean            := False;
+      Cap_PSK                    : SPDM::PSK_Resp_Cap := SPDM::PSK_Resp_Unsupported;
+      Cap_Key_Ex                 : Boolean            := False;
+      Cap_Mut_Auth               : Boolean            := False;
+      Cap_Pub_Key_ID             : Boolean            := False;
    begin
       state Init
       is
@@ -183,25 +183,7 @@ package SPDM_Responder is
                                          Update_Version_Number => 0,
                                          Minor_Version         => 1,
                                          Major_Version         => 1));
-         Hash_Length := 0;
-         Reset_Measurement_Sig := True;
          --  FIXME: Reset all state
-         CT_Exponent                := 0;
-         Cap_MAC                    := False;
-         Cap_Encrypt                := False;
-         Cap_Meas_Fresh             := False;
-         Cap_Meas                   := SPDM::Meas_Unsupported;
-         Cap_Chal                   := False;
-         Cap_Cert                   := False;
-         Cap_Cache                  := False;
-         Cap_Handshake_In_The_Clear := False;
-         Cap_Key_Upd                := False;
-         Cap_Hbeat                  := False;
-         Cap_Encap                  := False;
-         Cap_PSK                    := SPDM::PSK_Resp_Unsupported;
-         Cap_Key_Ex                 := False;
-         Cap_Mut_Auth               := False;
-         Cap_Pub_Key_ID             := False;
       transition
          goto Receive_Get_Version
       exception
