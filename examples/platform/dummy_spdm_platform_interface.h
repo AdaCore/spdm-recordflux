@@ -17,6 +17,8 @@
 #define errx(...) {}
 #define printf(...)
 #define malloc(...) 0
+#define realloc(...) 0
+#define free(...)
 #define memset(...)
 #define read_responder_public_certificate_chain(...) 1
 #define memcpy(...)

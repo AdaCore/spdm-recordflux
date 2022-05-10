@@ -133,7 +133,14 @@ GENERATED += \
     rflx-spdm-end_session_request.adb \
     rflx-spdm-end_session_request.ads \
     rflx-spdm-end_session_response.adb \
-    rflx-spdm-end_session_response.ads
+    rflx-spdm-end_session_response.ads \
+    rflx-spdm_responder-hash.adb \
+    rflx-spdm_responder-hash.ads \
+    rflx-spdm_responder-exchange_data.adb \
+    rflx-spdm_responder-exchange_data.ads \
+    rflx-spdm_responder-measurement_summary.adb \
+    rflx-spdm_responder-measurement_summary.ads
+
 VALIDATE_STATIC += test_validate_static_key_exchange
 DUMP_VALIDATE_FLAGS += --feature_key_exchange
 endif

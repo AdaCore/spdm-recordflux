@@ -428,10 +428,10 @@ unsigned char spdm_platform_use_mutual_auth (__attribute__((unused)) instance_t 
     return 0;
 }
 
-void spdm_platform_get_summary_hash(instance_t *instance,
-                                    void *summary,
-                                    unsigned summary_size,
-                                    void *hash,
+void spdm_platform_get_summary_hash(__unused_cross__ instance_t *instance,
+                                    __unused_cross__ void *summary,
+                                    __unused_cross__ unsigned summary_size,
+                                    __unused_cross__ void *hash,
                                     unsigned *hash_length)
 {
     boolean res = spdm_hash_all(instance->base_hash_algo, summary, summary_size, hash);
@@ -442,7 +442,7 @@ void spdm_platform_get_summary_hash(instance_t *instance,
 }
 
 unsigned char spdm_platform_update_transcript_signature(instance_t *instance,
-                                                        void *message,
+                                                        __unused_cross__ void *message,
                                                         unsigned size,
                                                         int reset)
 {
@@ -461,8 +461,8 @@ unsigned char spdm_platform_update_transcript_signature(instance_t *instance,
     return 1;
 }
 
-void spdm_platform_get_transcript_signature(instance_t *instance,
-                                            void *signature,
+void spdm_platform_get_transcript_signature(__unused_cross__ instance_t *instance,
+                                            __unused_cross__ void *signature,
                                             unsigned *size)
 {
     __unused_cross__ const spdm_version_number_t version = {0, 0, 1, 1};
