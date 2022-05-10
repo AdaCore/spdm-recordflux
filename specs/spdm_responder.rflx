@@ -186,6 +186,22 @@ package SPDM_Responder is
          Hash_Length := 0;
          Reset_Measurement_Sig := True;
          --  FIXME: Reset all state
+         CT_Exponent                := 0;
+         Cap_MAC                    := False;
+         Cap_Encrypt                := False;
+         Cap_Meas_Fresh             := False;
+         Cap_Meas                   := SPDM::Meas_Unsupported;
+         Cap_Chal                   := False;
+         Cap_Cert                   := False;
+         Cap_Cache                  := False;
+         Cap_Handshake_In_The_Clear := False;
+         Cap_Key_Upd                := False;
+         Cap_Hbeat                  := False;
+         Cap_Encap                  := False;
+         Cap_PSK                    := SPDM::PSK_Resp_Unsupported;
+         Cap_Key_Ex                 := False;
+         Cap_Mut_Auth               := False;
+         Cap_Pub_Key_ID             := False;
       transition
          goto Receive_Get_Version
       exception
@@ -228,8 +244,6 @@ package SPDM_Responder is
                                      Version_Response_Version_Number_Entries     => Supp_Versions);
       transition
          goto Send_Version
-            if Response'Valid
-         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Version;
@@ -310,7 +324,7 @@ package SPDM_Responder is
 
          --  For the behaviour when responding the responder has to take the
          --  capabilities supported by the requester into account.
-         -- --   CT_Exponent                := CT_Exponent;  --  Min(Resp.CT_Exp, Req.CT_Exp)?
+         -- FIXME CT_Exponent                := CT_Exponent;  --  Min(Resp.CT_Exp, Req.CT_Exp)?
          Cap_MAC                    := Cap_MAC and Request.Get_Capabilities_Request_MAC_Cap;
          Cap_Encrypt                := Cap_Encrypt and Request.Get_Capabilities_Request_Encrypt_Cap;
          Cap_Chal                   := Cap_Chal and Request.Get_Capabilities_Request_Chal_Cap;
@@ -320,14 +334,12 @@ package SPDM_Responder is
          Cap_Key_Upd                := Cap_Key_Upd and Request.Get_Capabilities_Request_Key_Upd_Cap;
          Cap_Hbeat                  := Cap_Hbeat and Request.Get_Capabilities_Request_Hbeat_Cap;
          Cap_Encap                  := Cap_Encap and Request.Get_Capabilities_Request_Encap_Cap;
-         --  Cap_PSK                    := Cap_PSK and Request.Get_Capabilities_Request_PSK_Cap; ?
+         --  FIXME Cap_PSK                    := Cap_PSK and Request.Get_Capabilities_Request_PSK_Cap; ?
          Cap_Key_Ex                 := Cap_Key_Ex and Request.Get_Capabilities_Request_Key_Ex_Cap;
          Cap_Mut_Auth               := Cap_Mut_Auth and Request.Get_Capabilities_Request_Mut_Auth_Cap;
          Cap_Pub_Key_ID             := Cap_Pub_Key_ID and Request.Get_Capabilities_Request_Pub_Key_ID_Cap;
       transition
          goto Send_Capabilities
-            if Response'Valid
-         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Capabilities;
@@ -655,8 +667,6 @@ package SPDM_Responder is
          Hash_Length := 32;
       transition
          goto Send_Idle
-            if Response'Valid
-         goto Error_Unspecified
       end Set_Hash_Len_32;
 
       --  ISSUE: Componolit/RecordFlux#907
@@ -666,8 +676,6 @@ package SPDM_Responder is
          Hash_Length := 48;
       transition
          goto Send_Idle
-            if Response'Valid
-         goto Error_Unspecified
       end Set_Hash_Len_48;
 
       --  ISSUE: Componolit/RecordFlux#907
@@ -677,8 +685,6 @@ package SPDM_Responder is
          Hash_Length := 64;
       transition
          goto Send_Idle
-            if Response'Valid
-         goto Error_Unspecified
       end Set_Hash_Len_64;
 
       state Send_Idle
@@ -749,8 +755,6 @@ package SPDM_Responder is
                                      Digests_Response_Digests_Data               => Digests_Data.Value);
       transition
          goto Send_Idle
-            if Response'Valid
-         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Digests;
@@ -800,8 +804,6 @@ package SPDM_Responder is
                                      Certificate_Response_Cert_Chain       => Cert.Cert_Chain);
       transition
          goto Send_Idle
-            if Response'Valid
-         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Certificate;
@@ -844,8 +846,7 @@ package SPDM_Responder is
       begin
          Measurement_Field := Plat_Get_DMTF_Measurement_Field (Current_Measurement);
          Measurement_Record'Append (SPDM::Measurement_Block'
-            (Index                                             =>
-               Request.Get_Measurements_Request_Measurement_Operation,
+            (Index                                             => Current_Measurement,
              Measurement_Specification                         => SPDM::DMTF,
              Measurement_Length                                => Measurement_Field'Size / 8,
              DMTF_Measurement_Measurement_Value_Representation => Measurement_Field.Measurement_Value_Representation,
@@ -938,8 +939,6 @@ package SPDM_Responder is
          Reset_Measurement_Sig := True;
       transition
          goto Send_Idle
-            if Response'Valid
-         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Measurements_Sign;
@@ -1047,8 +1046,6 @@ package SPDM_Responder is
                             Error_Response_Zero_Error_Data => 0);
       transition
          goto Send_Error
-            if Response'Valid
-         goto End_Session
       exception
          goto End_Session
       end Error_Zero_Data;
