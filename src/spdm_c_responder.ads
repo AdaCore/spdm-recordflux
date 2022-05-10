@@ -247,4 +247,14 @@ is
                                     Data   :        RFLX.RFLX_Types.Bytes;
                                     Result :    out RFLX.SPDM_Responder.Hash.Structure);
 
+   overriding
+   procedure Plat_Update_Transcript_Signature (Ctx     : in out Context;
+                                               Message :        RFLX.RFLX_Types.Bytes;
+                                               Reset   :        Boolean;
+                                               Result  :    out Boolean);
+
+   overriding
+   procedure Plat_Get_Transcript_Signature (Ctx    : in out Context;
+                                            Result :    out RFLX.SPDM_Responder.Signature.Structure);
+
 end SPDM_C_Responder;

@@ -11,7 +11,7 @@ package SPDM is
    type Index is range 0 .. 2 ** 8 - 1 with Size => 8;
 
    type Signature_Length is range 0 .. 512 with Size => 16;
-   type Exchange_Data_Length is range 96 .. 512 with Size => 10;
+   type Exchange_Data_Length is range 0 .. 512 with Size => 10;
    type Hash_Length is range 0 .. 64 with Size => 8;
 
    -- ISSUE: Componolit/RecordFlux#601

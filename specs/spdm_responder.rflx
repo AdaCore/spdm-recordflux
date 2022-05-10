@@ -65,6 +65,9 @@ package SPDM_Responder is
          Data : SPDM::Measurement_Record;
       end message;
 
+   type Next_Transcript_State is (Send_Vers, Send_Cap, Send_Alg, Sign_Key_Ex) with
+      Size => 8;
+
    generic
       Transport : Channel with Readable, Writable;
       with function Plat_Cfg_CT_Exponent return SPDM::CT_Exponent;
@@ -168,6 +171,10 @@ package SPDM_Responder is
 
       with function Plat_Get_Summary_Hash (Data : Opaque) return Hash;
 
+      with function Plat_Update_Transcript_Signature (Message : Opaque; Reset : Boolean) return Boolean;
+
+      with function Plat_Get_Transcript_Signature return Signature;
+
    session Session with
       Initial => Init,
       Final => End_Session
@@ -176,6 +183,7 @@ package SPDM_Responder is
       Response               : SPDM::Response;
       Supp_Versions          : SPDM::Version_Number_Entries;
       Measurement_Hash_Algo  : SPDM::Measurement_Hash_Algo;
+      DHE_Algo               : DHE_Algo;
       Hash_Length            : SPDM::Hash_Length := 0;
       Slot                   : SPDM::Slot;
       Offset                 : SPDM::Offset;
@@ -196,6 +204,8 @@ package SPDM_Responder is
       Key_Schedule_List      : SPDM::Req_Alg_Structs;
 #end if;
       Measurement_Summary    : Boolean;
+      Next_Transcript_State  : Next_Transcript_State;
+      Exchange_Data_Length   : SPDM::Exchange_Data_Length := 0;
 
       --  Capabilities
       CT_Exponent                : SPDM::CT_Exponent  := 0;
@@ -267,11 +277,37 @@ package SPDM_Responder is
                                      Version_Response_Reserved                   => 0,
                                      Version_Response_Version_Number_Entry_Count => 1,
                                      Version_Response_Version_Number_Entries     => Supp_Versions);
+         Next_Transcript_State := Send_Vers;
       transition
-         goto Send_Version
+         goto Update_Transcript_Hash
       exception
          goto Error_Unspecified
       end Prepare_Version;
+
+      state Update_Transcript_Hash
+      is
+         Req_Success : Boolean;
+         Resp_Success : Boolean;
+      begin
+         Req_Success := Plat_Update_Transcript_Signature (Request'Opaque, True);
+         Resp_Success := Plat_Update_Transcript_Signature (Response'Opaque, False);
+      transition
+         goto Send_Version
+            if Next_Transcript_State = Send_Vers
+               and Req_Success and Resp_Success
+         goto Send_Capabilities
+            if Next_Transcript_State = Send_Cap
+               and Req_Success and Resp_Success
+         goto Send_Idle
+            if Next_Transcript_State = Send_Alg
+               and Req_Success and Resp_Success
+         goto Prepare_Key_Exchange_Sign
+            if Next_Transcript_State = Sign_Key_Ex
+               and Req_Success and Resp_Success
+         goto Error_Unspecified
+      exception
+         goto Error_Unspecified
+      end Update_Transcript_Hash;
 
       state Send_Version
       is
@@ -325,7 +361,7 @@ package SPDM_Responder is
                             Hash_Type                                        => SPDM::No_Measurement,
                             Hash_Length                                      => Hash_Length,
                             Signature_Length                                 => 0,
-                            Exchange_Data_Length                             => 512,
+                            Exchange_Data_Length                             => Exchange_Data_Length,
                             Handshake_In_The_Clear                           => Cap_Handshake_In_The_Clear,
                             Major_Version                                    => 1,
                             Minor_Version                                    => 1,
@@ -368,8 +404,10 @@ package SPDM_Responder is
          Cap_Key_Ex                 := Cap_Key_Ex and Request.Get_Capabilities_Request_Key_Ex_Cap;
          Cap_Mut_Auth               := Cap_Mut_Auth and Request.Get_Capabilities_Request_Mut_Auth_Cap;
          Cap_Pub_Key_ID             := Cap_Pub_Key_ID and Request.Get_Capabilities_Request_Pub_Key_ID_Cap;
+
+         Next_Transcript_State := Send_Cap;
       transition
-         goto Send_Capabilities
+         goto Update_Transcript_Hash
       exception
          goto Error_Unspecified
       end Prepare_Capabilities;
@@ -421,7 +459,6 @@ package SPDM_Responder is
          Sel_FFDHE3072 : Boolean;
          Sel_FFDHE2048 : Boolean;
          DHE           : SPDM::Alg_Struct;
-         DHE_Algo      : SPDM_Responder::DHE_Algo;
       begin
          DHE := DHE_List'Head;
          DHE_Algo := Plat_Cfg_Sel_DHE
@@ -669,7 +706,7 @@ package SPDM_Responder is
                             Hash_Type                                         => SPDM::No_Measurement,
                             Hash_Length                                       => Hash_Length,
                             Signature_Length                                  => 0,
-                            Exchange_Data_Length                              => 512,
+                            Exchange_Data_Length                              => Exchange_Data_Length,
                             Handshake_In_The_Clear                            => Cap_Handshake_In_The_Clear,
                             Major_Version                                     => 1,
                             Minor_Version                                     => 1,
@@ -690,6 +727,7 @@ package SPDM_Responder is
                             Algorithms_Response_Ext_Asym                      => Ext_Asym,
                             Algorithms_Response_Ext_Hash                      => Ext_Hash,
                             Algorithms_Response_Resp_Alg_Structs              => Resp_Alg_Structs);
+            Next_Transcript_State := Send_Alg;
       transition
          --  ISSUE: Componolit/RecordFlux#907
          --  This cannot be done more elegantly right now
@@ -713,7 +751,9 @@ package SPDM_Responder is
       begin
          Hash_Length := 32;
       transition
-         goto Send_Idle
+         goto Set_Exchange_Data_Len
+            if Cap_Key_Ex
+         goto Update_Transcript_Hash
       end Set_Hash_Len_32;
 
       --  ISSUE: Componolit/RecordFlux#907
@@ -722,7 +762,9 @@ package SPDM_Responder is
       begin
          Hash_Length := 48;
       transition
-         goto Send_Idle
+         goto Set_Exchange_Data_Len
+            if Cap_Key_Ex
+         goto Update_Transcript_Hash
       end Set_Hash_Len_48;
 
       --  ISSUE: Componolit/RecordFlux#907
@@ -731,16 +773,95 @@ package SPDM_Responder is
       begin
          Hash_Length := 64;
       transition
-         goto Send_Idle
+         goto Set_Exchange_Data_Len
+            if Cap_Key_Ex
+         goto Update_Transcript_Hash
       end Set_Hash_Len_64;
+
+      state Set_Exchange_Data_Len
+      is
+      begin
+      transition
+         goto Set_Exchange_Data_Len_64
+            if DHE_Algo = DA_SecP256r1
+         goto Set_Exchange_Data_Len_96
+            if DHE_Algo = DA_SecP384r1
+         goto Set_Exchange_Data_Len_132
+            if DHE_Algo = DA_SecP521r1
+         goto Set_Exchange_Data_Len_256
+            if DHE_Algo = DA_FFDHE2048
+         goto Set_Exchange_Data_Len_384
+            if DHE_Algo = DA_FFDHE3072
+         goto Set_Exchange_Data_Len_512
+            if DHE_Algo = DA_FFDHE4096
+         goto Error_Unspecified
+      end Set_Exchange_Data_Len;
+
+      state Set_Exchange_Data_Len_64
+      is
+      begin
+         Exchange_Data_Length := 64;
+      transition
+         goto Update_Transcript_Hash
+      end Set_Exchange_Data_Len_64;
+
+      state Set_Exchange_Data_Len_96
+      is
+      begin
+         Exchange_Data_Length := 96;
+      transition
+         goto Update_Transcript_Hash
+      end Set_Exchange_Data_Len_96;
+
+      state Set_Exchange_Data_Len_132
+      is
+      begin
+         Exchange_Data_Length := 132;
+      transition
+         goto Update_Transcript_Hash
+      end Set_Exchange_Data_Len_132;
+
+      state Set_Exchange_Data_Len_256
+      is
+      begin
+         Exchange_Data_Length := 256;
+      transition
+         goto Update_Transcript_Hash
+      end Set_Exchange_Data_Len_256;
+
+      state Set_Exchange_Data_Len_384
+      is
+      begin
+         Exchange_Data_Length := 384;
+      transition
+         goto Update_Transcript_Hash
+      end Set_Exchange_Data_Len_384;
+
+      state Set_Exchange_Data_Len_512
+      is
+      begin
+         Exchange_Data_Length := 512;
+      transition
+         goto Update_Transcript_Hash
+      end Set_Exchange_Data_Len_512;
 
       state Send_Idle
       is
       begin
          Transport'Write (Response);
       transition
-         goto Receive_Idle
+         goto Reset_Idle
       end Send_Idle;
+
+      state Reset_Idle
+      is
+      begin
+         Request'Reset (Hash_Length            => Hash_Length,
+                        Signature_Length       => 0,
+                        Exchange_Data_Length   => Exchange_Data_Length);
+      transition
+         goto Receive_Idle
+      end Reset_Idle;
 
       state Receive_Idle
       is
@@ -754,7 +875,7 @@ package SPDM_Responder is
          goto Prepare_Measurements
             if Request'Valid and Request.Code = SPDM::Get_Measurements
          goto Prepare_Key_Exchange
-            if Request'Valid and Request.Code = SPDM::Key_Exchange
+            if Request'Valid and Request.Code = SPDM::Key_Exchange and Cap_Key_Ex
          goto Error_Unsupported_Request
             if Request'Valid
          goto Error_Invalid_Request
@@ -787,7 +908,7 @@ package SPDM_Responder is
                                      Hash_Type                                   => SPDM::No_Measurement,
                                      Hash_Length                                 => Hash_Length,
                                      Signature_Length                            => 0,
-                                     Exchange_Data_Length                        => 512,
+                                     Exchange_Data_Length                        => Exchange_Data_Length,
                                      Handshake_In_The_Clear                      => Cap_Handshake_In_The_Clear,
                                      Major_Version                               => 1,
                                      Minor_Version                               => 1,
@@ -841,7 +962,7 @@ package SPDM_Responder is
                                      Hash_Type                             => SPDM::No_Measurement,
                                      Hash_Length                           => Hash_Length,
                                      Signature_Length                      => 0,
-                                     Exchange_Data_Length                  => 512,
+                                     Exchange_Data_Length                  => Exchange_Data_Length,
                                      Handshake_In_The_Clear                => Cap_Handshake_In_The_Clear,
                                      Major_Version                         => 1,
                                      Minor_Version                         => 1,
@@ -936,7 +1057,7 @@ package SPDM_Responder is
                                      Hash_Type                             => SPDM::No_Measurement,
                                      Hash_Length                           => Hash_Length,
                                      Signature_Length                      => 0,
-                                     Exchange_Data_Length                  => 512,
+                                     Exchange_Data_Length                  => Exchange_Data_Length,
                                      Handshake_In_The_Clear                => Cap_Handshake_In_The_Clear,
                                      Major_Version                         => 1,
                                      Minor_Version                         => 1,
@@ -982,7 +1103,7 @@ package SPDM_Responder is
              Hash_Type                                       => SPDM::No_Measurement,
              Hash_Length                                     => 0,
              Signature_Length                                => Signature.Length,
-             Exchange_Data_Length                            => 512,
+             Exchange_Data_Length                            => Exchange_Data_Length,
              Handshake_In_The_Clear                          => Cap_Handshake_In_The_Clear,
              Major_Version                                   => Major_Version,
              Minor_Version                                   => Major_Version,
@@ -1052,20 +1173,21 @@ package SPDM_Responder is
          Summary : Measurement_Summary;
          Summary_Hash : Hash;
       begin
-         Nonce := Plat_Get_Nonce;
-         Exchange_Data := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
-         Heartbeat_Period := Plat_Get_Heartbeat_Period;
-         Use_Mutual_Auth := Plat_Use_Mutual_Auth;
-         Session_ID := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
+         Nonce                := Plat_Get_Nonce;
+         Exchange_Data        := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
+         Heartbeat_Period     := Plat_Get_Heartbeat_Period;
+         Use_Mutual_Auth      := Plat_Use_Mutual_Auth;
+         Session_ID           := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
          --  ISSUE: Componolit/RecordFlux#1021
-         Summary := Measurement_Summary'(Data => Measurement_Record);
-         Summary_Hash := Plat_Get_Summary_Hash (Summary'Opaque);
+         Summary              := Measurement_Summary'(Data => Measurement_Record);
+         Summary_Hash         := Plat_Get_Summary_Hash (Summary'Opaque);
+         Exchange_Data_Length := Exchange_Data.Length;
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
                             Hash_Length                                    => Summary_Hash.Length,
                             Signature_Length                               => 0,
-                            Exchange_Data_Length                           => Exchange_Data.Length,
+                            Exchange_Data_Length                           => Exchange_Data_Length,
                             Handshake_In_The_Clear                         => Cap_Handshake_In_The_Clear,
                             Major_Version                                  => 1,
                             Minor_Version                                  => 1,
@@ -1087,10 +1209,9 @@ package SPDM_Responder is
                             Key_Exchange_Response_Opaque_Data_Length       => 0,
                             Key_Exchange_Response_Opaque_Data              => [],
                             Key_Exchange_Response_Signature                => []);
+         Next_Transcript_State := Sign_Key_Ex;
       transition
-         goto Send_Idle
-            if Response'Valid
-         goto Error_Unspecified
+         goto Update_Transcript_Hash
       exception
          goto Error_Unspecified
       end Prepare_Key_Exchange_Hash;
@@ -1103,17 +1224,18 @@ package SPDM_Responder is
          Use_Mutual_Auth : Boolean;
          Session_ID : SPDM::Session_ID;
       begin
-         Nonce := Plat_Get_Nonce;
-         Exchange_Data := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
-         Heartbeat_Period := Plat_Get_Heartbeat_Period;
-         Use_Mutual_Auth := Plat_Use_Mutual_Auth;
-         Session_ID := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
+         Nonce                := Plat_Get_Nonce;
+         Exchange_Data        := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
+         Heartbeat_Period     := Plat_Get_Heartbeat_Period;
+         Use_Mutual_Auth      := Plat_Use_Mutual_Auth;
+         Session_ID           := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
+         Exchange_Data_Length := 0;
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
                             Hash_Length                                    => 0,
                             Signature_Length                               => 0,
-                            Exchange_Data_Length                           => Exchange_Data.Length,
+                            Exchange_Data_Length                           => Exchange_Data_Length,
                             Handshake_In_The_Clear                         => Cap_Handshake_In_The_Clear,
                             Major_Version                                  => 1,
                             Minor_Version                                  => 1,
@@ -1135,13 +1257,64 @@ package SPDM_Responder is
                             Key_Exchange_Response_Opaque_Data_Length       => 0,
                             Key_Exchange_Response_Opaque_Data              => [],
                             Key_Exchange_Response_Signature                => []);
+         Next_Transcript_State := Sign_Key_Ex;
       transition
-         goto Send_Idle
-            if Response'Valid
-         goto Error_Unspecified
+         goto Update_Transcript_Hash
       exception
          goto Error_Unspecified
       end Prepare_Key_Exchange_No_Hash;
+
+      state Prepare_Key_Exchange_Sign
+      is
+         Signature        : Signature;
+         Code             : SPDM::Response_Code;
+         Heartbeat_Period : SPDM::Heartbeat_Period;
+         Session_ID       : SPDM::Session_ID;
+         Use_Mutual_Auth  : Boolean;
+         Nonce            : SPDM::Nonce;
+         Exchange_Data    : Exchange_Data;
+      begin
+         Nonce            := SPDM::Nonce'(Data => Response.Key_Exchange_Response_Random_Data);
+         Code             := Response.Code;
+         Heartbeat_Period := Response.Key_Exchange_Response_Heartbeat_Period;
+         Session_ID       := Response.Key_Exchange_Response_Resp_Session_ID;
+         Use_Mutual_Auth  := Response.Key_Exchange_Response_Mutual_Auth;
+         Exchange_Data    := Exchange_Data'(Length => Exchange_Data_Length,
+                                            Pad    => 0,
+                                            Data   => Response.Key_Exchange_Response_Exchange_Data);
+         Signature := Plat_Get_Transcript_Signature;
+         Response :=
+            SPDM::Response'(Meas_Cap                                       => Cap_Meas,
+                            Hash_Type                                      => SPDM::No_Measurement,
+                            Hash_Length                                    => 0,
+                            Signature_Length                               => Signature.Length,
+                            Exchange_Data_Length                           => Exchange_Data_Length,
+                            Handshake_In_The_Clear                         => Cap_Handshake_In_The_Clear,
+                            Major_Version                                  => 1,
+                            Minor_Version                                  => 1,
+                            Code                                           => SPDM::Key_Exchange_RSP,
+                            Key_Exchange_Response_Heartbeat_Period         => Heartbeat_Period,
+                            Key_Exchange_Response_Param_2                  => 0,
+                            Key_Exchange_Response_Resp_Session_ID          => Session_ID,
+                            Key_Exchange_Response_Reserved_1               => 0,
+                            --  Both Mutual_Auth_Implicit and Mutual_Auth_Encapsulated
+                            --  require Encapsulated requests that are not supported.
+                            Key_Exchange_Response_Mutual_Auth_Implicit     => False,
+                            Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
+                            Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
+                            Key_Exchange_Response_Reserved_2               => 0,
+                            Key_Exchange_Response_Slot_ID_Param            => SPDM::NS_0,
+                            Key_Exchange_Response_Random_Data              => Nonce.Data,
+                            Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
+                            Key_Exchange_Response_Measurement_Summary_Hash => [],
+                            Key_Exchange_Response_Opaque_Data_Length       => 0,
+                            Key_Exchange_Response_Opaque_Data              => [],
+                            Key_Exchange_Response_Signature                => Signature.Data);
+      transition
+         goto Send_Idle
+      exception
+         goto Error_Unspecified
+      end Prepare_Key_Exchange_Sign;
 
       state Error_Unsupported_Request
       is
@@ -1151,7 +1324,7 @@ package SPDM_Responder is
                             Hash_Type                            => SPDM::No_Measurement,
                             Hash_Length                          => 64,
                             Signature_Length                     => 0,
-                            Exchange_Data_Length                 => 512,
+                            Exchange_Data_Length                 => Exchange_Data_Length,
                             Handshake_In_The_Clear               => Cap_Handshake_In_The_Clear,
                             Major_Version                        => 1,
                             Minor_Version                        => 1,
@@ -1188,7 +1361,7 @@ package SPDM_Responder is
                             Hash_Type                      => SPDM::No_Measurement,
                             Hash_Length                    => 64,
                             Signature_Length               => 0,
-                            Exchange_Data_Length           => 512,
+                            Exchange_Data_Length           => Exchange_Data_Length,
                             Handshake_In_The_Clear         => Cap_Handshake_In_The_Clear,
                             Major_Version                  => 1,
                             Minor_Version                  => 1,

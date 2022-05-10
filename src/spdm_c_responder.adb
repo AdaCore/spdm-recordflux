@@ -766,6 +766,7 @@ is
          External_Name => "spdm_platform_get_exchange_data";
       Size : constant Interfaces.C.unsigned := Exchange_Data'Length;
    begin
+      Result.Pad := 0;
       Result.Data (Result.Data'First .. Result.Data'First + Exchange_Data'Length - 1) := Exchange_Data;
       C_Interface (Ctx.Instance, Result.Data'Address, Size);
       if not RFLX.SPDM.Valid_Exchange_Data_Length (RFLX.RFLX_Types.U64 (Size)) then
@@ -848,5 +849,48 @@ is
       end if;
       Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Hash_Length));
    end Plat_Get_Summary_Hash;
+
+   overriding
+   procedure Plat_Update_Transcript_Signature (Ctx     : in out Context;
+                                               Message :        RFLX.RFLX_Types.Bytes;
+                                               Reset   :        Boolean;
+                                               Result  :    out Boolean)
+   is
+      use type Interfaces.C.int;
+      use type Interfaces.C.unsigned_char;
+      function C_Interface (Instance : System.Address;
+                            Message  : System.Address;
+                            Length   : Interfaces.C.unsigned;
+                            Reset    : Interfaces.C.int) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_update_transcript_signature";
+   begin
+      Result := C_Interface (Ctx.Instance,
+                             Message'Address,
+                             Message'Length,
+                             (if Reset then 1 else 0)) > 0;
+   end Plat_Update_Transcript_Signature;
+
+   overriding
+   procedure Plat_Get_Transcript_Signature (Ctx    : in out Context;
+                                            Result :    out RFLX.SPDM_Responder.Signature.Structure)
+   is
+      procedure C_Interface (Instance  :        System.Address;
+                             Signature :    out RFLX.RFLX_Types.Bytes;
+                             Length    : in out Interfaces.C.unsigned) with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_transcript_signature";
+      Length : Interfaces.C.unsigned := Result.Data'Length;
+   begin
+      C_Interface (Ctx.Instance,
+                   Result.Data,
+                   Length);
+      if not RFLX.SPDM.Valid_Signature_Length (RFLX.RFLX_Types.U64 (Length)) then
+         raise Constraint_Error;
+      end if;
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Length));
+   end Plat_Get_Transcript_Signature;
 
 end SPDM_C_Responder;

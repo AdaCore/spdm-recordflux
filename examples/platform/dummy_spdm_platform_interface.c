@@ -9,6 +9,8 @@ struct instance {
     int valid_nonce;
     unsigned char nonce[32];
     void *measurement_hash_ctx;
+    void *transcript;
+    unsigned transcript_size;
 };
 
 void spdm_platform_initialize(instance_t **instance)
@@ -437,4 +439,55 @@ void spdm_platform_get_summary_hash(instance_t *instance,
         errx(1, "failed to hash summary");
     }
     *hash_length = spdm_get_hash_size(instance->base_hash_algo);
+}
+
+unsigned char spdm_platform_update_transcript_signature(instance_t *instance,
+                                                        void *message,
+                                                        unsigned size,
+                                                        int reset)
+{
+    if(reset){
+        free(instance->transcript);
+        instance->transcript = 0;
+        instance->transcript_size = 0;
+    }
+    instance->transcript = realloc(instance->transcript, instance->transcript_size + size);
+    if(!instance->transcript){
+        errx(1, "failed to allocate transcript buffer");
+        return 0;
+    }
+    memcpy(instance->transcript + instance->transcript_size, message, size);
+    instance->transcript_size += size;
+    return 1;
+}
+
+void spdm_platform_get_transcript_signature(instance_t *instance,
+                                            void *signature,
+                                            unsigned *size)
+{
+    __unused_cross__ const spdm_version_number_t version = {0, 0, 1, 1};
+    __unused_cross__ const unsigned hash_size = spdm_get_hash_size(instance->base_hash_algo);
+    __unused_cross__ unsigned char hash[hash_size];
+    uintn sig_size = *size;
+    boolean res = spdm_hash_all(instance->base_hash_algo,
+                                instance->transcript,
+                                instance->transcript_size,
+                                hash);
+    if(!res){
+        errx(1, "failed to hash summary");
+    }
+    if(!spdm_responder_data_sign(version,
+                                 SPDM_KEY_EXCHANGE_RSP,
+                                 instance->base_asym_algo,
+                                 instance->base_hash_algo,
+                                 1,
+                                 (const uint8 *)&hash,
+                                 hash_size,
+                                 signature,
+                                 &sig_size)){
+        sig_size = 0;
+        printf("failed to sign\n");
+    }
+    *size = sig_size;
+    printf("signature_length=%u\n", *size);
 }

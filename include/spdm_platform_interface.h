@@ -131,4 +131,13 @@ void spdm_platform_get_summary_hash(instance_t *instance,
                                     void *hash,
                                     unsigned *hash_length);
 
+unsigned char spdm_platform_update_transcript_signature(instance_t *instance,
+                                                        void *message,
+                                                        unsigned size,
+                                                        int reset);
+
+void spdm_platform_get_transcript_signature(instance_t *instance,
+                                            void *signature,
+                                            unsigned *size);
+
 #endif // __SPDM_PLATFORM_INTERFACE__
