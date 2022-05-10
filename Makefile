@@ -1,5 +1,7 @@
 .PHONY: all test check check_spec check_stack check_stack_riscv64 check_stack_arm package test_package test_cross test_integration prove clean
 
+SHELL := /bin/bash
+
 # Features: set to "True" or "False"
 FEATURE_CHALLENGE_AUTH ?= True
 FEATURE_RESPOND_IF_READY ?= True
