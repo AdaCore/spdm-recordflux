@@ -953,6 +953,7 @@ package SPDM_Responder is
          Reset_Measurement_Sig := True;
          Nonce := Plat_Get_Nonce;
          Number_Of_Indices := Plat_Get_Number_Of_Indices;
+         Measurement_Record'Reset;
          Response := SPDM::Response'(Meas_Cap                              => Cap_Meas,
                                      Hash_Type                             => SPDM::No_Measurement,
                                      Hash_Length                           => Hash_Length,
@@ -972,6 +973,8 @@ package SPDM_Responder is
                                      Measurements_Response_Opaque_Length => 0,
                                      Measurements_Response_Opaque_Data => []);
       transition
+         goto Prepare_Measurements_Sign
+            if Request.Get_Measurements_Request_Generate_Signature
          goto Update_Measurement_Signature
       exception
          goto Error_Unspecified
