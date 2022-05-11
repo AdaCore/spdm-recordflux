@@ -880,7 +880,7 @@ package SPDM_Responder is
                                      Major_Version                         => 1,
                                      Minor_Version                         => 1,
                                      Code                                  => SPDM::Measurements,
-                                     Measurements_Response_Number_Of_Indices => 1,
+                                     Measurements_Response_Number_Of_Indices => 0,
                                      Measurements_Response_Reserved_1 => 0,
                                      Measurements_Response_Slot_ID => SPDM::NS_0,
                                      Measurements_Response_Number_Of_Blocks => 1,
