@@ -1,0 +1,56 @@
+#!/usr/bin/expect
+
+proc match {id string} {
+    expect -i $id default {puts "Failed to match:"; puts $string; exit 1} $string
+}
+
+cd build/certificates
+set timeout 30
+spawn ../tests/responder
+set responder_id $spawn_id
+sleep 1
+spawn ../tests/proxy
+set proxy_id $spawn_id
+expect -i $responder_id "State: Init"
+spawn ../tests/requester \
+          ../../tests/data/spdm/Request/valid/V511-040_SPDM_GET_VERSION.raw \
+          ../../tests/data/spdm/Request/valid/V511-040_SPDM_GET_CAPABILITIES.raw \
+          ../../tests/data/spdm/Request/valid/V511-039_SPDM_NEGOTIATE_ALGORITHMS.raw \
+          ../../tests/data/spdm/Request/valid/V511-039_SPDM_NEGOTIATE_ALGORITHMS.raw \
+          ../../tests/data/spdm/Request/valid/V511-040_SPDM_GET_VERSION.raw \
+          ../../tests/data/spdm/Request/valid/V511-040_SPDM_GET_CAPABILITIES.raw \
+          ../../tests/data/spdm/Request/valid/V511-039_SPDM_NEGOTIATE_ALGORITHMS.raw
+set requester_id $spawn_id
+match $requester_id "State: Prepare_Request"
+match $requester_id "State: Send_Request"
+match $responder_id "State: Receive_Get_Version"
+match $responder_id "State: Prepare_Version"
+match $responder_id "State: Send_Version"
+match $requester_id "Response: 10 4 0 0 0 1 0 11"
+match $responder_id "State: Receive_Get_Capabilities"
+match $responder_id "State: Prepare_Capabilities"
+match $responder_id "State: Send_Capabilities"
+match $requester_id "Response: 11 61 0 0 0 A 0 0 D2 82 0 0"
+match $responder_id "State: Receive_Negotiate_Algorithms"
+match $responder_id "State: Prepare_Algorithms"
+match $responder_id "State: Set_Hash_Len_48"
+match $responder_id "State: Send_Idle"
+match $requester_id "Response: 11 63 4 0 28 0 1 0 4 0 0 0 80 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 20 80 0"
+match $responder_id "State: Error_Unsupported_Request"
+match $responder_id "State: Send_Error"
+match $requester_id "Response: 11 7F 7 E3"
+match $responder_id "State: Init"
+match $responder_id "State: Receive_Get_Version"
+match $responder_id "State: Prepare_Version"
+match $responder_id "State: Send_Version"
+match $requester_id "Response: 10 4 0 0 0 1 0 11"
+match $responder_id "State: Receive_Get_Capabilities"
+match $responder_id "State: Prepare_Capabilities"
+match $responder_id "State: Send_Capabilities"
+match $requester_id "Response: 11 61 0 0 0 A 0 0 D2 82 0 0"
+match $responder_id "State: Receive_Negotiate_Algorithms"
+match $responder_id "State: Prepare_Algorithms"
+match $responder_id "State: Set_Hash_Len_48"
+match $responder_id "State: Send_Idle"
+match $requester_id "Response: 11 63 4 0 28 0 1 0 4 0 0 0 80 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 20 80 0"
+match $requester_id "State: Send_Shutdown"

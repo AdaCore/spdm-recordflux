@@ -187,6 +187,7 @@ package SPDM_Responder is
                                          Update_Version_Number => 0,
                                          Minor_Version         => 1,
                                          Major_Version         => 1));
+         Resp_Alg_Structs'Reset;
          --  FIXME: Reset all state
       transition
          goto Receive_Get_Version

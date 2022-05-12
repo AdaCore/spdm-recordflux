@@ -296,6 +296,7 @@ test_responder: build/tests/responder build/tests/proxy build/spdm_emu/bin/spdm_
 test_integration: build/tests/responder build/tests/proxy build/tests/requester build/certificates
 	tests/integration/V407-039.expect
 	tests/integration/meas_op_all.expect
+	tests/integration/V511-039.expect
 
 $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx:
 	python3 -m venv $(TMPDIR)/venv
