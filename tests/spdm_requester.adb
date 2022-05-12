@@ -25,6 +25,7 @@ is
          Byte_IO.Read (File, Result.Data (Index));
          Index := Index + 1;
       end loop;
+      Byte_IO.Close (File);
       Ctx.Index := Ctx.Index + 1;
    end Get_Request_Data;
 
