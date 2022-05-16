@@ -54,7 +54,7 @@ is
    end Builder;
 
    package Prove is
-      for Proof_Switches ("responder.adb") use ("--prover=cvc4,z3,altergo", "--steps=3500");
+      for Proof_Switches ("responder.adb") use ("--prover=cvc4,z3,altergo", "--steps=4200");
       for Proof_Switches ("responder_multiple_responders.adb") use ("--prover=cvc4,z3,altergo", "--steps=4600");
       for Proof_Switches ("responder_select.adb") use ("--prover=cvc4,z3,altergo", "--steps=6800");
    end Prove;
