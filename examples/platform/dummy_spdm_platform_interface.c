@@ -383,6 +383,10 @@ int spdm_platform_update_meas_signature (instance_t *instance,
                                          __unused_cross__ unsigned size,
                                          int reset)
 {
+    if(reset){
+        spdm_hash_free(instance->measurement_hash_algo, instance->measurement_hash_ctx);
+        instance->measurement_hash_ctx = 0;
+    }
     if(!instance->measurement_hash_ctx){
         instance->measurement_hash_ctx = spdm_hash_new(instance->measurement_hash_algo);
         if(!instance->measurement_hash_ctx){
@@ -393,9 +397,5 @@ int spdm_platform_update_meas_signature (instance_t *instance,
                                       instance->measurement_hash_ctx,
                                       message,
                                       size);
-    if(reset){
-        spdm_hash_free(instance->measurement_hash_algo, instance->measurement_hash_ctx);
-        instance->measurement_hash_ctx = 0;
-    }
     return result;
 }
