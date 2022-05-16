@@ -286,10 +286,10 @@ package SPDM_Responder is
 
       state Update_Transcript_Hash
       is
-         Req_Success : Boolean;
+         Req_Success  : Boolean;
          Resp_Success : Boolean;
       begin
-         Req_Success := Plat_Update_Transcript_Signature (Request'Opaque, True);
+         Req_Success  := Plat_Update_Transcript_Signature (Request'Opaque, True);
          Resp_Success := Plat_Update_Transcript_Signature (Response'Opaque, False);
       transition
          goto Send_Version
@@ -651,13 +651,13 @@ package SPDM_Responder is
          Key_Schedule := Key_Schedule_List'Head;
          Resp_Alg_Structs'Append (
             SPDM::Alg_Struct'(
-               Alg_Type                         => SPDM::Key_Schedule,
-               Fixed_Alg_Count                  => 2,
-               Ext_Alg_Count                    => 0,
-               KS_Reserved_1                    => 0,
-               KS_SPDM                          => Key_Schedule.KS_SPDM,
-               KS_Reserved_2                    => 0,
-               Alg_External                     => [])
+               Alg_Type        => SPDM::Key_Schedule,
+               Fixed_Alg_Count => 2,
+               Ext_Alg_Count   => 0,
+               KS_Reserved_1   => 0,
+               KS_SPDM         => Key_Schedule.KS_SPDM,
+               KS_Reserved_2   => 0,
+               Alg_External    => [])
          );
          Resp_Alg_Struct_Count := Resp_Alg_Struct_Count + 1;
       transition
@@ -856,9 +856,9 @@ package SPDM_Responder is
       state Reset_Idle
       is
       begin
-         Request'Reset (Hash_Length            => Hash_Length,
-                        Signature_Length       => 0,
-                        Exchange_Data_Length   => Exchange_Data_Length);
+         Request'Reset (Hash_Length          => Hash_Length,
+                        Signature_Length     => 0,
+                        Exchange_Data_Length => Exchange_Data_Length);
       transition
          goto Receive_Idle
       end Reset_Idle;
@@ -982,14 +982,14 @@ package SPDM_Responder is
       is
          Success : Boolean;
       begin
-         Success := Plat_Update_Meas_Signature (Request'Opaque, Reset_Measurement_Sig);
+         Success               := Plat_Update_Meas_Signature (Request'Opaque, Reset_Measurement_Sig);
          Reset_Measurement_Sig := False;
          Measurement_Record'Reset;
-         Current_Measurement := Request.Get_Measurements_Request_Measurement_Operation;
-         Last_Measurement := Request.Get_Measurements_Request_Measurement_Operation;
-         Number_Of_Indices := 0;
-         Number_Of_Blocks := 0;
-         Measurement_Summary := False;
+         Current_Measurement   := Request.Get_Measurements_Request_Measurement_Operation;
+         Last_Measurement      := Request.Get_Measurements_Request_Measurement_Operation;
+         Number_Of_Indices     := 0;
+         Number_Of_Blocks      := 0;
+         Measurement_Summary   := False;
       transition
          goto Prepare_Measurements_Number_Of_Indices
             if Request.Get_Measurements_Request_Measurement_Operation = 0 and Success
@@ -1018,7 +1018,7 @@ package SPDM_Responder is
          --  ISSUE: Componolit/RecordFlux#1055
          --  Use a local variable to prevent a type error in the generated code.
          Local_Number_Of_Indices := Plat_Get_Number_Of_Indices;
-         Last_Measurement := Local_Number_Of_Indices;
+         Last_Measurement        := Local_Number_Of_Indices;
       transition
          goto Prepare_Measurements_Records
       end Prepare_Measurements_All;
@@ -1053,24 +1053,24 @@ package SPDM_Responder is
          Nonce : SPDM::Nonce;
       begin
          Nonce := Plat_Get_Nonce;
-         Response := SPDM::Response'(Meas_Cap                              => Cap_Meas,
-                                     Hash_Type                             => SPDM::No_Measurement,
-                                     Hash_Length                           => Hash_Length,
-                                     Signature_Length                      => 0,
-                                     Exchange_Data_Length                  => Exchange_Data_Length,
-                                     Handshake_In_The_Clear                => Cap_Handshake_In_The_Clear,
-                                     Major_Version                         => 1,
-                                     Minor_Version                         => 1,
-                                     Code                                  => SPDM::Measurements,
-                                     Measurements_Response_Number_Of_Indices => Number_Of_Indices,
-                                     Measurements_Response_Reserved_1 => 0,
-                                     Measurements_Response_Slot_ID => SPDM::NS_0,
-                                     Measurements_Response_Number_Of_Blocks => Number_Of_Blocks,
+         Response := SPDM::Response'(Meas_Cap                                        => Cap_Meas,
+                                     Hash_Type                                       => SPDM::No_Measurement,
+                                     Hash_Length                                     => Hash_Length,
+                                     Signature_Length                                => 0,
+                                     Exchange_Data_Length                            => Exchange_Data_Length,
+                                     Handshake_In_The_Clear                          => Cap_Handshake_In_The_Clear,
+                                     Major_Version                                   => 1,
+                                     Minor_Version                                   => 1,
+                                     Code                                            => SPDM::Measurements,
+                                     Measurements_Response_Number_Of_Indices         => Number_Of_Indices,
+                                     Measurements_Response_Reserved_1                => 0,
+                                     Measurements_Response_Slot_ID                   => SPDM::NS_0,
+                                     Measurements_Response_Number_Of_Blocks          => Number_Of_Blocks,
                                      Measurements_Response_Measurement_Record_Length => Measurement_Record'Size / 8,
-                                     Measurements_Response_Measurement_Record => Measurement_Record,
-                                     Measurements_Response_Nonce_Data => Nonce.Data,
-                                     Measurements_Response_Opaque_Length => 0,
-                                     Measurements_Response_Opaque_Data => []);
+                                     Measurements_Response_Measurement_Record        => Measurement_Record,
+                                     Measurements_Response_Nonce_Data                => Nonce.Data,
+                                     Measurements_Response_Opaque_Length             => 0,
+                                     Measurements_Response_Opaque_Data               => []);
       transition
          goto Prepare_Measurements_Sign
             if Request.Get_Measurements_Request_Generate_Signature
@@ -1081,24 +1081,24 @@ package SPDM_Responder is
 
       state Prepare_Measurements_Sign
       is
-         Signature              : Signature;
-         Nonce_Offset           : SPDM::Length_24;
-         Major_Version          : SPDM::Major_Version;
-         Minor_Version          : SPDM::Minor_Version;
-         Code                   : SPDM::Response_Code;
-         Slot_ID                : SPDM::Narrow_Slot;
-         Nonce                  : SPDM::Nonce;
+         Signature     : Signature;
+         Nonce_Offset  : SPDM::Length_24;
+         Major_Version : SPDM::Major_Version;
+         Minor_Version : SPDM::Minor_Version;
+         Code          : SPDM::Response_Code;
+         Slot_ID       : SPDM::Narrow_Slot;
+         Nonce         : SPDM::Nonce;
       begin
-         Major_Version          := Response.Major_Version;
-         Minor_Version          := Response.Minor_Version;
-         Code                   := Response.Code;
-         Number_Of_Indices      := Response.Measurements_Response_Number_Of_Indices;
-         Slot_ID                := Response.Measurements_Response_Slot_ID;
-         Number_Of_Blocks       := Response.Measurements_Response_Number_Of_Blocks;
-         Nonce                  := SPDM::Nonce'(Data => Response.Measurements_Response_Nonce_Data);
-         Nonce_Offset           := Response.Measurements_Response_Measurement_Record_Length + 8;
-         Signature              := Plat_Get_Meas_Signature (Response'Opaque, Nonce_Offset);
-         Response               := SPDM::Response'
+         Major_Version     := Response.Major_Version;
+         Minor_Version     := Response.Minor_Version;
+         Code              := Response.Code;
+         Number_Of_Indices := Response.Measurements_Response_Number_Of_Indices;
+         Slot_ID           := Response.Measurements_Response_Slot_ID;
+         Number_Of_Blocks  := Response.Measurements_Response_Number_Of_Blocks;
+         Nonce             := SPDM::Nonce'(Data => Response.Measurements_Response_Nonce_Data);
+         Nonce_Offset      := Response.Measurements_Response_Measurement_Record_Length + 8;
+         Signature         := Plat_Get_Meas_Signature (Response'Opaque, Nonce_Offset);
+         Response          := SPDM::Response'
             (Meas_Cap                                        => Cap_Meas,
              Hash_Type                                       => SPDM::No_Measurement,
              Hash_Length                                     => 0,
@@ -1158,20 +1158,20 @@ package SPDM_Responder is
       is
       begin
          Number_Of_Indices := Plat_Get_Number_Of_Indices_TCB;
-         Last_Measurement := Number_Of_Indices;
+         Last_Measurement  := Number_Of_Indices;
       transition
          goto Prepare_Measurements_Records
       end Prepare_Key_Exchange_TCB_Hash;
 
       state Prepare_Key_Exchange_Hash
       is
-         Nonce : SPDM::Nonce;
-         Exchange_Data : Exchange_Data;
+         Nonce            : SPDM::Nonce;
+         Exchange_Data    : Exchange_Data;
          Heartbeat_Period : SPDM::Heartbeat_Period;
-         Use_Mutual_Auth : Boolean;
-         Session_ID : SPDM::Session_ID;
-         Summary : Measurement_Summary;
-         Summary_Hash : Hash;
+         Use_Mutual_Auth  : Boolean;
+         Session_ID       : SPDM::Session_ID;
+         Summary          : Measurement_Summary;
+         Summary_Hash     : Hash;
       begin
          Nonce                := Plat_Get_Nonce;
          Exchange_Data        := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
@@ -1218,11 +1218,11 @@ package SPDM_Responder is
 
       state Prepare_Key_Exchange_No_Hash
       is
-         Nonce : SPDM::Nonce;
-         Exchange_Data : Exchange_Data;
+         Nonce            : SPDM::Nonce;
+         Exchange_Data    : Exchange_Data;
          Heartbeat_Period : SPDM::Heartbeat_Period;
-         Use_Mutual_Auth : Boolean;
-         Session_ID : SPDM::Session_ID;
+         Use_Mutual_Auth  : Boolean;
+         Session_ID       : SPDM::Session_ID;
       begin
          Nonce                := Plat_Get_Nonce;
          Exchange_Data        := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
