@@ -9,6 +9,7 @@
 #include <sys/random.h>
 #include <spdm_device_secret_lib_internal.h>
 #include <spdm_crypt_lib.h>
+#include <spdm_secured_message_lib.h>
 #include <industry_standard/spdm.h>
 #define __unused_cross__
 

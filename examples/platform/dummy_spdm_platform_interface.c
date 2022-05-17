@@ -6,11 +6,14 @@ struct instance {
     unsigned char base_hash_algo;
     long base_asym_algo;
     unsigned char measurement_hash_algo;
+    unsigned char dhe_named_group;
     int valid_nonce;
     unsigned char nonce[32];
     void *measurement_hash_ctx;
     void *transcript;
     unsigned transcript_size;
+    unsigned char dhe_key[512];
+    unsigned dhe_key_size;
 };
 
 void spdm_platform_initialize(instance_t **instance)
@@ -164,7 +167,7 @@ unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
     return instance->base_hash_algo;
 }
 
-unsigned char spdm_platform_select_dhe(__attribute__((unused)) instance_t *instance,
+unsigned char spdm_platform_select_dhe(instance_t *instance,
                                        unsigned char secp521r1,
                                        unsigned char secp384r1,
                                        unsigned char secp256r1,
@@ -172,14 +175,15 @@ unsigned char spdm_platform_select_dhe(__attribute__((unused)) instance_t *insta
                                        unsigned char ffdhe3072,
                                        unsigned char ffdhe2048)
 {
-    if (secp521r1) return 32;
-    if (secp384r1) return 16;
-    if (secp256r1) return 8;
-    if (ffdhe4096) return 4;
-    if (ffdhe3072) return 2;
-    if (ffdhe2048) return 1;
-    errx(4, "No DHE selected");
-    return 0;
+    if (secp521r1) instance->dhe_named_group = 32;
+    else if (secp384r1) instance->dhe_named_group = 16;
+    else if (secp256r1) instance->dhe_named_group = 8;
+    else if (ffdhe4096) instance->dhe_named_group = 4;
+    else if (ffdhe3072) instance->dhe_named_group = 2;
+    else if (ffdhe2048) instance->dhe_named_group = 1;
+    else errx(4, "No DHE selected");
+    printf("instance->dhe_named_group=%u\n", instance->dhe_named_group);
+    return instance->dhe_named_group;
 }
 
 unsigned char spdm_platform_select_aead(__attribute__((unused)) instance_t *instance,
@@ -407,10 +411,29 @@ int spdm_platform_update_meas_signature (instance_t *instance,
     return result;
 }
 
-void spdm_platform_get_exchange_data (__attribute__((unused)) instance_t *instance,
-                                      __attribute__((unused)) void *data,
-                                      __attribute__((unused)) unsigned size)
-{}
+void spdm_platform_get_exchange_data (instance_t *instance,
+                                      void *data,
+                                      unsigned size)
+{
+    uintn dhe_key_size = spdm_get_dhe_pub_key_size(instance->dhe_named_group);
+    void *dhe_context = spdm_secured_message_dhe_new(instance->dhe_named_group);
+    uint8 dhe_key[dhe_key_size];
+    spdm_secured_message_dhe_generate_key(instance->dhe_named_group, dhe_context, dhe_key, &dhe_key_size);
+    uintn dhe_priv_key_size = sizeof(instance->dhe_key);
+    if(!spdm_dhe_compute_key(
+            instance->dhe_named_group,
+            dhe_context,
+            data, size,
+            instance->dhe_key, &dhe_priv_key_size)){
+        errx(1, "failed to compute dhe key");
+    }
+    instance->dhe_key_size = dhe_priv_key_size;
+    spdm_secured_message_dhe_free(instance->dhe_named_group, dhe_context);
+    if(size < dhe_key_size){
+        errx(1, "insufficient size for dhe key");
+    }
+    memcpy(data, dhe_key, dhe_key_size);
+}
 
 unsigned char spdm_platform_get_heartbeat_period (__attribute__((unused)) instance_t *instance)
 {

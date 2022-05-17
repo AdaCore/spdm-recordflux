@@ -1273,20 +1273,25 @@ package SPDM_Responder is
          Use_Mutual_Auth  : Boolean;
          Nonce            : SPDM::Nonce;
          Exchange_Data    : Exchange_Data;
+         Summary_Hash     : Hash;
+         Resp_Hash_Length : SPDM::Hash_Length;
       begin
          Nonce            := SPDM::Nonce'(Data => Response.Key_Exchange_Response_Random_Data);
          Code             := Response.Code;
          Heartbeat_Period := Response.Key_Exchange_Response_Heartbeat_Period;
          Session_ID       := Response.Key_Exchange_Response_Resp_Session_ID;
          Use_Mutual_Auth  := Response.Key_Exchange_Response_Mutual_Auth;
+         Resp_Hash_Length := Response.Hash_Length;
          Exchange_Data    := Exchange_Data'(Length => Exchange_Data_Length,
                                             Pad    => 0,
                                             Data   => Response.Key_Exchange_Response_Exchange_Data);
-         Signature := Plat_Get_Transcript_Signature;
+         Summary_Hash     := Hash'(Length => Resp_Hash_Length,
+                                   Data   => Response.Key_Exchange_Response_Measurement_Summary_Hash);
+         Signature        := Plat_Get_Transcript_Signature;
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
-                            Hash_Length                                    => 0,
+                            Hash_Length                                    => Summary_Hash.Length,
                             Signature_Length                               => Signature.Length,
                             Exchange_Data_Length                           => Exchange_Data_Length,
                             Handshake_In_The_Clear                         => Cap_Handshake_In_The_Clear,
@@ -1306,7 +1311,7 @@ package SPDM_Responder is
                             Key_Exchange_Response_Slot_ID_Param            => SPDM::NS_0,
                             Key_Exchange_Response_Random_Data              => Nonce.Data,
                             Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
-                            Key_Exchange_Response_Measurement_Summary_Hash => [],
+                            Key_Exchange_Response_Measurement_Summary_Hash => Summary_Hash.Data,
                             Key_Exchange_Response_Opaque_Data_Length       => 0,
                             Key_Exchange_Response_Opaque_Data              => [],
                             Key_Exchange_Response_Signature                => Signature.Data);

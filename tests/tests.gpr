@@ -36,6 +36,7 @@ project Tests is
                                         "-lspdm_crypt_lib",
                                         "-lspdm_device_secret_lib_sample",
                                         "-lspdm_responder_lib",
+                                        "-lspdm_secured_message_lib",
                                         "-lmalloclib",
                                         "-lmemlib",
                                         "-lrnglib_std",
