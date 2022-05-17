@@ -150,6 +150,7 @@ package SPDM_Responder is
       Length                 : SPDM::Length_16;
       Req_Base_Asym_Alg_List : SPDM::Req_Alg_Structs;
       Resp_Alg_Structs       : SPDM::Resp_Alg_Structs;
+      Resp_Alg_Struct_Count  : SPDM::Alg_Struct_Count;
       Reset_Measurement_Sig  : Boolean := True;
       Measurement_Record     : SPDM::Measurement_Record;
       Current_Measurement    : SPDM::Index;
@@ -188,6 +189,7 @@ package SPDM_Responder is
                                          Minor_Version         => 1,
                                          Major_Version         => 1));
          Resp_Alg_Structs'Reset;
+         Resp_Alg_Struct_Count := 0;
          --  FIXME: Reset all state
       transition
          goto Receive_Get_Version
@@ -416,6 +418,7 @@ package SPDM_Responder is
                DHE_Reserved_2  => 0,
                Alg_External    => [])
          );
+         Resp_Alg_Struct_Count := Resp_Alg_Struct_Count + 1;
       transition
          goto Check_Algorithms_AEAD_Cipher_Suite
       exception
@@ -466,6 +469,7 @@ package SPDM_Responder is
                AEAD_Reserved_2        => 0,
                Alg_External           => [])
          );
+         Resp_Alg_Struct_Count := Resp_Alg_Struct_Count + 1;
       transition
          goto Check_Algorithms_Req_Base_Asym_Alg
       exception
@@ -542,6 +546,7 @@ package SPDM_Responder is
                RBAA_TPM_ALG_ECDSA_ECC_NIST_P521 => Sel_TPM_ALG_ECDSA_ECC_NIST_P521,
                Alg_External                     => [])
          );
+         Resp_Alg_Struct_Count := Resp_Alg_Struct_Count + 1;
       transition
 #if FEATURE_KEY_EXCHANGE then
          goto Check_Algorithms_Key_Schedule
@@ -581,6 +586,7 @@ package SPDM_Responder is
                KS_Reserved_2                    => 0,
                Alg_External                     => [])
          );
+         Resp_Alg_Struct_Count := Resp_Alg_Struct_Count + 1;
       transition
          goto Prepare_Algorithms
       exception
@@ -632,7 +638,7 @@ package SPDM_Responder is
                             Major_Version                                     => 1,
                             Minor_Version                                     => 1,
                             Code                                              => SPDM::Algorithms,
-                            Algorithms_Response_Resp_Alg_Struct_Count         => 4,
+                            Algorithms_Response_Resp_Alg_Struct_Count         => Resp_Alg_Struct_Count,
                             Algorithms_Response_Param_2                       => 0,
                             Algorithms_Response_Length                        => 36 + Resp_Alg_Structs'Size / 8,
                             Algorithms_Response_Measurement_Specification_Sel => SPDM::DMTF,
