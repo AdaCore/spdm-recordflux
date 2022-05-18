@@ -5,6 +5,7 @@ with RFLX.SPDM_Responder.Digests_Data;
 with RFLX.SPDM_Responder.Signature;
 with RFLX.SPDM_Responder.Exchange_Data;
 with RFLX.SPDM_Responder.Hash;
+with RFLX.SPDM_Responder.Opaque_Data;
 with RFLX.SPDM.Certificate_Response;
 with RFLX.SPDM.Nonce;
 with RFLX.SPDM.DMTF_Measurement_Field;
@@ -225,6 +226,10 @@ is
                                          Result  :    out Boolean);
 
    overriding
+   procedure Plat_Get_Meas_Opaque_Data (Ctx    : in out Context;
+                                        Result :    out RFLX.SPDM_Responder.Opaque_Data.Structure);
+
+   overriding
    procedure Plat_Get_Exchange_Data (Ctx           : in out Context;
                                      Exchange_Data :        RFLX.RFLX_Types.Bytes;
                                      Result        :    out RFLX.SPDM_Responder.Exchange_Data.Structure);
@@ -256,5 +261,10 @@ is
    overriding
    procedure Plat_Get_Transcript_Signature (Ctx    : in out Context;
                                             Result :    out RFLX.SPDM_Responder.Signature.Structure);
+
+   overriding
+   procedure Plat_Get_Key_Ex_Opaque_Data (Ctx          : in out Context;
+                                          Request_Data :        RFLX.RFLX_Types.Bytes;
+                                          Result       :    out RFLX.SPDM_Responder.Opaque_Data.Structure);
 
 end SPDM_C_Responder;

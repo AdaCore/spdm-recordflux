@@ -114,6 +114,10 @@ int spdm_platform_update_meas_signature (instance_t *instance,
                                          unsigned size,
                                          int reset);
 
+void spdm_platform_get_meas_opaque_data(instance_t *instance,
+                                        void *data,
+                                        unsigned *size);
+
 void spdm_platform_get_exchange_data (instance_t *instance,
                                       void *data,
                                       unsigned size);
@@ -139,5 +143,9 @@ unsigned char spdm_platform_update_transcript_signature(instance_t *instance,
 void spdm_platform_get_transcript_signature(instance_t *instance,
                                             void *signature,
                                             unsigned *size);
+
+void spdm_platform_get_key_ex_opaque_data(instance_t *instance,
+                                          void *data,
+                                          unsigned *size);
 
 #endif // __SPDM_PLATFORM_INTERFACE__

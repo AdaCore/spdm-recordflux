@@ -753,6 +753,25 @@ is
    end Plat_Update_Meas_Signature;
 
    overriding
+   procedure Plat_Get_Meas_Opaque_Data (Ctx    : in out Context;
+                                        Result :    out RFLX.SPDM_Responder.Opaque_Data.Structure)
+   is
+      procedure C_Interface (Instance :        System.Address;
+                             Data     :        System.Address;
+                             Size     : in out Interfaces.C.unsigned) with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_meas_opaque_data";
+      Length : Interfaces.C.unsigned := Result.Data'Length;
+   begin
+      C_Interface (Ctx.Instance, Result.Data'Address, Length);
+      if not RFLX.SPDM.Valid_Length_16 (RFLX.RFLX_Types.U64 (Length)) then
+         raise Constraint_Error;
+      end if;
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Length));
+   end Plat_Get_Meas_Opaque_Data;
+
+   overriding
    procedure Plat_Get_Exchange_Data (Ctx           : in out Context;
                                      Exchange_Data :        RFLX.RFLX_Types.Bytes;
                                      Result        :    out RFLX.SPDM_Responder.Exchange_Data.Structure)
@@ -892,5 +911,33 @@ is
       end if;
       Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Length));
    end Plat_Get_Transcript_Signature;
+
+   overriding
+   procedure Plat_Get_Key_Ex_Opaque_Data (Ctx          : in out Context;
+                                          Request_Data :        RFLX.RFLX_Types.Bytes;
+                                          Result       :    out RFLX.SPDM_Responder.Opaque_Data.Structure)
+   is
+      use type RFLX.RFLX_Types.Index;
+      procedure C_Interface (Instance :        System.Address;
+                             Data     :        System.Address;
+                             Size     : in out Interfaces.C.unsigned) with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_key_ex_opaque_data";
+      Size : Interfaces.C.unsigned;
+   begin
+      if Request_Data'Length > Result.Data'Length then
+         Result.Data := Request_Data (Request_Data'First .. Request_Data'First + Result.Data'Length - 1);
+         Size := Interfaces.C.unsigned (Result.Data'Length);
+      else
+         Result.Data (Result.Data'First .. Result.Data'First + Request_Data'Length - 1) := Request_Data;
+         Size := Interfaces.C.unsigned (Request_Data'Length);
+      end if;
+      C_Interface (Ctx.Instance, Result.Data'Address, Size);
+      if not RFLX.SPDM.Valid_Length_16 (RFLX.RFLX_Types.U64 (Size)) then
+         raise Constraint_Error;
+      end if;
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Size));
+   end Plat_Get_Key_Ex_Opaque_Data;
 
 end SPDM_C_Responder;

@@ -411,6 +411,13 @@ int spdm_platform_update_meas_signature (instance_t *instance,
     return result;
 }
 
+void spdm_platform_get_meas_opaque_data(__attribute__((unused)) instance_t *instance,
+                                        __attribute__((unused)) void *data,
+                                        unsigned *size)
+{
+    *size = 0;
+}
+
 void spdm_platform_get_exchange_data (instance_t *instance,
                                       void *data,
                                       unsigned size)
@@ -513,4 +520,10 @@ void spdm_platform_get_transcript_signature(__unused_cross__ instance_t *instanc
     }
     *size = sig_size;
     printf("signature_length=%u\n", *size);
+}
+
+void spdm_platform_get_key_ex_opaque_data(__attribute__((unused)) instance_t *instance,
+                                          __attribute__((unused)) void *data,
+                                          __attribute__((unused)) unsigned *size)
+{
 }
