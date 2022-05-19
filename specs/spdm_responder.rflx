@@ -155,6 +155,8 @@ package SPDM_Responder is
       Measurement_Record     : SPDM::Measurement_Record;
       Current_Measurement    : SPDM::Index;
       Last_Measurement       : SPDM::Index;
+      Number_Of_Indices      : SPDM::Measurement_Count;
+      Number_Of_Blocks       : SPDM::Block_Count;
       Error_Code             : SPDM::Error_Code;
 #if FEATURE_KEY_EXCHANGE then
       DHE_List               : SPDM::Req_Alg_Structs;
@@ -828,6 +830,8 @@ package SPDM_Responder is
          Measurement_Record'Reset;
          Current_Measurement := Request.Get_Measurements_Request_Measurement_Operation;
          Last_Measurement := Request.Get_Measurements_Request_Measurement_Operation;
+         Number_Of_Indices := 0;
+         Number_Of_Blocks := 0;
       transition
          goto Prepare_Measurements_Number_Of_Indices
             if Request.Get_Measurements_Request_Measurement_Operation = 0 and Success
@@ -840,9 +844,16 @@ package SPDM_Responder is
          goto Error_Unspecified
       end Prepare_Measurements;
 
+      state Prepare_Measurements_Number_Of_Indices
+      is
+      begin
+         Number_Of_Indices := Plat_Get_Number_Of_Indices;
+      transition
+         goto Prepare_Measurements_Response
+      end Prepare_Measurements_Number_Of_Indices;
+
       state Prepare_Measurements_All
       is
-         Number_Of_Indices : SPDM::Measurement_Count;
       begin
          Number_Of_Indices := Plat_Get_Number_Of_Indices;
          Current_Measurement := 1;
@@ -865,6 +876,7 @@ package SPDM_Responder is
              DMTF_Measurement_Measurement_Value_Length         => Measurement_Field.Measurement_Value_Length,
              DMTF_Measurement_Measurement_Value                => Measurement_Field.Measurement_Value));
          Current_Measurement := Current_Measurement + 1;
+         Number_Of_Blocks := Number_Of_Blocks + 1;
       transition
          goto Prepare_Measurements_Records
             if Current_Measurement <= Last_Measurement
@@ -887,10 +899,10 @@ package SPDM_Responder is
                                      Major_Version                         => 1,
                                      Minor_Version                         => 1,
                                      Code                                  => SPDM::Measurements,
-                                     Measurements_Response_Number_Of_Indices => 0,
+                                     Measurements_Response_Number_Of_Indices => Number_Of_Indices,
                                      Measurements_Response_Reserved_1 => 0,
                                      Measurements_Response_Slot_ID => SPDM::NS_0,
-                                     Measurements_Response_Number_Of_Blocks => 1,
+                                     Measurements_Response_Number_Of_Blocks => Number_Of_Blocks,
                                      Measurements_Response_Measurement_Record_Length => Measurement_Record'Size / 8,
                                      Measurements_Response_Measurement_Record => Measurement_Record,
                                      Measurements_Response_Nonce_Data => Nonce.Data,
@@ -911,9 +923,7 @@ package SPDM_Responder is
          Major_Version          : SPDM::Major_Version;
          Minor_Version          : SPDM::Minor_Version;
          Code                   : SPDM::Response_Code;
-         Number_Of_Indices      : SPDM::Measurement_Count;
          Slot_ID                : SPDM::Narrow_Slot;
-         Number_Of_Blocks       : SPDM::Block_Count;
          Nonce                  : SPDM::Nonce;
       begin
          Major_Version          := Response.Major_Version;
@@ -951,41 +961,6 @@ package SPDM_Responder is
       exception
          goto Error_Unspecified
       end Prepare_Measurements_Sign;
-
-      state Prepare_Measurements_Number_Of_Indices
-      is
-         Number_Of_Indices : SPDM::Measurement_Count;
-         Nonce : SPDM::Nonce;
-      begin
-         Reset_Measurement_Sig := True;
-         Nonce := Plat_Get_Nonce;
-         Number_Of_Indices := Plat_Get_Number_Of_Indices;
-         Measurement_Record'Reset;
-         Response := SPDM::Response'(Meas_Cap                              => Cap_Meas,
-                                     Hash_Type                             => SPDM::No_Measurement,
-                                     Hash_Length                           => Hash_Length,
-                                     Signature_Length                      => 0,
-                                     Exchange_Data_Length                  => 512,
-                                     Handshake_In_The_Clear                => Cap_Handshake_In_The_Clear,
-                                     Major_Version                         => 1,
-                                     Minor_Version                         => 1,
-                                     Code                                  => SPDM::Measurements,
-                                     Measurements_Response_Number_Of_Indices => Number_Of_Indices,
-                                     Measurements_Response_Reserved_1 => 0,
-                                     Measurements_Response_Slot_ID => SPDM::NS_0,
-                                     Measurements_Response_Number_Of_Blocks => 0,
-                                     Measurements_Response_Measurement_Record_Length => 0,
-                                     Measurements_Response_Measurement_Record => Measurement_Record,
-                                     Measurements_Response_Nonce_Data => Nonce.Data,
-                                     Measurements_Response_Opaque_Length => 0,
-                                     Measurements_Response_Opaque_Data => []);
-      transition
-         goto Prepare_Measurements_Sign
-            if Request.Get_Measurements_Request_Generate_Signature
-         goto Update_Measurement_Signature
-      exception
-         goto Error_Unspecified
-      end Prepare_Measurements_Number_Of_Indices;
 
       state Update_Measurement_Signature
       is
