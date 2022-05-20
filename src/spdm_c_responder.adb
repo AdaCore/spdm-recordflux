@@ -637,7 +637,7 @@ is
       end if;
       Result := RFLX.SPDM.To_Actual (Count);
    end Plat_Get_Number_Of_Indices;
-
+#if FEATURE_KEY_EXCHANGE then
    overriding
    procedure Plat_Get_Number_Of_Indices_Tcb
       (Ctx    : in out Context;
@@ -654,7 +654,7 @@ is
       end if;
       Result := RFLX.SPDM.To_Actual (Count);
    end Plat_Get_Number_Of_Indices_Tcb;
-
+#end if;
    overriding
    procedure Plat_Get_Nonce (Ctx    : in out Context;
                              Result :    out RFLX.SPDM.Nonce.Structure)
@@ -770,7 +770,7 @@ is
       end if;
       Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Length));
    end Plat_Get_Meas_Opaque_Data;
-
+#if FEATURE_KEY_EXCHANGE then
    overriding
    procedure Plat_Get_Exchange_Data (Ctx           : in out Context;
                                      Exchange_Data :        RFLX.RFLX_Types.Bytes;
@@ -939,5 +939,5 @@ is
       end if;
       Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Size));
    end Plat_Get_Key_Ex_Opaque_Data;
-
+#end if;
 end SPDM_C_Responder;

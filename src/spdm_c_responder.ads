@@ -198,12 +198,12 @@ is
    procedure Plat_Get_Number_Of_Indices
       (Ctx    : in out Context;
        Result :    out RFLX.SPDM.Measurement_Count);
-
+#if FEATURE_KEY_EXCHANGE then
    overriding
    procedure Plat_Get_Number_Of_Indices_TCB
       (Ctx    : in out Context;
        Result :    out RFLX.SPDM.Measurement_Count);
-
+#end if;
    overriding
    procedure Plat_Get_Nonce (Ctx    : in out Context;
                              Result :    out RFLX.SPDM.Nonce.Structure);
@@ -228,7 +228,7 @@ is
    overriding
    procedure Plat_Get_Meas_Opaque_Data (Ctx    : in out Context;
                                         Result :    out RFLX.SPDM_Responder.Opaque_Data.Structure);
-
+#if FEATURE_KEY_EXCHANGE then
    overriding
    procedure Plat_Get_Exchange_Data (Ctx           : in out Context;
                                      Exchange_Data :        RFLX.RFLX_Types.Bytes;
@@ -266,5 +266,5 @@ is
    procedure Plat_Get_Key_Ex_Opaque_Data (Ctx          : in out Context;
                                           Request_Data :        RFLX.RFLX_Types.Bytes;
                                           Result       :    out RFLX.SPDM_Responder.Opaque_Data.Structure);
-
+#end if;
 end SPDM_C_Responder;
