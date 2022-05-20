@@ -34,6 +34,11 @@
 #define spdm_hash_all(...) 1
 #define spdm_responder_data_sign(...) 1
 #define spdm_get_asym_signature_size(...) 0
+#define spdm_get_dhe_pub_key_size(...) 0
+#define spdm_secured_message_dhe_new(...) 0
+#define spdm_secured_message_dhe_generate_key(...)
+#define spdm_dhe_compute_key(...) 0
+#define spdm_secured_message_dhe_free(...)
 typedef struct {
     unsigned char alpha;
     unsigned char update_version_number;
@@ -44,6 +49,7 @@ typedef struct {
 
 typedef unsigned long uintn;
 typedef unsigned char boolean;
+typedef unsigned char uint8;
 
 #endif
 

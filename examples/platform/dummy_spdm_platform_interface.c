@@ -418,13 +418,13 @@ void spdm_platform_get_meas_opaque_data(__attribute__((unused)) instance_t *inst
     *size = 0;
 }
 
-void spdm_platform_get_exchange_data (instance_t *instance,
-                                      void *data,
+void spdm_platform_get_exchange_data (__unused_cross__ instance_t *instance,
+                                      __unused_cross__ void *data,
                                       unsigned size)
 {
     uintn dhe_key_size = spdm_get_dhe_pub_key_size(instance->dhe_named_group);
-    void *dhe_context = spdm_secured_message_dhe_new(instance->dhe_named_group);
-    uint8 dhe_key[dhe_key_size];
+    __unused_cross__ void *dhe_context = spdm_secured_message_dhe_new(instance->dhe_named_group);
+    __unused_cross__ uint8 dhe_key[dhe_key_size];
     spdm_secured_message_dhe_generate_key(instance->dhe_named_group, dhe_context, dhe_key, &dhe_key_size);
     uintn dhe_priv_key_size = sizeof(instance->dhe_key);
     if(!spdm_dhe_compute_key(

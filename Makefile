@@ -104,7 +104,9 @@ GENERATED := rflx.ads \
     rflx-spdm-dmtf_measurement_field.adb \
     rflx-spdm-dmtf_measurement_field.ads \
     rflx-spdm_responder-signature.adb \
-    rflx-spdm_responder-signature.ads
+    rflx-spdm_responder-signature.ads \
+    rflx-spdm_responder-opaque_data.adb \
+    rflx-spdm_responder-opaque_data.ads
 
 ifeq ($(FEATURE_CHALLENGE_AUTH),True)
 GENERATED += \
