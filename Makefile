@@ -2,6 +2,8 @@
 
 SHELL := /bin/bash
 
+VERSION := 0.1.1
+
 # Features: set to "True" or "False"
 FEATURE_CHALLENGE_AUTH ?= True
 FEATURE_RESPOND_IF_READY ?= True
@@ -13,7 +15,6 @@ DUMP_VALIDATE_FLAGS =
 
 TMPDIR := $(shell mktemp -d)
 FILE_LIST := $(shell mktemp)
-GITREV := $(shell git rev-parse --short HEAD 2>/dev/null || echo local)
 GENERATED := rflx.ads \
     rflx-rflx_arithmetic.adb \
     rflx-rflx_arithmetic.ads \
@@ -305,22 +306,22 @@ $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx:
 	$(TMPDIR)/venv/bin/pip3 install wheel
 	$(TMPDIR)/venv/bin/pip3 install contrib/RecordFlux[devel]
 
-package: build/spdm_$(GITREV).tar.xz
+package: build/spdm-$(VERSION).tar.xz
 
-build/spdm_$(GITREV).tar: .git/logs/HEAD
+build/spdm-$(VERSION).tar: .git/logs/HEAD
 	# check for local changes, abort if not committed
 	git diff --summary --exit-code
 	git diff --summary --exit-code --cached
 	mkdir -p build
 	git ls-files --recurse-submodules | grep -v -e "^.git\|/\.git" | grep -v -e "^contrib/RecordFlux/examples/specs/tests/data" > $(FILE_LIST)
-	tar cvf build/spdm_$(GITREV).tar -T $(FILE_LIST)
+	tar cvf build/spdm-$(VERSION).tar -T $(FILE_LIST)
 	git rev-parse HEAD > $(TMPDIR)/commit
-	tar rvf build/spdm_$(GITREV).tar --directory $(TMPDIR) commit
+	tar rvf build/spdm-$(VERSION).tar --directory $(TMPDIR) commit
 
-build/spdm_$(GITREV).tar.xz: build/spdm_$(GITREV).tar
+build/spdm-$(VERSION).tar.xz: build/spdm-$(VERSION).tar
 	xz -z -e -9 -T0 $^
 
-test_package: build/spdm_$(GITREV).tar
+test_package: build/spdm-$(VERSION).tar
 	# Check for file with charcaters incompatible with Perforce
 	# https://www.perforce.com/manuals/p4guide/Content/P4Guide/syntax.syntax.restrictions.html
 	test -z "$$(tar -tf $^ | grep -e '\([@#]\|\.\.\.\|%[0-9]\)')"
