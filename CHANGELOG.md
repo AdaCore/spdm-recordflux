@@ -22,5 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hash reset in `spdm_platform_update_meas_signature`
 - Improper missing initialization of `Resp_Alg_Structs` (V511-039)
 - File handling in requester
+- Insufficient space in sequence due to missing reset (V523-003)
 
 ## [0.1.0] - 2022-05-11
