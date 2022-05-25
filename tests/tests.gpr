@@ -5,6 +5,7 @@ project Tests is
 
    for Languages use ("Ada", "C");
    for Source_Dirs use (".",
+                        "../examples/debug",
                         "../examples/platform",
                         "../build/debug/generated",
                         "../include");

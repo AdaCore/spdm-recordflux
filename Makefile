@@ -244,13 +244,13 @@ build/debug/generated/spdm_c_responder.%: src/spdm_c_responder.%
 
 build/debug/generated/%: $(SPECIFICATIONS) | $(INTEGRATION_FILES) $(RFLX)
 	mkdir -p build/debug/generated
-	$(RFLX) generate $^ --debug -d build/debug/generated
+	$(RFLX) generate $^ --debug external -d build/debug/generated
 
 build/generated:
 	mkdir -p build/generated
 
 build/generated/%: build/debug/generated/% build/generated
-	grep -v "Ada.Text_IO" $< > $@
+	grep -v "RFLX.RFLX_Debug" $< > $@
 
 build/tests/proxy build/tests/responder build/tests/requester: $(addprefix build/debug/generated/,$(GENERATED)) build/spdm_emu/bin/spdm_responder_emu tests/tests.gpr tests/*.ad?
 	gprbuild -p tests/tests.gpr -s
