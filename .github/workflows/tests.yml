@@ -7,6 +7,9 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
     cancel-in-progress: true
 
+env:
+    MEMCACHED: localhost:11211
+
 jobs:
     tests:
         name: Tests
@@ -53,6 +56,20 @@ jobs:
                   version: "23.0w-20220128"
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
                   server: ${{ secrets.MEMCACHED_SERVER }}
+            - name: Connect to Memcached server
+              shell: bash
+              env:
+                SSH_KEY: ${{ secrets.MEMCACHED_SSH_KEY }}
+                SERVER: ${{ secrets.MEMCACHED_SERVER }}
+              run: |
+                eval $(ssh-agent -s)
+                echo "$SSH_KEY" | tr -d '\r' | ssh-add - &>/dev/null
+                mkdir -p ~/.ssh
+                chmod 700 ~/.ssh
+                ssh-keyscan $SERVER >> ~/.ssh/known_hosts
+                chmod 644 ~/.ssh/known_hosts
+                ssh -L 11211:localhost:11211 -N -T -f -o ExitOnForwardFailure=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=3 ci@$SERVER &>/dev/null
+                echo "stats" | nc -q 1 localhost 11211
             - name: Install dependencies
               run: |
                   sudo apt-get update
