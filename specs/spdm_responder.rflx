@@ -854,10 +854,13 @@ package SPDM_Responder is
 
       state Prepare_Measurements_All
       is
+         Local_Number_Of_Indices : SPDM::Measurement_Count;
       begin
-         Number_Of_Indices := Plat_Get_Number_Of_Indices;
          Current_Measurement := 1;
-         Last_Measurement := Number_Of_Indices;
+         --  ISSUE: Componolit/RecordFlux#1055
+         --  Use a local variable to prevent a type error in the generated code.
+         Local_Number_Of_Indices := Plat_Get_Number_Of_Indices;
+         Last_Measurement := Local_Number_Of_Indices;
       transition
          goto Prepare_Measurements_Records
       end Prepare_Measurements_All;
