@@ -53,7 +53,11 @@ is
             end if;
 
             if SR.Needs_Data (Context, SR.C_Transport) then
-               SR.Write (Context, SR.C_Transport, Buffer);
+               declare
+                  BS : constant RFLX.RFLX_Types.Length := SR.Write_Buffer_Size (Context, SR.C_Transport);
+               begin
+                  SR.Write (Context, SR.C_Transport, Buffer (Buffer'First .. Buffer'First - 2 + RFLX.RFLX_Types.Index (BS + 1)));
+               end;
             end if;
 
             SR.Run (Context);
