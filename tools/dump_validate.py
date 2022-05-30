@@ -156,19 +156,16 @@ def dump(
                         for name, data in messages
                         if name == "SPDM_MEASUREMENTS"
                     )
-                    signature_length = 96
-                    if (
-                        message_name == "SPDM_MEASUREMENTS"
-                        and len(message_data) < signed_measurement_length
-                    ):
-                        signature_length = 0
+                    has_signature = not (message_name == "SPDM_MEASUREMENTS" and len(message_data) < signed_measurement_length)
                     config.write(
                         "Meas_Cap: 2\n"
                         "Hash_Type: 1\n"
                         "Hash_Length: 48\n"
-                        f"Signature_Length: {signature_length}\n"
+                        "Signature_Length: 96\n"
                         "Handshake_In_The_Clear: True\n"
                         "Exchange_Data_Length: 96\n"
+                        "Has_Measurement_Hash: True\n"
+                        f"Has_Signature: {has_signature}\n"
                     )
 
 

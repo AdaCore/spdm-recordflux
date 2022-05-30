@@ -38,18 +38,27 @@ package SPDM_Responder is
 
    type Hash is
       message
-         Length : SPDM::Hash_Length;
-         Data : Opaque
-            with Size => Length * 8;
+         Length : SPDM::Hash_Length
+            then Data
+               with Size => Length * 8
+               if Length = 32
+                  or Length = 48
+                  or Length = 64;
+         Data : Opaque;
       end message;
 
    type Signature is
       message
          Length : SPDM::Signature_Length
             then Data
-               if Length > 0;
-         Data : Opaque
-            with Size => Length * 8;
+               with Size => Length * 8
+               if Length = 64
+                  or Length = 96
+                  or Length = 132
+                  or Length = 256
+                  or Length = 384
+                  or Length = 512;
+         Data : Opaque;
       end message;
 
    type Exchange_Data is
@@ -195,7 +204,9 @@ package SPDM_Responder is
       Response               : SPDM::Response;
       Supp_Versions          : SPDM::Version_Number_Entries;
       Measurement_Hash_Algo  : SPDM::Measurement_Hash_Algo;
-      Hash_Length            : SPDM::Hash_Length := 0;
+      Hash_Length            : SPDM::Hash_Length := 32;
+      Signature_Length       : SPDM::Signature_Length := 0;
+      Base_Asym_Sel          : SPDM::Base_Asym_Algo;
       Slot                   : SPDM::Slot;
       Offset                 : SPDM::Offset;
       Length                 : SPDM::Length_16;
@@ -278,13 +289,15 @@ package SPDM_Responder is
          Response := SPDM::Response'(Meas_Cap                                    => Cap_Meas,
                                      Hash_Type                                   => SPDM::No_Measurement,
                                      Hash_Length                                 => Hash_Length,
-                                     Signature_Length                            => 0,
+                                     Signature_Length                            => Signature_Length,
 #if FEATURE_KEY_EXCHANGE then
                                      Exchange_Data_Length                        => Exchange_Data_Length,
 #else
                                      Exchange_Data_Length                        => 0,
 #end if;
                                      Handshake_In_The_Clear                      => Cap_Handshake_In_The_Clear,
+                                     Has_Signature                               => False,
+                                     Has_Measurement_Hash                        => False,
                                      Major_Version                               => 1,
                                      Minor_Version                               => 0,
                                      Code                                        => SPDM::Version,
@@ -380,13 +393,15 @@ package SPDM_Responder is
             SPDM::Response'(Meas_Cap                                         => Cap_Meas,
                             Hash_Type                                        => SPDM::No_Measurement,
                             Hash_Length                                      => Hash_Length,
-                            Signature_Length                                 => 0,
+                            Signature_Length                                 => Signature_Length,
 #if FEATURE_KEY_EXCHANGE then
                             Exchange_Data_Length                             => Exchange_Data_Length,
 #else
                             Exchange_Data_Length                             => 0,
 #end if;
                             Handshake_In_The_Clear                           => Cap_Handshake_In_The_Clear,
+                            Has_Signature                                    => False,
+                            Has_Measurement_Hash                             => False,
                             Major_Version                                    => 1,
                             Minor_Version                                    => 1,
                             Code                                             => SPDM::Capabilities,
@@ -698,7 +713,6 @@ package SPDM_Responder is
       state Prepare_Algorithms
       is
          Base_Hash_Sel : SPDM::Base_Hash_Algo;
-         Base_Asym_Sel : SPDM::Base_Asym_Algo;
          Ext_Asym      : SPDM::Ext_Algs;
          Ext_Hash      : SPDM::Ext_Algs;
       begin
@@ -734,13 +748,15 @@ package SPDM_Responder is
             SPDM::Response'(Meas_Cap                                          => Cap_Meas,
                             Hash_Type                                         => SPDM::No_Measurement,
                             Hash_Length                                       => Hash_Length,
-                            Signature_Length                                  => 0,
+                            Signature_Length                                  => Signature_Length,
 #if FEATURE_KEY_EXCHANGE then
                             Exchange_Data_Length                              => Exchange_Data_Length,
 #else
                             Exchange_Data_Length                              => 0,
 #end if;
                             Handshake_In_The_Clear                            => Cap_Handshake_In_The_Clear,
+                            Has_Signature                                     => False,
+                            Has_Measurement_Hash                              => False,
                             Major_Version                                     => 1,
                             Minor_Version                                     => 1,
                             Code                                              => SPDM::Algorithms,
@@ -786,13 +802,7 @@ package SPDM_Responder is
       begin
          Hash_Length := 32;
       transition
-#if FEATURE_KEY_EXCHANGE then
-         goto Set_Exchange_Data_Len
-            if Cap_Key_Ex
-         goto Update_Transcript_Hash
-#else
-         goto Send_Idle
-#end if;
+         goto Set_Signature_Len
       end Set_Hash_Len_32;
 
       --  ISSUE: Componolit/RecordFlux#907
@@ -801,13 +811,7 @@ package SPDM_Responder is
       begin
          Hash_Length := 48;
       transition
-#if FEATURE_KEY_EXCHANGE then
-         goto Set_Exchange_Data_Len
-            if Cap_Key_Ex
-         goto Update_Transcript_Hash
-#else
-         goto Send_Idle
-#end if;
+         goto Set_Signature_Len
       end Set_Hash_Len_48;
 
       --  ISSUE: Componolit/RecordFlux#907
@@ -816,6 +820,29 @@ package SPDM_Responder is
       begin
          Hash_Length := 64;
       transition
+         goto Set_Signature_Len
+      end Set_Hash_Len_64;
+
+      --  ISSUE: Componolit/RecordFlux#907
+      state Set_Signature_Len
+      is
+      begin
+      transition
+         goto Set_Signature_Len_64
+            if Base_Asym_Sel = SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P256
+         goto Set_Signature_Len_96
+            if Base_Asym_Sel = SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P384
+         goto Set_Signature_Len_132
+            if Base_Asym_Sel = SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P521
+         goto Set_Signature_Len_256
+            if Base_Asym_Sel = SPDM::BA_TPM_ALG_RSAPSS_2048
+               or Base_Asym_Sel = SPDM::BA_TPM_ALG_RSASSA_2048
+         goto Set_Signature_Len_384
+            if Base_Asym_Sel = SPDM::BA_TPM_ALG_RSAPSS_3072
+               or Base_Asym_Sel = SPDM::BA_TPM_ALG_RSASSA_3072
+         goto Set_Signature_Len_512
+            if Base_Asym_Sel = SPDM::BA_TPM_ALG_RSAPSS_4096
+               or Base_Asym_Sel = SPDM::BA_TPM_ALG_RSASSA_4096
 #if FEATURE_KEY_EXCHANGE then
          goto Set_Exchange_Data_Len
             if Cap_Key_Ex
@@ -823,7 +850,97 @@ package SPDM_Responder is
 #else
          goto Send_Idle
 #end if;
-      end Set_Hash_Len_64;
+      end Set_Signature_Len;
+
+      --  ISSUE: Componolit/RecordFlux#907
+      state Set_Signature_Len_64
+      is
+      begin
+         Signature_Length := 64;
+      transition
+#if FEATURE_KEY_EXCHANGE then
+         goto Set_Exchange_Data_Len
+            if Cap_Key_Ex
+         goto Update_Transcript_Hash
+#else
+         goto Send_Idle
+#end if;
+      end Set_Signature_Len_64;
+
+      --  ISSUE: Componolit/RecordFlux#907
+      state Set_Signature_Len_96
+      is
+      begin
+         Signature_Length := 96;
+      transition
+#if FEATURE_KEY_EXCHANGE then
+         goto Set_Exchange_Data_Len
+            if Cap_Key_Ex
+         goto Update_Transcript_Hash
+#else
+         goto Send_Idle
+#end if;
+      end Set_Signature_Len_96;
+
+      --  ISSUE: Componolit/RecordFlux#907
+      state Set_Signature_Len_132
+      is
+      begin
+         Signature_Length := 132;
+      transition
+#if FEATURE_KEY_EXCHANGE then
+         goto Set_Exchange_Data_Len
+            if Cap_Key_Ex
+         goto Update_Transcript_Hash
+#else
+         goto Send_Idle
+#end if;
+      end Set_Signature_Len_132;
+
+      --  ISSUE: Componolit/RecordFlux#907
+      state Set_Signature_Len_256
+      is
+      begin
+         Signature_Length := 256;
+      transition
+#if FEATURE_KEY_EXCHANGE then
+         goto Set_Exchange_Data_Len
+            if Cap_Key_Ex
+         goto Update_Transcript_Hash
+#else
+         goto Send_Idle
+#end if;
+      end Set_Signature_Len_256;
+
+      --  ISSUE: Componolit/RecordFlux#907
+      state Set_Signature_Len_384
+      is
+      begin
+         Signature_Length := 384;
+      transition
+#if FEATURE_KEY_EXCHANGE then
+         goto Set_Exchange_Data_Len
+            if Cap_Key_Ex
+         goto Update_Transcript_Hash
+#else
+         goto Send_Idle
+#end if;
+      end Set_Signature_Len_384;
+
+      --  ISSUE: Componolit/RecordFlux#907
+      state Set_Signature_Len_512
+      is
+      begin
+         Signature_Length := 512;
+      transition
+#if FEATURE_KEY_EXCHANGE then
+         goto Set_Exchange_Data_Len
+            if Cap_Key_Ex
+         goto Update_Transcript_Hash
+#else
+         goto Send_Idle
+#end if;
+      end Set_Signature_Len_512;
 #if FEATURE_KEY_EXCHANGE then
       --  ISSUE: Componolit/RecordFlux#907
       state Set_Exchange_Data_Len
@@ -911,7 +1028,7 @@ package SPDM_Responder is
       is
       begin
          Request'Reset (Hash_Length          => Hash_Length,
-                        Signature_Length     => 0,
+                        Signature_Length     => Signature_Length,
 #if FEATURE_KEY_EXCHANGE then
                         Exchange_Data_Length => Exchange_Data_Length);
 #else
@@ -967,13 +1084,15 @@ package SPDM_Responder is
          Response := SPDM::Response'(Meas_Cap                                    => Cap_Meas,
                                      Hash_Type                                   => SPDM::No_Measurement,
                                      Hash_Length                                 => Hash_Length,
-                                     Signature_Length                            => 0,
+                                     Signature_Length                            => Signature_Length,
 #if FEATURE_KEY_EXCHANGE then
                                      Exchange_Data_Length                        => Exchange_Data_Length,
 #else
                                      Exchange_Data_Length                        => 0,
 #end if;
                                      Handshake_In_The_Clear                      => Cap_Handshake_In_The_Clear,
+                                     Has_Signature                               => False,
+                                     Has_Measurement_Hash                        => False,
                                      Major_Version                               => 1,
                                      Minor_Version                               => 1,
                                      Code                                        => SPDM::Digests,
@@ -1025,13 +1144,15 @@ package SPDM_Responder is
          Response := SPDM::Response'(Meas_Cap                              => Cap_Meas,
                                      Hash_Type                             => SPDM::No_Measurement,
                                      Hash_Length                           => Hash_Length,
-                                     Signature_Length                      => 0,
+                                     Signature_Length                      => Signature_Length,
 #if FEATURE_KEY_EXCHANGE then
                                      Exchange_Data_Length                  => Exchange_Data_Length,
 #else
                                      Exchange_Data_Length                  => 0,
 #end if;
                                      Handshake_In_The_Clear                => Cap_Handshake_In_The_Clear,
+                                     Has_Signature                         => False,
+                                     Has_Measurement_Hash                  => False,
                                      Major_Version                         => 1,
                                      Minor_Version                         => 1,
                                      Code                                  => SPDM::Certificate,
@@ -1130,13 +1251,15 @@ package SPDM_Responder is
          Response := SPDM::Response'(Meas_Cap                                        => Cap_Meas,
                                      Hash_Type                                       => SPDM::No_Measurement,
                                      Hash_Length                                     => Hash_Length,
-                                     Signature_Length                                => 0,
+                                     Signature_Length                                => Signature_Length,
 #if FEATURE_KEY_EXCHANGE then
                                      Exchange_Data_Length                            => Exchange_Data_Length,
 #else
                                      Exchange_Data_Length                            => 0,
 #end if;
                                      Handshake_In_The_Clear                          => Cap_Handshake_In_The_Clear,
+                                     Has_Signature                                   => False,
+                                     Has_Measurement_Hash                            => False,
                                      Major_Version                                   => 1,
                                      Minor_Version                                   => 1,
                                      Code                                            => SPDM::Measurements,
@@ -1183,14 +1306,16 @@ package SPDM_Responder is
          Response          := SPDM::Response'
             (Meas_Cap                                        => Cap_Meas,
              Hash_Type                                       => SPDM::No_Measurement,
-             Hash_Length                                     => 0,
-             Signature_Length                                => Signature.Length,
+             Hash_Length                                     => Hash_Length,
+             Signature_Length                                => Signature_Length,
 #if FEATURE_KEY_EXCHANGE then
              Exchange_Data_Length                            => Exchange_Data_Length,
 #else
              Exchange_Data_Length                            => 0,
 #end if;
              Handshake_In_The_Clear                          => Cap_Handshake_In_The_Clear,
+             Has_Signature                                   => True,
+             Has_Measurement_Hash                            => False,
              Major_Version                                   => Major_Version,
              Minor_Version                                   => Minor_Version,
              Code                                            => Code,
@@ -1273,10 +1398,12 @@ package SPDM_Responder is
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
-                            Hash_Length                                    => Summary_Hash.Length,
+                            Hash_Length                                    => Hash_Length,
                             Signature_Length                               => 0,
                             Exchange_Data_Length                           => Exchange_Data.Length,
                             Handshake_In_The_Clear                         => Cap_Handshake_In_The_Clear,
+                            Has_Signature                                  => False,
+                            Has_Measurement_Hash                           => True,
                             Major_Version                                  => 1,
                             Minor_Version                                  => 1,
                             Code                                           => SPDM::Key_Exchange_RSP,
@@ -1323,10 +1450,12 @@ package SPDM_Responder is
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
-                            Hash_Length                                    => 0,
+                            Hash_Length                                    => Hash_Length,
                             Signature_Length                               => 0,
                             Exchange_Data_Length                           => Exchange_Data.Length,
                             Handshake_In_The_Clear                         => Cap_Handshake_In_The_Clear,
+                            Has_Signature                                  => False,
+                            Has_Measurement_Hash                           => False,
                             Major_Version                                  => 1,
                             Minor_Version                                  => 1,
                             Code                                           => SPDM::Key_Exchange_RSP,
@@ -1365,6 +1494,7 @@ package SPDM_Responder is
          Summary_Hash     : Hash;
          Resp_Hash_Length : SPDM::Hash_Length;
          Opaque_Data      : Opaque_Data;
+         Has_Summary_Hash : Boolean;
       begin
          Nonce            := SPDM::Nonce'(Data => Response.Key_Exchange_Response_Random_Data);
          Heartbeat_Period := Response.Key_Exchange_Response_Heartbeat_Period;
@@ -1378,14 +1508,17 @@ package SPDM_Responder is
                                    Data   => Response.Key_Exchange_Response_Measurement_Summary_Hash);
          Opaque_Data      := Opaque_Data'(Length => Response.Key_Exchange_Response_Opaque_Data_Length,
                                           Data   => Response.Key_Exchange_Response_Opaque_Data);
+         Has_Summary_Hash := Response.Has_Measurement_Hash;
          Signature        := Plat_Get_Transcript_Signature;
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
                             Hash_Length                                    => Summary_Hash.Length,
-                            Signature_Length                               => Signature.Length,
+                            Signature_Length                               => Signature_Length,
                             Exchange_Data_Length                           => Exchange_Data_Length,
                             Handshake_In_The_Clear                         => Cap_Handshake_In_The_Clear,
+                            Has_Signature                                  => True,
+                            Has_Measurement_Hash                           => Has_Summary_Hash,
                             Major_Version                                  => 1,
                             Minor_Version                                  => 1,
                             Code                                           => SPDM::Key_Exchange_RSP,
@@ -1418,10 +1551,12 @@ package SPDM_Responder is
          Response :=
             SPDM::Response'(Meas_Cap                             => Cap_Meas,
                             Hash_Type                            => SPDM::No_Measurement,
-                            Hash_Length                          => 64,
-                            Signature_Length                     => 0,
+                            Hash_Length                          => Hash_Length,
+                            Signature_Length                     => Signature_Length,
                             Exchange_Data_Length                 => 0,
                             Handshake_In_The_Clear               => Cap_Handshake_In_The_Clear,
+                            Has_Signature                        => False,
+                            Has_Measurement_Hash                 => False,
                             Major_Version                        => 1,
                             Minor_Version                        => 1,
                             Code                                 => SPDM::Error,
@@ -1455,10 +1590,12 @@ package SPDM_Responder is
          Response :=
             SPDM::Response'(Meas_Cap                       => Cap_Meas,
                             Hash_Type                      => SPDM::No_Measurement,
-                            Hash_Length                    => 64,
-                            Signature_Length               => 0,
+                            Hash_Length                    => Hash_Length,
+                            Signature_Length               => Signature_Length,
                             Exchange_Data_Length           => 0,
                             Handshake_In_The_Clear         => Cap_Handshake_In_The_Clear,
+                            Has_Signature                  => False,
+                            Has_Measurement_Hash           => False,
                             Major_Version                  => 1,
                             Minor_Version                  => 1,
                             Code                           => SPDM::Error,

@@ -10,9 +10,11 @@ package SPDM is
    type Length_24 is mod 2 ** 24;
    type Index is range 0 .. 2 ** 8 - 1 with Size => 8;
 
+   -- ISSUE: Componolit/RecordFlux#1058
+   -- Signature_Length should be 64 .. 512
    type Signature_Length is range 0 .. 512 with Size => 16;
    type Exchange_Data_Length is range 0 .. 512 with Size => 10;
-   type Hash_Length is range 0 .. 64 with Size => 8;
+   type Hash_Length is range 32 .. 64 with Size => 8;
 
    -- ISSUE: Componolit/RecordFlux#601
    -- [33] Unless otherwise specified, reserved numeric and bit fields shall be written as
@@ -355,7 +357,8 @@ package SPDM is
 
    type Block_Count is range 0 .. 2 ** 8 - 1 with Size => 8;
 
-   type Measurements_Response (Signature_Length : Signature_Length) is
+   type Measurements_Response (Signature_Length : Signature_Length;
+                               Has_Signature    : Boolean) is
       message
          Number_Of_Indices : Measurement_Count;
          Reserved_1 : Reserved_4;
@@ -369,9 +372,9 @@ package SPDM is
          Opaque_Data : Opaque
             with Size => 8 * Opaque_Length
             then Signature
-               if Signature_Length > 0
+               if Has_Signature = True
             then null
-               if Signature_Length = 0;
+               if Has_Signature = False;
          Signature : Opaque
             with Size => 8 * Signature_Length;
       end message
@@ -865,7 +868,8 @@ package SPDM is
    type Key_Exchange_Response (Exchange_Data_Length   : Exchange_Data_Length;
                                Hash_Length            : Hash_Length;
                                Signature_Length       : Signature_Length;
-                               Handshake_In_The_Clear : Boolean)
+                               Handshake_In_The_Clear : Boolean;
+                               Has_Measurement_Hash   : Boolean)
    is
       message
          Heartbeat_Period : Heartbeat_Period;
@@ -891,9 +895,14 @@ package SPDM is
          Random_Data : Opaque
             with Size => 8 * 32;
          Exchange_Data : Opaque
-            with Size => 8 * Exchange_Data_Length;
-         Measurement_Summary_Hash : Opaque
-            with Size => 8 * Hash_Length;
+            with Size => 8 * Exchange_Data_Length
+            then Measurement_Summary_Hash
+               with Size => 8 * Hash_Length
+               if Has_Measurement_Hash = True
+            then Measurement_Summary_Hash
+               with Size => 0
+               if Has_Measurement_Hash = False;
+         Measurement_Summary_Hash : Opaque;
          Opaque_Data_Length : Length_16;
          Opaque_Data : Opaque
             with Size => 8 * Opaque_Data_Length;
@@ -1059,7 +1068,9 @@ package SPDM is
                   Hash_Length            : Hash_Length;
                   Signature_Length       : Signature_Length;
                   Exchange_Data_Length   : Exchange_Data_Length;
-                  Handshake_In_The_Clear : Boolean)
+                  Handshake_In_The_Clear : Boolean;
+                  Has_Signature          : Boolean;
+                  Has_Measurement_Hash   : Boolean)
    is
       message
          Major_Version : Major_Version
@@ -1114,7 +1125,8 @@ package SPDM is
                                                             Signature_Length => Signature_Length)
             then null;
 #end if;
-         Measurements_Response : Measurements_Response (Signature_Length => Signature_Length)
+         Measurements_Response : Measurements_Response (Signature_Length => Signature_Length,
+                                                        Has_Signature    => Has_Signature)
             then null;
          Error_Response : Error_Response
             then null;
@@ -1122,7 +1134,8 @@ package SPDM is
          Key_Exchange_Response : Key_Exchange_Response (Exchange_Data_Length   => Exchange_Data_Length,
                                                         Hash_Length            => Hash_Length,
                                                         Signature_Length       => Signature_Length,
-                                                        Handshake_In_The_Clear => Handshake_In_The_Clear)
+                                                        Handshake_In_The_Clear => Handshake_In_The_Clear,
+                                                        Has_Measurement_Hash   => Has_Measurement_Hash)
             then null;
          Finish_Response : Finish_Response (Hash_Length            => Hash_Length,
                                             Handshake_In_The_Clear => Handshake_In_The_Clear)

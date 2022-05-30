@@ -1,6 +1,8 @@
 Meas_Cap: 2
 Hash_Type: 1
 Hash_Length: 48
-Signature_Length: 0
+Signature_Length: 96
 Handshake_In_The_Clear: True
 Exchange_Data_Length: 96
+Has_Measurement_Hash: True
+Has_Signature: False
