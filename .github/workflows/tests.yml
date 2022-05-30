@@ -79,6 +79,8 @@ jobs:
               env:
                 SPDM_IGNORE_CHALLENGE_AUTH: 1
                 SPDM_IGNORE_MEASUREMENTS_SIGNATURE: 1
+                SPDM_IGNORE_KEY_EX_OPAQUE_DATA: 1
+                SPDM_IGNORE_KEY_EX_SIGNATURE: 1
               run: make
             - name: Check spec (all features off)
               env:
