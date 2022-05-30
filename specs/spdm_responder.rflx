@@ -1540,10 +1540,52 @@ package SPDM_Responder is
                             Key_Exchange_Response_Opaque_Data              => Opaque_Data.Data,
                             Key_Exchange_Response_Signature                => Signature.Data);
       transition
-         goto Send_Idle
+         goto Send_Key_Exchange
       exception
          goto Error_Unspecified
       end Prepare_Key_Exchange_Sign;
+
+      state Send_Key_Exchange
+      is
+      begin
+         Transport'Write (Response);
+      transition
+         goto Receive_Finish
+      end Send_Key_Exchange;
+
+      state Receive_Finish
+      is
+      begin
+         Transport'Read (Request);
+      transition
+         goto Prepare_Finish_Response
+            if Request'Valid and Request.Code = SPDM::Finish
+         goto Error_Invalid_Request
+      end Receive_Finish;
+
+      state Prepare_Finish_Response
+      is
+      begin
+         Response :=
+            SPDM::Response'(Meas_Cap                => Cap_Meas,
+                            Hash_Type               => SPDM::No_Measurement,
+                            Hash_Length             => Hash_Length,
+                            Signature_Length        => Signature_Length,
+                            Exchange_Data_Length    => 0,
+                            Handshake_In_The_Clear  => Cap_Handshake_In_The_Clear,
+                            Has_Signature           => False,
+                            Has_Measurement_Hash    => False,
+                            Major_Version           => 1,
+                            Minor_Version           => 1,
+                            Code                    => SPDM::Finish_RSP,
+                            Finish_Response_Param_1 => 0,
+                            Finish_Response_Param_2 => 0);
+      transition
+         goto Send_Idle
+      exception
+         goto Error_Unspecified
+      end Prepare_Finish_Response;
+
 #end if;
       state Error_Unsupported_Request
       is
