@@ -885,6 +885,21 @@ is
    end Plat_Update_Transcript_Signature;
 
    overriding
+   procedure Plat_Update_Transcript_Signature_Cert (Ctx    : in out Context;
+                                                    Slot   :        RFLX.SPDM.Slot;
+                                                    Result :    out Boolean)
+   is
+      use type Interfaces.C.unsigned_char;
+      function C_Interface (Instance : System.Address;
+                            Slot     : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_update_transcript_signature_cert";
+   begin
+      Result := C_Interface (Ctx.Instance, Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot))) > 0;
+   end Plat_Update_Transcript_Signature_Cert;
+
+   overriding
    procedure Plat_Get_Transcript_Signature (Ctx    : in out Context;
                                             Result :    out RFLX.SPDM_Responder.Signature.Structure)
    is
@@ -932,5 +947,24 @@ is
       end if;
       Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Size));
    end Plat_Get_Key_Ex_Opaque_Data;
+
+   overriding
+   procedure Plat_Get_Finish_Verify_Data (Ctx    : in out Context;
+                                          Result :    out RFLX.SPDM_Responder.Hash.Structure)
+   is
+      procedure C_Interface (Instance :        System.Address;
+                             Data     :        System.Address;
+                             Size     : in out Interfaces.C.unsigned) with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_finish_verify_data";
+      Size : Interfaces.C.unsigned := Interfaces.C.unsigned (Result.Data'Length);
+   begin
+      C_Interface (Ctx.Instance, Result.Data'Address, Size);
+      if not RFLX.SPDM.Valid_Hash_Length (RFLX.RFLX_Types.U64 (Size)) then
+         raise Constraint_Error;
+      end if;
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Size));
+   end Plat_Get_Finish_Verify_Data;
 #end if;
 end SPDM_C_Responder;

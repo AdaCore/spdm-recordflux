@@ -81,7 +81,18 @@ package SPDM_Responder is
             with Size => Length * 8;
       end message;
 
-   type Next_Transcript_State is (Send_Vers, Send_Cap, Send_Alg, Sign_Key_Ex) with
+   type SPDM_Header is
+      message
+         Major_Version : SPDM::Major_Version
+            then Minor_Version
+               if Major_Version = 1;
+         Minor_Version : SPDM::Minor_Version
+            then Code
+               if Minor_Version <= 1;
+         Code : SPDM::Response_Code;
+      end message;
+
+   type Next_Transcript_State is (Send_Vers, Send_Cap, Send_Alg, Sign_Key_Ex, Send_Finish) with
       Size => 8;
 
    generic
@@ -192,9 +203,13 @@ package SPDM_Responder is
 
       with function Plat_Update_Transcript_Signature (Message : Opaque; Reset : Boolean) return Boolean;
 
+      with function Plat_Update_Transcript_Signature_Cert (Slot : SPDM::Slot) return Boolean;
+
       with function Plat_Get_Transcript_Signature return Signature;
 
       with function Plat_Get_Key_Ex_Opaque_Data (Request_Data : Opaque) return Opaque_Data;
+
+      with function Plat_Get_Finish_Verify_Data return Hash;
 #end if;
    session Session with
       Initial => Init,
@@ -228,6 +243,7 @@ package SPDM_Responder is
       Next_Transcript_State  : Next_Transcript_State;
       Exchange_Data_Length   : SPDM::Exchange_Data_Length := 0;
       Measurement_Summary    : Boolean;
+      Use_Mutual_Auth        : Boolean;
 #end if;
 
       --  Capabilities
@@ -337,6 +353,8 @@ package SPDM_Responder is
             if Next_Transcript_State = Send_Alg
          goto Prepare_Key_Exchange_Sign
             if Next_Transcript_State = Sign_Key_Ex
+         goto Send_Idle
+            if Next_Transcript_State = Send_Finish
          goto Error_Unspecified
       exception
          goto Error_Unspecified
@@ -1376,25 +1394,25 @@ package SPDM_Responder is
 
       state Prepare_Key_Exchange_Hash
       is
-         Nonce            : SPDM::Nonce;
-         Exchange_Data    : Exchange_Data;
-         Heartbeat_Period : SPDM::Heartbeat_Period;
-         Use_Mutual_Auth  : Boolean;
-         Session_ID       : SPDM::Session_ID;
-         Summary          : Measurement_Summary;
-         Summary_Hash     : Hash;
-         Opaque_Data      : Opaque_Data;
+         Nonce                 : SPDM::Nonce;
+         Exchange_Data         : Exchange_Data;
+         Heartbeat_Period      : SPDM::Heartbeat_Period;
+         Local_Use_Mutual_Auth : Boolean;
+         Session_ID            : SPDM::Session_ID;
+         Summary               : Measurement_Summary;
+         Summary_Hash          : Hash;
+         Opaque_Data           : Opaque_Data;
       begin
-         Nonce                := Plat_Get_Nonce;
-         Exchange_Data        := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
-         Heartbeat_Period     := Plat_Get_Heartbeat_Period;
-         Use_Mutual_Auth      := Plat_Use_Mutual_Auth;
-         Session_ID           := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
+         Nonce                 := Plat_Get_Nonce;
+         Exchange_Data         := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
+         Heartbeat_Period      := Plat_Get_Heartbeat_Period;
+         Local_Use_Mutual_Auth := Plat_Use_Mutual_Auth;
+         Session_ID            := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
          --  ISSUE: Componolit/RecordFlux#1021
-         Summary              := Measurement_Summary'(Data => Measurement_Record);
-         Summary_Hash         := Plat_Get_Summary_Hash (Summary'Opaque);
-         Opaque_Data          := Plat_Get_Key_Ex_Opaque_Data (Request.Key_Exchange_Request_Opaque_Data);
-         Exchange_Data_Length := Exchange_Data.Length;
+         Summary               := Measurement_Summary'(Data => Measurement_Record);
+         Summary_Hash          := Plat_Get_Summary_Hash (Summary'Opaque);
+         Opaque_Data           := Plat_Get_Key_Ex_Opaque_Data (Request.Key_Exchange_Request_Opaque_Data);
+         Exchange_Data_Length  := Exchange_Data.Length;
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
@@ -1415,7 +1433,7 @@ package SPDM_Responder is
                             --  require Encapsulated requests that are not supported.
                             Key_Exchange_Response_Mutual_Auth_Implicit     => False,
                             Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
-                            Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
+                            Key_Exchange_Response_Mutual_Auth              => Local_Use_Mutual_Auth,
                             Key_Exchange_Response_Reserved_2               => 0,
                             Key_Exchange_Response_Slot_ID_Param            => SPDM::NS_0,
                             Key_Exchange_Response_Random_Data              => Nonce.Data,
@@ -1424,29 +1442,28 @@ package SPDM_Responder is
                             Key_Exchange_Response_Opaque_Data_Length       => Opaque_Data.Length,
                             Key_Exchange_Response_Opaque_Data              => Opaque_Data.Data,
                             Key_Exchange_Response_Signature                => []);
-         Next_Transcript_State := Sign_Key_Ex;
       transition
-         goto Update_Transcript_Hash
+         goto Update_Transcript_Hash_Cert
       exception
          goto Error_Unspecified
       end Prepare_Key_Exchange_Hash;
 
       state Prepare_Key_Exchange_No_Hash
       is
-         Nonce            : SPDM::Nonce;
-         Exchange_Data    : Exchange_Data;
-         Heartbeat_Period : SPDM::Heartbeat_Period;
-         Use_Mutual_Auth  : Boolean;
-         Session_ID       : SPDM::Session_ID;
-         Opaque_Data      : Opaque_Data;
+         Nonce                 : SPDM::Nonce;
+         Exchange_Data         : Exchange_Data;
+         Heartbeat_Period      : SPDM::Heartbeat_Period;
+         Local_Use_Mutual_Auth : Boolean;
+         Session_ID            : SPDM::Session_ID;
+         Opaque_Data           : Opaque_Data;
       begin
-         Nonce                := Plat_Get_Nonce;
-         Exchange_Data        := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
-         Heartbeat_Period     := Plat_Get_Heartbeat_Period;
-         Use_Mutual_Auth      := Plat_Use_Mutual_Auth;
-         Session_ID           := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
-         Opaque_Data          := Plat_Get_Key_Ex_Opaque_Data (Request.Key_Exchange_Request_Opaque_Data);
-         Exchange_Data_Length := Exchange_Data.Length;
+         Nonce                 := Plat_Get_Nonce;
+         Exchange_Data         := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
+         Heartbeat_Period      := Plat_Get_Heartbeat_Period;
+         Local_Use_Mutual_Auth := Plat_Use_Mutual_Auth;
+         Session_ID            := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
+         Opaque_Data           := Plat_Get_Key_Ex_Opaque_Data (Request.Key_Exchange_Request_Opaque_Data);
+         Exchange_Data_Length  := Exchange_Data.Length;
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
@@ -1467,7 +1484,7 @@ package SPDM_Responder is
                             --  require Encapsulated requests that are not supported.
                             Key_Exchange_Response_Mutual_Auth_Implicit     => False,
                             Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
-                            Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
+                            Key_Exchange_Response_Mutual_Auth              => Local_Use_Mutual_Auth,
                             Key_Exchange_Response_Reserved_2               => 0,
                             Key_Exchange_Response_Slot_ID_Param            => SPDM::NS_0,
                             Key_Exchange_Response_Random_Data              => Nonce.Data,
@@ -1476,19 +1493,31 @@ package SPDM_Responder is
                             Key_Exchange_Response_Opaque_Data_Length       => Opaque_Data.Length,
                             Key_Exchange_Response_Opaque_Data              => Opaque_Data.Data,
                             Key_Exchange_Response_Signature                => []);
-         Next_Transcript_State := Sign_Key_Ex;
       transition
-         goto Update_Transcript_Hash
+         goto Update_Transcript_Hash_Cert
       exception
          goto Error_Unspecified
       end Prepare_Key_Exchange_No_Hash;
+
+      state Update_Transcript_Hash_Cert
+      is
+         Success : Boolean;
+      begin
+         Success               := Plat_Update_Transcript_Signature_Cert (Request.Key_Exchange_Request_Slot);
+         Next_Transcript_State := Sign_Key_Ex;
+      transition
+         goto Update_Transcript_Hash
+            if Success = True
+         goto Error_Unspecified
+      exception
+         goto Error_Unspecified
+      end Update_Transcript_Hash_Cert;
 
       state Prepare_Key_Exchange_Sign
       is
          Signature        : Signature;
          Heartbeat_Period : SPDM::Heartbeat_Period;
          Session_ID       : SPDM::Session_ID;
-         Use_Mutual_Auth  : Boolean;
          Nonce            : SPDM::Nonce;
          Exchange_Data    : Exchange_Data;
          Summary_Hash     : Hash;
@@ -1558,21 +1587,29 @@ package SPDM_Responder is
       begin
          Transport'Read (Request);
       transition
-         goto Prepare_Finish_Response
-            if Request'Valid and Request.Code = SPDM::Finish
          goto Error_Invalid_Request
+            if Request'Valid = False or Request.Code /= SPDM::Finish
+         goto Prepare_Finish_Response
+            if Cap_Handshake_In_The_Clear = False
+         goto Prepare_Finish_Response_Verify
+            if Cap_Handshake_In_The_Clear = True and Use_Mutual_Auth = False
+         goto Prepare_Finish_Response_Mut_Auth
+            if Cap_Handshake_In_The_Clear = True and Use_Mutual_Auth = True
+         goto Error_Unspecified
       end Receive_Finish;
 
       state Prepare_Finish_Response
       is
+         Success : Boolean;
       begin
+         Success := Plat_Update_Transcript_Signature_Cert (Request.Finish_Request_Slot);
          Response :=
             SPDM::Response'(Meas_Cap                => Cap_Meas,
                             Hash_Type               => SPDM::No_Measurement,
                             Hash_Length             => Hash_Length,
                             Signature_Length        => Signature_Length,
                             Exchange_Data_Length    => 0,
-                            Handshake_In_The_Clear  => Cap_Handshake_In_The_Clear,
+                            Handshake_In_The_Clear  => False,
                             Has_Signature           => False,
                             Has_Measurement_Hash    => False,
                             Major_Version           => 1,
@@ -1580,12 +1617,63 @@ package SPDM_Responder is
                             Code                    => SPDM::Finish_RSP,
                             Finish_Response_Param_1 => 0,
                             Finish_Response_Param_2 => 0);
+         Next_Transcript_State := Send_Finish;
       transition
-         goto Send_Idle
+         goto Update_Transcript_Hash
+            if Response'Valid
+         goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Finish_Response;
 
+      state Prepare_Finish_Response_Mut_Auth
+      is
+         Success : Boolean;
+      begin
+         Success := Plat_Update_Transcript_Signature_Cert (Request.Finish_Request_Slot);
+      transition
+         goto Prepare_Finish_Response_Verify
+            if Success = True
+         goto Error_Unspecified
+      exception
+         goto Error_Unspecified
+      end Prepare_Finish_Response_Mut_Auth;
+
+      state Prepare_Finish_Response_Verify
+      is
+         Verify_Data  : Hash;
+         Header       : SPDM_Header;
+         Resp_Success : Boolean;
+         Req_Success  : Boolean;
+      begin
+         Header := SPDM_Header'(Major_Version => 1,
+                                Minor_Version => 1,
+                                Code          => SPDM::Finish_RSP);
+         Req_Success  := Plat_Update_Transcript_Signature (Request'Opaque, False);
+         Resp_Success := Plat_Update_Transcript_Signature (Header'Opaque, False);
+         Verify_Data  := Plat_Get_Finish_Verify_Data;
+         Response :=
+            SPDM::Response'(Meas_Cap                              => Cap_Meas,
+                            Hash_Type                             => SPDM::No_Measurement,
+                            Hash_Length                           => Hash_Length,
+                            Signature_Length                      => Signature_Length,
+                            Exchange_Data_Length                  => 0,
+                            Handshake_In_The_Clear                => True,
+                            Has_Signature                         => False,
+                            Has_Measurement_Hash                  => False,
+                            Major_Version                         => 1,
+                            Minor_Version                         => 1,
+                            Code                                  => SPDM::Finish_RSP,
+                            Finish_Response_Param_1               => 0,
+                            Finish_Response_Param_2               => 0,
+                            Finish_Response_Responder_Verify_Data => Verify_Data.Data);
+      transition
+         goto Send_Idle
+            if Req_Success = True and Resp_Success = True and Response'Valid
+         goto Error_Unspecified
+      exception
+         goto Error_Unspecified
+      end Prepare_Finish_Response_Verify;
 #end if;
       state Error_Unsupported_Request
       is

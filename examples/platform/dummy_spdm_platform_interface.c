@@ -491,6 +491,24 @@ unsigned char spdm_platform_update_transcript_signature(instance_t *instance,
     return 1;
 }
 
+unsigned char spdm_platform_update_transcript_signature_cert(instance_t *instance,
+                                                             unsigned char slot)
+{
+    if(slot != 0){
+        return 0;
+    }
+    __unused_cross__ void *raw_data;
+    uintn size = 0;
+    boolean res = read_responder_public_certificate_chain(instance->base_hash_algo,
+                                                          instance->base_asym_algo,
+                                                          &raw_data, &size,
+                                                          NULL, NULL);
+    if(!res){
+        errx(0, "failed to get certificate");
+    }
+    return spdm_platform_update_transcript_signature(instance, raw_data, size, 0);
+}
+
 void spdm_platform_get_transcript_signature(__unused_cross__ instance_t *instance,
                                             __unused_cross__ void *signature,
                                             unsigned *size)
@@ -526,4 +544,11 @@ void spdm_platform_get_key_ex_opaque_data(__attribute__((unused)) instance_t *in
                                           __attribute__((unused)) void *data,
                                           __attribute__((unused)) unsigned *size)
 {
+}
+
+void spdm_platform_get_finish_verify_data(__unused_cross__ instance_t *instance,
+                                          __attribute__((unused)) void *data,
+                                          unsigned *size)
+{
+    *size = spdm_get_hash_size(instance->base_hash_algo);
 }

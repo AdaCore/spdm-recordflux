@@ -106,7 +106,9 @@ GENERATED := rflx.ads \
     rflx-spdm_responder-signature.adb \
     rflx-spdm_responder-signature.ads \
     rflx-spdm_responder-opaque_data.adb \
-    rflx-spdm_responder-opaque_data.ads
+    rflx-spdm_responder-opaque_data.ads \
+    rflx-spdm_responder-spdm_header.adb \
+    rflx-spdm_responder-spdm_header.ads
 
 ifeq ($(FEATURE_CHALLENGE_AUTH),True)
 GENERATED += \

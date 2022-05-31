@@ -257,6 +257,10 @@ is
                                                Message :        RFLX.RFLX_Types.Bytes;
                                                Reset   :        Boolean;
                                                Result  :    out Boolean);
+   overriding
+   procedure Plat_Update_Transcript_Signature_Cert (Ctx    : in out Context;
+                                                    Slot   :        RFLX.SPDM.Slot;
+                                                    Result :    out Boolean);
 
    overriding
    procedure Plat_Get_Transcript_Signature (Ctx    : in out Context;
@@ -266,5 +270,9 @@ is
    procedure Plat_Get_Key_Ex_Opaque_Data (Ctx          : in out Context;
                                           Request_Data :        RFLX.RFLX_Types.Bytes;
                                           Result       :    out RFLX.SPDM_Responder.Opaque_Data.Structure);
+
+   overriding
+   procedure Plat_Get_Finish_Verify_Data (Ctx    : in out Context;
+                                          Result :    out RFLX.SPDM_Responder.Hash.Structure);
 #end if;
 end SPDM_C_Responder;

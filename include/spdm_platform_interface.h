@@ -140,11 +140,18 @@ unsigned char spdm_platform_update_transcript_signature(instance_t *instance,
                                                         unsigned size,
                                                         int reset);
 
+unsigned char spdm_platform_update_transcript_signature_cert(instance_t *instance,
+                                                             unsigned char slot);
+
 void spdm_platform_get_transcript_signature(instance_t *instance,
                                             void *signature,
                                             unsigned *size);
 
 void spdm_platform_get_key_ex_opaque_data(instance_t *instance,
+                                          void *data,
+                                          unsigned *size);
+
+void spdm_platform_get_finish_verify_data(instance_t *instance,
                                           void *data,
                                           unsigned *size);
 
