@@ -33,12 +33,11 @@ package body Channel is
    procedure Send (Buffer : RFLX.RFLX_Types.Bytes)
    is
       Data : constant Ada.Streams.Stream_Element_Array (1 .. Buffer'Length) := To_Ada_Stream (Buffer);
-      Last : Ada.Streams.Stream_Element_Offset;
+      Unused_Last : Ada.Streams.Stream_Element_Offset;
    begin
-      pragma Unreferenced (Last);
       GNAT.Sockets.Send_Socket (Socket => Socket,
                                 Item => Data,
-                                Last => Last);
+                                Last => Unused_Last);
    end Send;
 
    procedure Receive (Buffer : out RFLX.RFLX_Types.Bytes; Length : out RFLX.RFLX_Types.Length) is

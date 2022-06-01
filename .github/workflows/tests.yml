@@ -23,29 +23,21 @@ jobs:
             - name: Install GNAT Pro
               uses: ./contrib/RecordFlux/.github/actions/install_gnat_pro
               with:
-                  version: "23.0w-20220202"
+                  version: "23.0w-20220508"
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
                   server: ${{ secrets.MEMCACHED_SERVER }}
             - name: Install GNAT Pro (ARM)
               uses: ./contrib/RecordFlux/.github/actions/install_gnat_pro
               with:
-                  version: "23.0w-20220202"
+                  version: "23.0w-20220508"
                   target: "arm-elf"
-                  host_arch: "linux64"
-                  ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
-                  server: ${{ secrets.MEMCACHED_SERVER }}
-            - name: Install GNAT Pro (RISC-V 32)
-              uses: ./contrib/RecordFlux/.github/actions/install_gnat_pro
-              with:
-                  version: "23.0w-20220202"
-                  target: "riscv32-elf"
                   host_arch: "linux64"
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
                   server: ${{ secrets.MEMCACHED_SERVER }}
             - name: Install GNAT Pro (RISC-V 64)
               uses: ./contrib/RecordFlux/.github/actions/install_gnat_pro
               with:
-                  version: "23.0w-20220202"
+                  version: "23.0w-20220508"
                   target: "riscv64-elf"
                   host_arch: "linux64"
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}

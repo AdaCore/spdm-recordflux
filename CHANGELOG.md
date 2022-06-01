@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for `Key_Exchange` request and response
 
+### Changed
+
+- Enable assertions and compile-time checks in tests
+
 ## [0.1.1] - 2022-05-25
 
 ### Added

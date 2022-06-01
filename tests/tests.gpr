@@ -17,7 +17,7 @@ project Tests is
    end Builder;
 
    package Compiler is
-      for Default_Switches ("Ada") use ("-g");
+      for Default_Switches ("Ada") use Defaults.Compiler_Switches;
       for Default_Switches ("C") use ("-g",
                                       "-W",
                                       "-Wall",

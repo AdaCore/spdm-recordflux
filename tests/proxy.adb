@@ -15,7 +15,7 @@ is
    use type RFLX.RFLX_Types.Index;
    use type RFLX.RFLX_Types.Length;
 
-   Listener          : Server.Server_Type := Server.Create_Server;
+   Listener          : constant Server.Server_Type := Server.Create_Server;
    Server_Connection : Server.Server_Type;
    Client_Connection : Client.Connection_Type;
    Buffer            : RFLX.RFLX_Types.Bytes (RFLX.RFLX_Types.Index'First .. RFLX.RFLX_Types.Index'First + 4095);

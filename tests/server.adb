@@ -9,9 +9,9 @@ is
       return Socket;
    end Create_Server;
 
-   procedure Bind (Socket : in out Server_Type;
-                   Port   :        GNAT.Sockets.Port_Type;
-                   Addr   :    out GNAT.Sockets.Sock_Addr_Type)
+   procedure Bind (Socket :     Server_Type;
+                   Port   :     GNAT.Sockets.Port_Type;
+                   Addr   : out GNAT.Sockets.Sock_Addr_Type)
    is
    begin
       Addr.Addr := GNAT.Sockets.Addresses (GNAT.Sockets.Get_Host_By_Name ("localhost"), 1);
@@ -21,7 +21,7 @@ is
       GNAT.Sockets.Listen_Socket (Socket);
    end Bind;
 
-   procedure Listen (Socket     : in out Server_Type;
+   procedure Listen (Socket     :        Server_Type;
                      Addr       : in out GNAT.Sockets.Sock_Addr_Type;
                      Connection :    out Connection_Type)
    is

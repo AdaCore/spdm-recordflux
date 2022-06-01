@@ -1,7 +1,4 @@
 with Interfaces.C;
-with RFLX.SPDM_Responder.Digests_Data;
-with RFLX.SPDM;
-with RFLX.RFLX_Types;
 
 package body SPDM_C_Responder with
    SPARK_Mode
@@ -522,7 +519,6 @@ is
          Convention    => C,
          External_Name => "spdm_platform_get_digests_data";
       use type Interfaces.C.unsigned_char;
-      use type RFLX.SPDM_Responder.Digests_Length;
    begin
       Length := Interfaces.C.long (Result.Value'Length);
       C_Interface (Instance => Ctx.Instance,
@@ -557,7 +553,6 @@ is
          Convention    => C,
          External_Name => "spdm_platform_validate_certificate_request";
       use type Interfaces.C.unsigned_char;
-      use type Interfaces.C.unsigned_short;
    begin
       Result := 0 /= C_Interface (Instance => Ctx.Instance,
                                   Slot     => Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
@@ -639,7 +634,7 @@ is
    end Plat_Get_Number_Of_Indices;
 #if FEATURE_KEY_EXCHANGE then
    overriding
-   procedure Plat_Get_Number_Of_Indices_Tcb
+   procedure Plat_Get_Number_Of_Indices_TCB
       (Ctx    : in out Context;
        Result :    out RFLX.SPDM.Measurement_Count)
    is
@@ -653,7 +648,7 @@ is
          raise Constraint_Error;
       end if;
       Result := RFLX.SPDM.To_Actual (Count);
-   end Plat_Get_Number_Of_Indices_Tcb;
+   end Plat_Get_Number_Of_Indices_TCB;
 #end if;
    overriding
    procedure Plat_Get_Nonce (Ctx    : in out Context;
@@ -847,7 +842,6 @@ is
                                     Data   :        RFLX.RFLX_Types.Bytes;
                                     Result :    out RFLX.SPDM_Responder.Hash.Structure)
    is
-      use type RFLX.RFLX_Types.Index;
       procedure C_Interface (Instance : System.Address;
                              Summary  : System.Address;
                              Size     : Interfaces.C.unsigned;
@@ -875,7 +869,6 @@ is
                                                Reset   :        Boolean;
                                                Result  :    out Boolean)
    is
-      use type Interfaces.C.int;
       use type Interfaces.C.unsigned_char;
       function C_Interface (Instance : System.Address;
                             Message  : System.Address;

@@ -1192,7 +1192,7 @@ package SPDM_Responder is
 #end if;
              Handshake_In_The_Clear                          => Cap_Handshake_In_The_Clear,
              Major_Version                                   => Major_Version,
-             Minor_Version                                   => Major_Version,
+             Minor_Version                                   => Minor_Version,
              Code                                            => Code,
              Measurements_Response_Number_Of_Indices         => Number_Of_Indices,
              Measurements_Response_Reserved_1                => 0,
@@ -1357,7 +1357,6 @@ package SPDM_Responder is
       state Prepare_Key_Exchange_Sign
       is
          Signature        : Signature;
-         Code             : SPDM::Response_Code;
          Heartbeat_Period : SPDM::Heartbeat_Period;
          Session_ID       : SPDM::Session_ID;
          Use_Mutual_Auth  : Boolean;
@@ -1368,7 +1367,6 @@ package SPDM_Responder is
          Opaque_Data      : Opaque_Data;
       begin
          Nonce            := SPDM::Nonce'(Data => Response.Key_Exchange_Response_Random_Data);
-         Code             := Response.Code;
          Heartbeat_Period := Response.Key_Exchange_Response_Heartbeat_Period;
          Session_ID       := Response.Key_Exchange_Response_Resp_Session_ID;
          Use_Mutual_Auth  := Response.Key_Exchange_Response_Mutual_Auth;

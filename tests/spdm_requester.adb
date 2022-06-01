@@ -14,7 +14,7 @@ is
                                Result :    out RFLX.SPDM_Requester.Request.Structure)
    is
       use type RFLX.RFLX_Types.Index;
-      File_Name : String := Request_Arg (Ctx.Index);
+      File_Name : constant String := Request_Arg (Ctx.Index);
       File      : Byte_IO.File_Type;
       Index     : RFLX.RFLX_Types.Index := Result.Data'First;
    begin
