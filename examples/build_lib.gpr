@@ -58,8 +58,8 @@ is
    package Prove is
       for Proof_Switches ("Ada") use Defaults.Proof_Switches;
       for Proof_Switches ("responder.adb") use ("--prover=z3", "--steps=38000");
-      for Proof_Switches ("responder_multiple_responders.adb") use ("--prover=z3", "--steps=82000");
-      for Proof_Switches ("responder_select.adb") use ("--prover=z3", "--steps=48000", "--memlimit=4000");
+      for Proof_Switches ("responder_multiple_responders.adb") use ("--prover=z3,cvc4", "--steps=128000", "--memlimit=4000");
+      for Proof_Switches ("responder_select.adb") use ("--prover=z3", "--steps=96000", "--memlimit=4000");
    end Prove;
 
 end Build_Lib;
