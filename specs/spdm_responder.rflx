@@ -1620,7 +1620,7 @@ package SPDM_Responder is
          Next_Transcript_State := Send_Finish;
       transition
          goto Update_Transcript_Hash
-            if Response'Valid
+            if Success
          goto Error_Unspecified
       exception
          goto Error_Unspecified
@@ -1669,7 +1669,7 @@ package SPDM_Responder is
                             Finish_Response_Responder_Verify_Data => Verify_Data.Data);
       transition
          goto Send_Idle
-            if Req_Success = True and Resp_Success = True and Response'Valid
+            if Req_Success and Resp_Success
          goto Error_Unspecified
       exception
          goto Error_Unspecified
