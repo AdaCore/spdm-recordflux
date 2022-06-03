@@ -1501,9 +1501,12 @@ package SPDM_Responder is
 
       state Update_Transcript_Hash_Cert
       is
-         Success : Boolean;
+         Success           : Boolean;
+         Key_Exchange_Slot : SPDM::Slot;
       begin
-         Success               := Plat_Update_Transcript_Signature_Cert (Request.Key_Exchange_Request_Slot);
+         -- ISSUE: Componolit/RecordFlux#1063
+         Key_Exchange_Slot     := Request.Key_Exchange_Request_Slot;
+         Success               := Plat_Update_Transcript_Signature_Cert (Key_Exchange_Slot);
          Next_Transcript_State := Sign_Key_Ex;
       transition
          goto Update_Transcript_Hash
@@ -1628,9 +1631,12 @@ package SPDM_Responder is
 
       state Prepare_Finish_Response_Mut_Auth
       is
-         Success : Boolean;
+         Success             : Boolean;
+         Finish_Request_Slot : SPDM::Slot;
       begin
-         Success := Plat_Update_Transcript_Signature_Cert (Request.Finish_Request_Slot);
+         -- ISSUE: Componolit/RecordFlux#1063
+         Finish_Request_Slot := Request.Finish_Request_Slot;
+         Success             := Plat_Update_Transcript_Signature_Cert (Finish_Request_Slot);
       transition
          goto Prepare_Finish_Response_Verify
             if Success = True
