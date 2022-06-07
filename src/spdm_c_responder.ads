@@ -22,6 +22,8 @@ is
 
    procedure Plat_Initialize (Ctx : in out Context);
 
+   function Plat_Is_Secure_Session (Ctx : Context) return Boolean;
+
    overriding
    procedure Plat_Cfg_CT_Exponent
       (Ctx    : in out Context;
@@ -272,7 +274,16 @@ is
                                           Result       :    out RFLX.SPDM_Responder.Opaque_Data.Structure);
 
    overriding
+   procedure Plat_Get_Key_Ex_Verify_Data (Ctx    : in out Context;
+                                          Result :    out RFLX.SPDM_Responder.Hash.Structure);
+
+   overriding
    procedure Plat_Get_Finish_Verify_Data (Ctx    : in out Context;
                                           Result :    out RFLX.SPDM_Responder.Hash.Structure);
+
+   overriding
+   procedure Plat_Set_Secure_Session (Ctx    : in out Context;
+                                      Enable :        Boolean;
+                                      Result :    out Boolean);
 #end if;
 end SPDM_C_Responder;

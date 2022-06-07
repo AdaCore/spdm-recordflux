@@ -14,6 +14,17 @@ is
       C_Interface (Ctx.Instance);
    end Plat_Initialize;
 
+   function Plat_Is_Secure_Session (Ctx : Context) return Boolean
+   is
+      use type Interfaces.C.unsigned_char;
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_is_secure_session";
+   begin
+      return C_Interface (Ctx.Instance) /= 0;
+   end Plat_Is_Secure_Session;
+
    overriding
    procedure Plat_Cfg_CT_Exponent
       (Ctx    : in out Context;
@@ -949,6 +960,25 @@ is
    end Plat_Get_Key_Ex_Opaque_Data;
 
    overriding
+   procedure Plat_Get_Key_Ex_Verify_Data (Ctx    : in out Context;
+                                          Result :    out RFLX.SPDM_Responder.Hash.Structure)
+   is
+      procedure C_Interface (Instance :        System.Address;
+                             Data     :        System.Address;
+                             Size     : in out Interfaces.C.unsigned) with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_key_ex_verify_data";
+      Size : Interfaces.C.unsigned := Interfaces.C.unsigned (Result.Data'Length);
+   begin
+      C_Interface (Ctx.Instance, Result.Data'Address, Size);
+      if not RFLX.SPDM.Valid_Hash_Length (RFLX.RFLX_Types.U64 (Size)) then
+         raise Constraint_Error;
+      end if;
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Size));
+   end Plat_Get_Key_Ex_Verify_Data;
+
+   overriding
    procedure Plat_Get_Finish_Verify_Data (Ctx    : in out Context;
                                           Result :    out RFLX.SPDM_Responder.Hash.Structure)
    is
@@ -966,5 +996,20 @@ is
       end if;
       Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Size));
    end Plat_Get_Finish_Verify_Data;
+
+   overriding
+   procedure Plat_Set_Secure_Session (Ctx    : in out Context;
+                                      Enable :        Boolean;
+                                      Result :    out Boolean)
+   is
+      use type Interfaces.C.unsigned_char;
+      function C_Interface (Instance : System.Address;
+                            Enable   : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_set_secure_session";
+   begin
+      Result := C_Interface (Ctx.Instance, (if Enable then 1 else 0)) /= 0;
+   end Plat_Set_Secure_Session;
 #end if;
 end SPDM_C_Responder;

@@ -14,6 +14,7 @@ struct instance {
     unsigned transcript_size;
     unsigned char dhe_key[512];
     unsigned dhe_key_size;
+    unsigned char secure_session;
 };
 
 void spdm_platform_initialize(instance_t **instance)
@@ -25,6 +26,11 @@ void spdm_platform_initialize(instance_t **instance)
     memset(*instance, 0, sizeof(instance_t));
 }
 
+unsigned char spdm_platform_is_secure_session(instance_t *instance)
+{
+    return instance->secure_session;
+}
+
 unsigned char spdm_platform_config_ct_exponent(__attribute__((unused)) instance_t *instance) {
     return 10;
 }
@@ -34,7 +40,7 @@ unsigned char spdm_platform_config_cap_mac(__attribute__((unused)) instance_t *i
 }
 
 unsigned char spdm_platform_config_cap_encrypt(__attribute__((unused)) instance_t *instance) {
-    return 1;
+    return 0;
 }
 
 unsigned char spdm_platform_config_cap_meas_fresh(__attribute__((unused)) instance_t *instance) {
@@ -60,7 +66,7 @@ unsigned char spdm_platform_config_cap_cache(__attribute__((unused)) instance_t 
 }
 
 unsigned char spdm_platform_config_cap_handshake_in_the_clear(__attribute__((unused)) instance_t *instance) {
-    return 1;
+    return 0;
 }
 
 unsigned char spdm_platform_config_cap_key_upd(__attribute__((unused)) instance_t *instance) {
@@ -546,9 +552,24 @@ void spdm_platform_get_key_ex_opaque_data(__attribute__((unused)) instance_t *in
 {
 }
 
+void spdm_platform_get_key_ex_verify_data(__unused_cross__ instance_t *instance,
+                                          __attribute__((unused)) void *data,
+                                          unsigned *size)
+{
+    *size = spdm_get_hash_size(instance->base_hash_algo);
+}
+
 void spdm_platform_get_finish_verify_data(__unused_cross__ instance_t *instance,
                                           __attribute__((unused)) void *data,
                                           unsigned *size)
 {
     *size = spdm_get_hash_size(instance->base_hash_algo);
+}
+
+unsigned char spdm_platform_set_secure_session(instance_t *instance,
+                                               unsigned char enable)
+{
+    printf("secure session: %u\n", enable);
+    instance->secure_session = enable;
+    return enable;
 }

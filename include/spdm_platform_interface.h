@@ -6,6 +6,8 @@ typedef struct instance instance_t;
 
 void spdm_platform_initialize(instance_t **instance);
 
+unsigned char spdm_platform_is_secure_session(instance_t *instance);
+
 unsigned char spdm_platform_config_ct_exponent(instance_t *instance);
 unsigned char spdm_platform_config_cap_mac(instance_t *instance);
 unsigned char spdm_platform_config_cap_encrypt(instance_t *instance);
@@ -151,8 +153,15 @@ void spdm_platform_get_key_ex_opaque_data(instance_t *instance,
                                           void *data,
                                           unsigned *size);
 
+void spdm_platform_get_key_ex_verify_data(instance_t *instance,
+                                          void *data,
+                                          unsigned *size);
+
 void spdm_platform_get_finish_verify_data(instance_t *instance,
                                           void *data,
                                           unsigned *size);
+
+unsigned char spdm_platform_set_secure_session(instance_t *instance,
+                                               unsigned char enable);
 
 #endif // __SPDM_PLATFORM_INTERFACE__
