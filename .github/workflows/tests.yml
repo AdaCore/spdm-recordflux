@@ -76,9 +76,11 @@ jobs:
                 SPDM_IGNORE_KEY_EX_HMAC: 1
                 SPDM_IGNORE_FINISH_HMAC: 1
               run: make
-            - name: Check spec (all features off)
+            - name: Clean
+              run: make clean
+            - name: Test (all features off, partial)
               env:
                 FEATURE_CHALLENGE_AUTH: False
                 FEATURE_KEY_EXCHANGE: False
                 FEATURE_RESPOND_IF_READY: False
-              run: make check_spec
+              run: make check_spec test_cross check_stack prove build/tests/responder
