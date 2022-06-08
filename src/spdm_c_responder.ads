@@ -32,16 +32,6 @@ is
        Result :    out RFLX.SPDM.CT_Exponent);
 
    overriding
-   procedure Plat_Cfg_Cap_MAC
-      (Ctx    : in out Context;
-       Result :    out Boolean);
-
-   overriding
-   procedure Plat_Cfg_Cap_Encrypt
-      (Ctx    : in out Context;
-       Result :    out Boolean);
-
-   overriding
    procedure Plat_Cfg_Cap_Meas_Fresh
       (Ctx    : in out Context;
        Result :    out Boolean);
@@ -82,11 +72,6 @@ is
        Result :    out Boolean);
 
    overriding
-   procedure Plat_Cfg_Cap_PSK
-      (Ctx    : in out Context;
-       Result :    out RFLX.SPDM.PSK_Resp_Cap);
-
-   overriding
    procedure Plat_Cfg_Cap_Mut_Auth
       (Ctx    : in out Context;
        Result :    out Boolean);
@@ -96,6 +81,21 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean);
 #if FEATURE_KEY_EXCHANGE then
+   overriding
+   procedure Plat_Cfg_Cap_MAC
+      (Ctx    : in out Context;
+       Result :    out Boolean);
+
+   overriding
+   procedure Plat_Cfg_Cap_Encrypt
+      (Ctx    : in out Context;
+       Result :    out Boolean);
+
+   overriding
+   procedure Plat_Cfg_Cap_PSK
+      (Ctx    : in out Context;
+       Result :    out RFLX.SPDM.PSK_Resp_Cap);
+
    overriding
    procedure Plat_Cfg_Cap_Key_Ex
       (Ctx    : in out Context;

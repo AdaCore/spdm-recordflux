@@ -42,34 +42,6 @@ is
    end Plat_Cfg_CT_Exponent;
 
    overriding
-   procedure Plat_Cfg_Cap_MAC
-      (Ctx    : in out Context;
-       Result :    out Boolean)
-   is
-      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_cap_mac";
-      use type Interfaces.C.unsigned_char;
-   begin
-      Result := C_Interface (Ctx.Instance) > 0;
-   end Plat_Cfg_Cap_MAC;
-
-   overriding
-   procedure Plat_Cfg_Cap_Encrypt
-      (Ctx    : in out Context;
-       Result :    out Boolean)
-   is
-      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_cap_encrypt";
-      use type Interfaces.C.unsigned_char;
-   begin
-      Result := C_Interface (Ctx.Instance) > 0;
-   end Plat_Cfg_Cap_Encrypt;
-
-   overriding
    procedure Plat_Cfg_Cap_Meas_Fresh
       (Ctx    : in out Context;
        Result :    out Boolean)
@@ -185,23 +157,6 @@ is
    end Plat_Cfg_Cap_Encap;
 
    overriding
-   procedure Plat_Cfg_Cap_PSK
-      (Ctx    : in out Context;
-       Result :    out RFLX.SPDM.PSK_Resp_Cap)
-   is
-      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
-         Import        => True,
-         Convention    => C,
-         External_Name => "spdm_platform_config_cap_psk";
-      Value : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
-   begin
-      if not RFLX.SPDM.Valid_PSK_Resp_Cap (Value) then
-         raise Constraint_Error;
-      end if;
-      Result := RFLX.SPDM.To_Actual (Value);
-   end Plat_Cfg_Cap_PSK;
-
-   overriding
    procedure Plat_Cfg_Cap_Mut_Auth
       (Ctx    : in out Context;
        Result :    out Boolean)
@@ -229,6 +184,51 @@ is
       Result := C_Interface (Ctx.Instance) > 0;
    end Plat_Cfg_Cap_Pub_Key_ID;
 #if FEATURE_KEY_EXCHANGE then
+   overriding
+   procedure Plat_Cfg_Cap_MAC
+      (Ctx    : in out Context;
+       Result :    out Boolean)
+   is
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_cap_mac";
+      use type Interfaces.C.unsigned_char;
+   begin
+      Result := C_Interface (Ctx.Instance) > 0;
+   end Plat_Cfg_Cap_MAC;
+
+   overriding
+   procedure Plat_Cfg_Cap_Encrypt
+      (Ctx    : in out Context;
+       Result :    out Boolean)
+   is
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_cap_encrypt";
+      use type Interfaces.C.unsigned_char;
+   begin
+      Result := C_Interface (Ctx.Instance) > 0;
+   end Plat_Cfg_Cap_Encrypt;
+
+   overriding
+   procedure Plat_Cfg_Cap_PSK
+      (Ctx    : in out Context;
+       Result :    out RFLX.SPDM.PSK_Resp_Cap)
+   is
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
+         Import        => True,
+         Convention    => C,
+         External_Name => "spdm_platform_config_cap_psk";
+      Value : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
+   begin
+      if not RFLX.SPDM.Valid_PSK_Resp_Cap (Value) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM.To_Actual (Value);
+   end Plat_Cfg_Cap_PSK;
+
    overriding
    procedure Plat_Cfg_Cap_Key_Ex
       (Ctx    : in out Context;

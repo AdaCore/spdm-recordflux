@@ -99,8 +99,6 @@ package SPDM_Responder is
    generic
       Transport : Channel with Readable, Writable;
       with function Plat_Cfg_CT_Exponent return SPDM::CT_Exponent;
-      with function Plat_Cfg_Cap_MAC return Boolean;
-      with function Plat_Cfg_Cap_Encrypt return Boolean;
       with function Plat_Cfg_Cap_Meas_Fresh return Boolean;
       with function Plat_Cfg_Cap_Meas return SPDM::Meas_Cap;
       with function Plat_Cfg_Cap_Chal return Boolean;
@@ -109,10 +107,12 @@ package SPDM_Responder is
       with function Plat_Cfg_Cap_Key_Upd return Boolean;
       with function Plat_Cfg_Cap_Hbeat return Boolean;
       with function Plat_Cfg_Cap_Encap return Boolean;
-      with function Plat_Cfg_Cap_PSK return SPDM::PSK_Resp_Cap;
       with function Plat_Cfg_Cap_Mut_Auth return Boolean;
       with function Plat_Cfg_Cap_Pub_Key_ID return Boolean;
 #if FEATURE_KEY_EXCHANGE then
+      with function Plat_Cfg_Cap_MAC return Boolean;
+      with function Plat_Cfg_Cap_Encrypt return Boolean;
+      with function Plat_Cfg_Cap_PSK return SPDM::PSK_Resp_Cap;
       with function Plat_Cfg_Cap_Key_Ex return Boolean;
       with function Plat_Cfg_Cap_Handshake_In_The_Clear return Boolean;
 #end if;
@@ -400,8 +400,6 @@ package SPDM_Responder is
       is
       begin
          CT_Exponent                := Plat_Cfg_CT_Exponent;
-         Cap_MAC                    := Plat_Cfg_Cap_MAC;
-         Cap_Encrypt                := Plat_Cfg_Cap_Encrypt;
          Cap_Meas_Fresh             := Plat_Cfg_Cap_Meas_Fresh;
          Cap_Meas                   := Plat_Cfg_Cap_Meas;
          Cap_Chal                   := Plat_Cfg_Cap_Chal;
@@ -410,13 +408,18 @@ package SPDM_Responder is
          Cap_Key_Upd                := Plat_Cfg_Cap_Key_Upd;
          Cap_Hbeat                  := Plat_Cfg_Cap_Hbeat;
          Cap_Encap                  := Plat_Cfg_Cap_Encap;
-         Cap_PSK                    := Plat_Cfg_Cap_PSK;
          Cap_Mut_Auth               := Plat_Cfg_Cap_Mut_Auth;
          Cap_Pub_Key_ID             := Plat_Cfg_Cap_Pub_Key_ID;
 #if FEATURE_KEY_EXCHANGE then
+         Cap_MAC                    := Plat_Cfg_Cap_MAC;
+         Cap_Encrypt                := Plat_Cfg_Cap_Encrypt;
+         Cap_PSK                    := Plat_Cfg_Cap_PSK;
          Cap_Key_Ex                 := Plat_Cfg_Cap_Key_Ex;
          Cap_Handshake_In_The_Clear := Plat_Cfg_Cap_Handshake_In_The_Clear;
 #else
+         Cap_MAC                    := False;
+         Cap_Encrypt                := False;
+         Cap_PSK                    := SPDM::PSK_Resp_Unsupported;
          Cap_Key_Ex                 := False;
          Cap_Handshake_In_The_Clear := False;
 #end if;
