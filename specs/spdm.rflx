@@ -989,9 +989,13 @@ package SPDM is
 #end if;
    -- 8.2 Generic SPDM message format
 
-   type Request (Hash_Length          : Hash_Length;
-                 Signature_Length     : Signature_Length;
-                 Exchange_Data_Length : Exchange_Data_Length) is
+   type Request
+#if FEATURE_KEY_EXCHANGE then
+      (Hash_Length          : Hash_Length;
+       Signature_Length     : Signature_Length;
+       Exchange_Data_Length : Exchange_Data_Length)
+#end if;
+   is
       message
          Major_Version : Major_Version
             then Minor_Version
@@ -1063,14 +1067,21 @@ package SPDM is
       end message
          with Byte_Order => Low_Order_First;
 
-   type Response (Meas_Cap               : Meas_Cap;
-                  Hash_Type              : Measurement_Summary_Hash_Type;
-                  Hash_Length            : Hash_Length;
-                  Signature_Length       : Signature_Length;
-                  Exchange_Data_Length   : Exchange_Data_Length;
-                  Handshake_In_The_Clear : Boolean;
-                  Has_Signature          : Boolean;
-                  Has_Measurement_Hash   : Boolean)
+   type Response (
+#if FEATURE_KEY_EXCHANGE then
+      Meas_Cap               : Meas_Cap;
+      Hash_Type              : Measurement_Summary_Hash_Type;
+#end if;
+      Hash_Length            : Hash_Length;
+      Signature_Length       : Signature_Length;
+#if FEATURE_CHALLENGE_AUTH then
+      Exchange_Data_Length   : Exchange_Data_Length;
+      Handshake_In_The_Clear : Boolean;
+      Has_Signature          : Boolean;
+      Has_Measurement_Hash   : Boolean)
+#else
+      Has_Signature          : Boolean)
+#end if;
    is
       message
          Major_Version : Major_Version

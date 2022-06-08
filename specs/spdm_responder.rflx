@@ -311,26 +311,29 @@ package SPDM_Responder is
       state Prepare_Version
       is
       begin
-         Response := SPDM::Response'(Meas_Cap                                    => Cap_Meas,
-                                     Hash_Type                                   => SPDM::No_Measurement,
-                                     Hash_Length                                 => Hash_Length,
-                                     Signature_Length                            => Signature_Length,
+         Response := SPDM::Response'(
 #if FEATURE_KEY_EXCHANGE then
-                                     Exchange_Data_Length                        => Exchange_Data_Length,
-#else
-                                     Exchange_Data_Length                        => 0,
+            Meas_Cap                                    => Cap_Meas,
+            Hash_Type                                   => SPDM::No_Measurement,
 #end if;
-                                     Handshake_In_The_Clear                      => Cap_Handshake_In_The_Clear,
-                                     Has_Signature                               => False,
-                                     Has_Measurement_Hash                        => False,
-                                     Major_Version                               => 1,
-                                     Minor_Version                               => 0,
-                                     Code                                        => SPDM::Version,
-                                     Version_Response_Param_1                    => 0,
-                                     Version_Response_Param_2                    => 0,
-                                     Version_Response_Reserved                   => 0,
-                                     Version_Response_Version_Number_Entry_Count => 1,
-                                     Version_Response_Version_Number_Entries     => Supp_Versions);
+            Hash_Length                                 => Hash_Length,
+            Signature_Length                            => Signature_Length,
+#if FEATURE_KEY_EXCHANGE then
+            Exchange_Data_Length                        => Exchange_Data_Length,
+            Handshake_In_The_Clear                      => Cap_Handshake_In_The_Clear,
+#end if;
+            Has_Signature                               => False,
+#if FEATURE_KEY_EXCHANGE then
+            Has_Measurement_Hash                        => False,
+#end if;
+            Major_Version                               => 1,
+            Minor_Version                               => 0,
+            Code                                        => SPDM::Version,
+            Version_Response_Param_1                    => 0,
+            Version_Response_Param_2                    => 0,
+            Version_Response_Reserved                   => 0,
+            Version_Response_Version_Number_Entry_Count => 1,
+            Version_Response_Version_Number_Entries     => Supp_Versions);
 #if FEATURE_KEY_EXCHANGE then
          Next_Transcript_State := Send_Vers;
 #end if;
@@ -421,42 +424,45 @@ package SPDM_Responder is
          --  The spec only specifies that the responder sends the capabilities it supports
          --  without taking into account what the requester supports.
          Response :=
-            SPDM::Response'(Meas_Cap                                         => Cap_Meas,
-                            Hash_Type                                        => SPDM::No_Measurement,
-                            Hash_Length                                      => Hash_Length,
-                            Signature_Length                                 => Signature_Length,
+            SPDM::Response'(
 #if FEATURE_KEY_EXCHANGE then
-                            Exchange_Data_Length                             => Exchange_Data_Length,
-#else
-                            Exchange_Data_Length                             => 0,
+               Meas_Cap                                         => Cap_Meas,
+               Hash_Type                                        => SPDM::No_Measurement,
 #end if;
-                            Handshake_In_The_Clear                           => Cap_Handshake_In_The_Clear,
-                            Has_Signature                                    => False,
-                            Has_Measurement_Hash                             => False,
-                            Major_Version                                    => 1,
-                            Minor_Version                                    => 1,
-                            Code                                             => SPDM::Capabilities,
-                            Capabilities_Response_Param_1                    => 0,
-                            Capabilities_Response_Param_2                    => 0,
-                            Capabilities_Response_Reserved_1                 => 0,
-                            Capabilities_Response_CT_Exponent                => CT_Exponent,
-                            Capabilities_Response_Reserved_2                 => 0,
-                            Capabilities_Response_MAC_Cap                    => Cap_MAC,
-                            Capabilities_Response_Encrypt_Cap                => Cap_Encrypt,
-                            Capabilities_Response_Meas_Fresh_Cap             => Cap_Meas_Fresh,
-                            Capabilities_Response_Meas_Cap                   => Cap_Meas,
-                            Capabilities_Response_Chal_Cap                   => Cap_Chal,
-                            Capabilities_Response_Cert_Cap                   => Cap_Cert,
-                            Capabilities_Response_Cache_Cap                  => Cap_Cache,
-                            Capabilities_Response_Handshake_In_The_Clear_Cap => Cap_Handshake_In_The_Clear,
-                            Capabilities_Response_Key_Upd_Cap                => Cap_Key_Upd,
-                            Capabilities_Response_Hbeat_Cap                  => Cap_Hbeat,
-                            Capabilities_Response_Encap_Cap                  => Cap_Encap,
-                            Capabilities_Response_PSK_Cap                    => Cap_PSK,
-                            Capabilities_Response_Key_Ex_Cap                 => Cap_Key_Ex,
-                            Capabilities_Response_Mut_Auth_Cap               => Cap_Mut_Auth,
-                            Capabilities_Response_Reserved_4                 => 0,
-                            Capabilities_Response_Pub_Key_ID_Cap             => Cap_Pub_Key_ID);
+               Hash_Length                                      => Hash_Length,
+               Signature_Length                                 => Signature_Length,
+#if FEATURE_KEY_EXCHANGE then
+               Exchange_Data_Length                             => Exchange_Data_Length,
+               Handshake_In_The_Clear                           => Cap_Handshake_In_The_Clear,
+#end if;
+               Has_Signature                                    => False,
+#if FEATURE_KEY_EXCHANGE then
+               Has_Measurement_Hash                             => False,
+#end if;
+               Major_Version                                    => 1,
+               Minor_Version                                    => 1,
+               Code                                             => SPDM::Capabilities,
+               Capabilities_Response_Param_1                    => 0,
+               Capabilities_Response_Param_2                    => 0,
+               Capabilities_Response_Reserved_1                 => 0,
+               Capabilities_Response_CT_Exponent                => CT_Exponent,
+               Capabilities_Response_Reserved_2                 => 0,
+               Capabilities_Response_MAC_Cap                    => Cap_MAC,
+               Capabilities_Response_Encrypt_Cap                => Cap_Encrypt,
+               Capabilities_Response_Meas_Fresh_Cap             => Cap_Meas_Fresh,
+               Capabilities_Response_Meas_Cap                   => Cap_Meas,
+               Capabilities_Response_Chal_Cap                   => Cap_Chal,
+               Capabilities_Response_Cert_Cap                   => Cap_Cert,
+               Capabilities_Response_Cache_Cap                  => Cap_Cache,
+               Capabilities_Response_Handshake_In_The_Clear_Cap => Cap_Handshake_In_The_Clear,
+               Capabilities_Response_Key_Upd_Cap                => Cap_Key_Upd,
+               Capabilities_Response_Hbeat_Cap                  => Cap_Hbeat,
+               Capabilities_Response_Encap_Cap                  => Cap_Encap,
+               Capabilities_Response_PSK_Cap                    => Cap_PSK,
+               Capabilities_Response_Key_Ex_Cap                 => Cap_Key_Ex,
+               Capabilities_Response_Mut_Auth_Cap               => Cap_Mut_Auth,
+               Capabilities_Response_Reserved_4                 => 0,
+               Capabilities_Response_Pub_Key_ID_Cap             => Cap_Pub_Key_ID);
 
          --  For the behaviour when responding the responder has to take the
          --  capabilities supported by the requester into account.
@@ -776,37 +782,40 @@ package SPDM_Responder is
                               Request.Negotiate_Algorithms_Request_Base_Hash_Algo_TPM_ALG_SHA3_512);
 
          Response :=
-            SPDM::Response'(Meas_Cap                                          => Cap_Meas,
-                            Hash_Type                                         => SPDM::No_Measurement,
-                            Hash_Length                                       => Hash_Length,
-                            Signature_Length                                  => Signature_Length,
+            SPDM::Response'(
 #if FEATURE_KEY_EXCHANGE then
-                            Exchange_Data_Length                              => Exchange_Data_Length,
-#else
-                            Exchange_Data_Length                              => 0,
+               Meas_Cap                                          => Cap_Meas,
+               Hash_Type                                         => SPDM::No_Measurement,
 #end if;
-                            Handshake_In_The_Clear                            => Cap_Handshake_In_The_Clear,
-                            Has_Signature                                     => False,
-                            Has_Measurement_Hash                              => False,
-                            Major_Version                                     => 1,
-                            Minor_Version                                     => 1,
-                            Code                                              => SPDM::Algorithms,
-                            Algorithms_Response_Resp_Alg_Struct_Count         => Resp_Alg_Struct_Count,
-                            Algorithms_Response_Param_2                       => 0,
-                            Algorithms_Response_Length                        => 36 + Resp_Alg_Structs'Size / 8,
-                            Algorithms_Response_Measurement_Specification_Sel => SPDM::DMTF,
-                            Algorithms_Response_Reserved_1                    => 0,
-                            Algorithms_Response_Measurement_Hash_Algo         => Measurement_Hash_Algo,
-                            Algorithms_Response_Base_Asym_Sel                 => Base_Asym_Sel,
-                            Algorithms_Response_Base_Hash_Sel                 => Base_Hash_Sel,
-                            Algorithms_Response_Reserved_2                    => 0,
-                            Algorithms_Response_Reserved_3                    => 0,
-                            Algorithms_Response_Ext_Asym_Sel_Count            => 0,
-                            Algorithms_Response_Ext_Hash_Sel_Count            => 0,
-                            Algorithms_Response_Reserved_4                    => 0,
-                            Algorithms_Response_Ext_Asym                      => Ext_Asym,
-                            Algorithms_Response_Ext_Hash                      => Ext_Hash,
-                            Algorithms_Response_Resp_Alg_Structs              => Resp_Alg_Structs);
+               Hash_Length                                       => Hash_Length,
+               Signature_Length                                  => Signature_Length,
+#if FEATURE_KEY_EXCHANGE then
+               Exchange_Data_Length                              => Exchange_Data_Length,
+               Handshake_In_The_Clear                            => Cap_Handshake_In_The_Clear,
+#end if;
+               Has_Signature                                     => False,
+#if FEATURE_KEY_EXCHANGE then
+               Has_Measurement_Hash                              => False,
+#end if;
+               Major_Version                                     => 1,
+               Minor_Version                                     => 1,
+               Code                                              => SPDM::Algorithms,
+               Algorithms_Response_Resp_Alg_Struct_Count         => Resp_Alg_Struct_Count,
+               Algorithms_Response_Param_2                       => 0,
+               Algorithms_Response_Length                        => 36 + Resp_Alg_Structs'Size / 8,
+               Algorithms_Response_Measurement_Specification_Sel => SPDM::DMTF,
+               Algorithms_Response_Reserved_1                    => 0,
+               Algorithms_Response_Measurement_Hash_Algo         => Measurement_Hash_Algo,
+               Algorithms_Response_Base_Asym_Sel                 => Base_Asym_Sel,
+               Algorithms_Response_Base_Hash_Sel                 => Base_Hash_Sel,
+               Algorithms_Response_Reserved_2                    => 0,
+               Algorithms_Response_Reserved_3                    => 0,
+               Algorithms_Response_Ext_Asym_Sel_Count            => 0,
+               Algorithms_Response_Ext_Hash_Sel_Count            => 0,
+               Algorithms_Response_Reserved_4                    => 0,
+               Algorithms_Response_Ext_Asym                      => Ext_Asym,
+               Algorithms_Response_Ext_Hash                      => Ext_Hash,
+               Algorithms_Response_Resp_Alg_Structs              => Resp_Alg_Structs);
 #if FEATURE_KEY_EXCHANGE then
             Next_Transcript_State := Send_Alg;
 #end if;
@@ -1058,12 +1067,13 @@ package SPDM_Responder is
       state Reset_Idle
       is
       begin
-         Request'Reset (Hash_Length          => Hash_Length,
-                        Signature_Length     => Signature_Length,
 #if FEATURE_KEY_EXCHANGE then
-                        Exchange_Data_Length => Exchange_Data_Length);
+         Request'Reset
+            (Hash_Length          => Hash_Length,
+             Signature_Length     => Signature_Length,
+             Exchange_Data_Length => Exchange_Data_Length);
 #else
-                        Exchange_Data_Length => 0);
+         Request'Reset;
 #end if;
       transition
          goto Receive_Idle
@@ -1112,31 +1122,34 @@ package SPDM_Responder is
          Slot_6_Present := Digests_Data.Slot_6_Present;
          Slot_7_Present := Digests_Data.Slot_7_Present;
 
-         Response := SPDM::Response'(Meas_Cap                                    => Cap_Meas,
-                                     Hash_Type                                   => SPDM::No_Measurement,
-                                     Hash_Length                                 => Hash_Length,
-                                     Signature_Length                            => Signature_Length,
+         Response := SPDM::Response'(
 #if FEATURE_KEY_EXCHANGE then
-                                     Exchange_Data_Length                        => Exchange_Data_Length,
-#else
-                                     Exchange_Data_Length                        => 0,
+            Meas_Cap                                    => Cap_Meas,
+            Hash_Type                                   => SPDM::No_Measurement,
 #end if;
-                                     Handshake_In_The_Clear                      => Cap_Handshake_In_The_Clear,
-                                     Has_Signature                               => False,
-                                     Has_Measurement_Hash                        => False,
-                                     Major_Version                               => 1,
-                                     Minor_Version                               => 1,
-                                     Code                                        => SPDM::Digests,
-                                     Digests_Response_Param_1                    => 0,
-                                     Digests_Response_Slot_Mask_Slot_7_Present   => Slot_7_Present,
-                                     Digests_Response_Slot_Mask_Slot_6_Present   => Slot_6_Present,
-                                     Digests_Response_Slot_Mask_Slot_5_Present   => Slot_5_Present,
-                                     Digests_Response_Slot_Mask_Slot_4_Present   => Slot_4_Present,
-                                     Digests_Response_Slot_Mask_Slot_3_Present   => Slot_3_Present,
-                                     Digests_Response_Slot_Mask_Slot_2_Present   => Slot_2_Present,
-                                     Digests_Response_Slot_Mask_Slot_1_Present   => Slot_1_Present,
-                                     Digests_Response_Slot_Mask_Slot_0_Present   => Slot_0_Present,
-                                     Digests_Response_Digests_Data               => Digests_Data.Value);
+            Hash_Length                                 => Hash_Length,
+            Signature_Length                            => Signature_Length,
+#if FEATURE_KEY_EXCHANGE then
+            Exchange_Data_Length                        => Exchange_Data_Length,
+            Handshake_In_The_Clear                      => Cap_Handshake_In_The_Clear,
+#end if;
+            Has_Signature                               => False,
+#if FEATURE_KEY_EXCHANGE then
+            Has_Measurement_Hash                        => False,
+#end if;
+            Major_Version                               => 1,
+            Minor_Version                               => 1,
+            Code                                        => SPDM::Digests,
+            Digests_Response_Param_1                    => 0,
+            Digests_Response_Slot_Mask_Slot_7_Present   => Slot_7_Present,
+            Digests_Response_Slot_Mask_Slot_6_Present   => Slot_6_Present,
+            Digests_Response_Slot_Mask_Slot_5_Present   => Slot_5_Present,
+            Digests_Response_Slot_Mask_Slot_4_Present   => Slot_4_Present,
+            Digests_Response_Slot_Mask_Slot_3_Present   => Slot_3_Present,
+            Digests_Response_Slot_Mask_Slot_2_Present   => Slot_2_Present,
+            Digests_Response_Slot_Mask_Slot_1_Present   => Slot_1_Present,
+            Digests_Response_Slot_Mask_Slot_0_Present   => Slot_0_Present,
+            Digests_Response_Digests_Data               => Digests_Data.Value);
       transition
          goto Send_Idle
       exception
@@ -1172,26 +1185,29 @@ package SPDM_Responder is
          Cert_Portion_Length   := Cert.Portion_Length;
          Cert_Remainder_Length := Cert.Remainder_Length;
 
-         Response := SPDM::Response'(Meas_Cap                              => Cap_Meas,
-                                     Hash_Type                             => SPDM::No_Measurement,
-                                     Hash_Length                           => Hash_Length,
-                                     Signature_Length                      => Signature_Length,
+         Response := SPDM::Response'(
 #if FEATURE_KEY_EXCHANGE then
-                                     Exchange_Data_Length                  => Exchange_Data_Length,
-#else
-                                     Exchange_Data_Length                  => 0,
+            Meas_Cap                              => Cap_Meas,
+            Hash_Type                             => SPDM::No_Measurement,
 #end if;
-                                     Handshake_In_The_Clear                => Cap_Handshake_In_The_Clear,
-                                     Has_Signature                         => False,
-                                     Has_Measurement_Hash                  => False,
-                                     Major_Version                         => 1,
-                                     Minor_Version                         => 1,
-                                     Code                                  => SPDM::Certificate,
-                                     Certificate_Response_Slot             => Cert_Slot,
-                                     Certificate_Response_Param_2          => 0,
-                                     Certificate_Response_Portion_Length   => Cert_Portion_Length,
-                                     Certificate_Response_Remainder_Length => Cert_Remainder_Length,
-                                     Certificate_Response_Cert_Chain       => Cert.Cert_Chain);
+            Hash_Length                           => Hash_Length,
+            Signature_Length                      => Signature_Length,
+#if FEATURE_KEY_EXCHANGE then
+            Exchange_Data_Length                  => Exchange_Data_Length,
+            Handshake_In_The_Clear                => Cap_Handshake_In_The_Clear,
+#end if;
+            Has_Signature                         => False,
+#if FEATURE_KEY_EXCHANGE then
+            Has_Measurement_Hash                  => False,
+#end if;
+            Major_Version                         => 1,
+            Minor_Version                         => 1,
+            Code                                  => SPDM::Certificate,
+            Certificate_Response_Slot             => Cert_Slot,
+            Certificate_Response_Param_2          => 0,
+            Certificate_Response_Portion_Length   => Cert_Portion_Length,
+            Certificate_Response_Remainder_Length => Cert_Remainder_Length,
+            Certificate_Response_Cert_Chain       => Cert.Cert_Chain);
       transition
          goto Send_Idle
       exception
@@ -1279,30 +1295,33 @@ package SPDM_Responder is
       begin
          Nonce := Plat_Get_Nonce;
          Opaque_Data := Plat_Get_Meas_Opaque_Data;
-         Response := SPDM::Response'(Meas_Cap                                        => Cap_Meas,
-                                     Hash_Type                                       => SPDM::No_Measurement,
-                                     Hash_Length                                     => Hash_Length,
-                                     Signature_Length                                => Signature_Length,
+         Response := SPDM::Response'(
 #if FEATURE_KEY_EXCHANGE then
-                                     Exchange_Data_Length                            => Exchange_Data_Length,
-#else
-                                     Exchange_Data_Length                            => 0,
+            Meas_Cap                                        => Cap_Meas,
+            Hash_Type                                       => SPDM::No_Measurement,
 #end if;
-                                     Handshake_In_The_Clear                          => Cap_Handshake_In_The_Clear,
-                                     Has_Signature                                   => False,
-                                     Has_Measurement_Hash                            => False,
-                                     Major_Version                                   => 1,
-                                     Minor_Version                                   => 1,
-                                     Code                                            => SPDM::Measurements,
-                                     Measurements_Response_Number_Of_Indices         => Number_Of_Indices,
-                                     Measurements_Response_Reserved_1                => 0,
-                                     Measurements_Response_Slot_ID                   => SPDM::NS_0,
-                                     Measurements_Response_Number_Of_Blocks          => Number_Of_Blocks,
-                                     Measurements_Response_Measurement_Record_Length => Measurement_Record'Size / 8,
-                                     Measurements_Response_Measurement_Record        => Measurement_Record,
-                                     Measurements_Response_Nonce_Data                => Nonce.Data,
-                                     Measurements_Response_Opaque_Length             => Opaque_Data.Length,
-                                     Measurements_Response_Opaque_Data               => Opaque_Data.Data);
+            Hash_Length                                     => Hash_Length,
+            Signature_Length                                => Signature_Length,
+#if FEATURE_KEY_EXCHANGE then
+            Exchange_Data_Length                            => Exchange_Data_Length,
+            Handshake_In_The_Clear                          => Cap_Handshake_In_The_Clear,
+#end if;
+            Has_Signature                                   => False,
+#if FEATURE_KEY_EXCHANGE then
+            Has_Measurement_Hash                            => False,
+#end if;
+            Major_Version                                   => 1,
+            Minor_Version                                   => 1,
+            Code                                            => SPDM::Measurements,
+            Measurements_Response_Number_Of_Indices         => Number_Of_Indices,
+            Measurements_Response_Reserved_1                => 0,
+            Measurements_Response_Slot_ID                   => SPDM::NS_0,
+            Measurements_Response_Number_Of_Blocks          => Number_Of_Blocks,
+            Measurements_Response_Measurement_Record_Length => Measurement_Record'Size / 8,
+            Measurements_Response_Measurement_Record        => Measurement_Record,
+            Measurements_Response_Nonce_Data                => Nonce.Data,
+            Measurements_Response_Opaque_Length             => Opaque_Data.Length,
+            Measurements_Response_Opaque_Data               => Opaque_Data.Data);
       transition
          goto Prepare_Measurements_Sign
             if Request.Get_Measurements_Request_Generate_Signature
@@ -1334,32 +1353,34 @@ package SPDM_Responder is
             Data   => Response.Measurements_Response_Opaque_Data);
          Nonce_Offset      := Response.Measurements_Response_Measurement_Record_Length + 8;
          Signature         := Plat_Get_Meas_Signature (Response'Opaque, Nonce_Offset);
-         Response          := SPDM::Response'
-            (Meas_Cap                                        => Cap_Meas,
-             Hash_Type                                       => SPDM::No_Measurement,
-             Hash_Length                                     => Hash_Length,
-             Signature_Length                                => Signature_Length,
+         Response          := SPDM::Response'(
 #if FEATURE_KEY_EXCHANGE then
-             Exchange_Data_Length                            => Exchange_Data_Length,
-#else
-             Exchange_Data_Length                            => 0,
+            Meas_Cap                                        => Cap_Meas,
+            Hash_Type                                       => SPDM::No_Measurement,
 #end if;
-             Handshake_In_The_Clear                          => Cap_Handshake_In_The_Clear,
-             Has_Signature                                   => True,
-             Has_Measurement_Hash                            => False,
-             Major_Version                                   => Major_Version,
-             Minor_Version                                   => Minor_Version,
-             Code                                            => Code,
-             Measurements_Response_Number_Of_Indices         => Number_Of_Indices,
-             Measurements_Response_Reserved_1                => 0,
-             Measurements_Response_Slot_ID                   => Slot_ID,
-             Measurements_Response_Number_Of_Blocks          => Number_Of_Blocks,
-             Measurements_Response_Measurement_Record_Length => Measurement_Record'Size / 8,
-             Measurements_Response_Measurement_Record        => Measurement_Record,
-             Measurements_Response_Nonce_Data                => Nonce.Data,
-             Measurements_Response_Opaque_Length             => Opaque_Data.Length,
-             Measurements_Response_Opaque_Data               => Opaque_Data.Data,
-             Measurements_Response_Signature                 => Signature.Data);
+            Hash_Length                                     => Hash_Length,
+            Signature_Length                                => Signature_Length,
+#if FEATURE_KEY_EXCHANGE then
+            Exchange_Data_Length                            => Exchange_Data_Length,
+            Handshake_In_The_Clear                          => Cap_Handshake_In_The_Clear,
+#end if;
+            Has_Signature                                   => True,
+#if FEATURE_KEY_EXCHANGE then
+            Has_Measurement_Hash                            => False,
+#end if;
+            Major_Version                                   => Major_Version,
+            Minor_Version                                   => Minor_Version,
+            Code                                            => Code,
+            Measurements_Response_Number_Of_Indices         => Number_Of_Indices,
+            Measurements_Response_Reserved_1                => 0,
+            Measurements_Response_Slot_ID                   => Slot_ID,
+            Measurements_Response_Number_Of_Blocks          => Number_Of_Blocks,
+            Measurements_Response_Measurement_Record_Length => Measurement_Record'Size / 8,
+            Measurements_Response_Measurement_Record        => Measurement_Record,
+            Measurements_Response_Nonce_Data                => Nonce.Data,
+            Measurements_Response_Opaque_Length             => Opaque_Data.Length,
+            Measurements_Response_Opaque_Data               => Opaque_Data.Data,
+            Measurements_Response_Signature                 => Signature.Data);
          Reset_Measurement_Sig := True;
       transition
          goto Send_Idle
@@ -1901,19 +1922,26 @@ package SPDM_Responder is
       is
       begin
          Response :=
-            SPDM::Response'(Meas_Cap                             => Cap_Meas,
-                            Hash_Type                            => SPDM::No_Measurement,
-                            Hash_Length                          => Hash_Length,
-                            Signature_Length                     => Signature_Length,
-                            Exchange_Data_Length                 => 0,
-                            Handshake_In_The_Clear               => Cap_Handshake_In_The_Clear,
-                            Has_Signature                        => False,
-                            Has_Measurement_Hash                 => False,
-                            Major_Version                        => 1,
-                            Minor_Version                        => 1,
-                            Code                                 => SPDM::Error,
-                            Error_Response_Error_Code            => SPDM::Unsupported_Request,
-                            Error_Response_Request_Response_Code => Request.Code);
+            SPDM::Response'(
+#if FEATURE_KEY_EXCHANGE then
+               Meas_Cap                             => Cap_Meas,
+               Hash_Type                            => SPDM::No_Measurement,
+#end if;
+               Hash_Length                          => Hash_Length,
+               Signature_Length                     => Signature_Length,
+#if FEATURE_KEY_EXCHANGE then
+               Exchange_Data_Length                 => 0,
+               Handshake_In_The_Clear               => Cap_Handshake_In_The_Clear,
+#end if;
+               Has_Signature                        => False,
+#if FEATURE_KEY_EXCHANGE then
+               Has_Measurement_Hash                 => False,
+#end if;
+               Major_Version                        => 1,
+               Minor_Version                        => 1,
+               Code                                 => SPDM::Error,
+               Error_Response_Error_Code            => SPDM::Unsupported_Request,
+               Error_Response_Request_Response_Code => Request.Code);
       transition
          goto Send_Error
       exception
@@ -1940,19 +1968,26 @@ package SPDM_Responder is
       is
       begin
          Response :=
-            SPDM::Response'(Meas_Cap                       => Cap_Meas,
-                            Hash_Type                      => SPDM::No_Measurement,
-                            Hash_Length                    => Hash_Length,
-                            Signature_Length               => Signature_Length,
-                            Exchange_Data_Length           => 0,
-                            Handshake_In_The_Clear         => Cap_Handshake_In_The_Clear,
-                            Has_Signature                  => False,
-                            Has_Measurement_Hash           => False,
-                            Major_Version                  => 1,
-                            Minor_Version                  => 1,
-                            Code                           => SPDM::Error,
-                            Error_Response_Error_Code      => Error_Code,
-                            Error_Response_Zero_Error_Data => 0);
+            SPDM::Response'(
+#if FEATURE_KEY_EXCHANGE then
+               Meas_Cap                       => Cap_Meas,
+               Hash_Type                      => SPDM::No_Measurement,
+#end if;
+               Hash_Length                    => Hash_Length,
+               Signature_Length               => Signature_Length,
+#if FEATURE_KEY_EXCHANGE then
+               Exchange_Data_Length           => 0,
+               Handshake_In_The_Clear         => Cap_Handshake_In_The_Clear,
+#end if;
+               Has_Signature                  => False,
+#if FEATURE_KEY_EXCHANGE then
+               Has_Measurement_Hash           => False,
+#end if;
+               Major_Version                  => 1,
+               Minor_Version                  => 1,
+               Code                           => SPDM::Error,
+               Error_Response_Error_Code      => Error_Code,
+               Error_Response_Zero_Error_Data => 0);
       transition
          goto Send_Error
       exception
