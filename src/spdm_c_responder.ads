@@ -3,8 +3,10 @@ with RFLX.SPDM;
 with RFLX.SPDM_Responder.Session;
 with RFLX.SPDM_Responder.Digests_Data;
 with RFLX.SPDM_Responder.Signature;
+#if FEATURE_KEY_EXCHANGE then
 with RFLX.SPDM_Responder.Exchange_Data;
 with RFLX.SPDM_Responder.Hash;
+#end if;
 with RFLX.SPDM_Responder.Opaque_Data;
 with RFLX.SPDM.Certificate_Response;
 with RFLX.SPDM.Nonce;

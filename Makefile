@@ -106,9 +106,7 @@ GENERATED := rflx.ads \
     rflx-spdm_responder-signature.adb \
     rflx-spdm_responder-signature.ads \
     rflx-spdm_responder-opaque_data.adb \
-    rflx-spdm_responder-opaque_data.ads \
-    rflx-spdm_responder-spdm_header.adb \
-    rflx-spdm_responder-spdm_header.ads
+    rflx-spdm_responder-opaque_data.ads
 
 ifeq ($(FEATURE_CHALLENGE_AUTH),True)
 GENERATED += \
@@ -143,7 +141,9 @@ GENERATED += \
     rflx-spdm_responder-exchange_data.adb \
     rflx-spdm_responder-exchange_data.ads \
     rflx-spdm_responder-measurement_summary.adb \
-    rflx-spdm_responder-measurement_summary.ads
+    rflx-spdm_responder-measurement_summary.ads \
+    rflx-spdm_responder-spdm_header.adb \
+    rflx-spdm_responder-spdm_header.ads
 
 VALIDATE_STATIC += test_validate_static_key_exchange
 DUMP_VALIDATE_FLAGS += --feature_key_exchange

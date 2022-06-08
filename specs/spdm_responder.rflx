@@ -36,17 +36,6 @@ package SPDM_Responder is
             with Size => 8 * Length;
       end message;
 
-   type Hash is
-      message
-         Length : SPDM::Hash_Length
-            then Data
-               with Size => Length * 8
-               if Length = 32
-                  or Length = 48
-                  or Length = 64;
-         Data : Opaque;
-      end message;
-
    type Signature is
       message
          Length : SPDM::Signature_Length
@@ -58,6 +47,24 @@ package SPDM_Responder is
                   or Length = 256
                   or Length = 384
                   or Length = 512;
+         Data : Opaque;
+      end message;
+
+   type Opaque_Data is
+      message
+         Length : SPDM::Length_16;
+         Data   : Opaque
+            with Size => Length * 8;
+      end message;
+#if FEATURE_KEY_EXCHANGE then
+   type Hash is
+      message
+         Length : SPDM::Hash_Length
+            then Data
+               with Size => Length * 8
+               if Length = 32
+                  or Length = 48
+                  or Length = 64;
          Data : Opaque;
       end message;
 
@@ -74,13 +81,6 @@ package SPDM_Responder is
          Data : SPDM::Measurement_Record;
       end message;
 
-   type Opaque_Data is
-      message
-         Length : SPDM::Length_16;
-         Data   : Opaque
-            with Size => Length * 8;
-      end message;
-
    type SPDM_Header is
       message
          Major_Version : SPDM::Major_Version
@@ -94,6 +94,7 @@ package SPDM_Responder is
 
    type Next_Transcript_State is (Send_Vers, Send_Cap, Send_Alg, Sign_Key_Ex, Send_Finish) with
       Size => 8;
+#end if;
 
    generic
       Transport : Channel with Readable, Writable;
