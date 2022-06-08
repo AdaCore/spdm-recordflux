@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Provability of examples
 - Incorrect sending of number of measurement indices when requesting all measurements (V525-053)
 - Missing handling of opaque data in `Get_Measurements`
+- Fix invalid capabilities if all features are disabled
 
 ### Changed
 
