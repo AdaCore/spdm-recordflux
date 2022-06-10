@@ -1011,5 +1011,20 @@ is
    begin
       Result := C_Interface (Ctx.Instance, (if Enable then 1 else 0)) /= 0;
    end Plat_Set_Secure_Session;
+
+   overriding
+   procedure Plat_Key_Update (Ctx       : in out Context;
+                              Operation :        RFLX.SPDM.Key_Operation;
+                              Result    :    out Boolean)
+   is
+      use type Interfaces.C.unsigned_char;
+      function C_Interface (Instance  : System.Address;
+                            Operation : Interfaces.C.unsigned) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_key_update";
+   begin
+      Result := C_Interface (Ctx.Instance, Interfaces.C.unsigned (RFLX.SPDM.To_U64 (Operation))) > 0;
+   end Plat_Key_Update;
 #end if;
 end SPDM_C_Responder;

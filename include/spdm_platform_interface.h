@@ -164,4 +164,7 @@ void spdm_platform_get_finish_verify_data(instance_t *instance,
 unsigned char spdm_platform_set_secure_session(instance_t *instance,
                                                unsigned char enable);
 
+unsigned char spdm_platform_key_update(instance_t *instance,
+                                       unsigned operation);
+
 #endif // __SPDM_PLATFORM_INTERFACE__

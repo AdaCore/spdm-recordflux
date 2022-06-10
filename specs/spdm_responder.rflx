@@ -215,6 +215,8 @@ package SPDM_Responder is
       with function Plat_Get_Finish_Verify_Data return Hash;
 
       with function Plat_Set_Secure_Session (Enable : Boolean) return Boolean;
+
+      with function Plat_Key_Update (Operation : SPDM::Key_Operation) return Boolean;
 #end if;
    session Session with
       Initial => Init,
@@ -1096,6 +1098,10 @@ package SPDM_Responder is
 #if FEATURE_KEY_EXCHANGE then
          goto Prepare_Key_Exchange
             if Request'Valid and Request.Code = SPDM::Key_Exchange and Cap_Key_Ex
+         goto Prepare_Key_Update
+            if Request'Valid and Request.Code = SPDM::Key_Update and Secure_Session
+         goto Error_Unexpected_Request
+            if Request'Valid and Request.Code = SPDM::Key_Update
 #end if;
          goto Error_Unsupported_Request
             if Request'Valid
@@ -1920,6 +1926,33 @@ package SPDM_Responder is
       exception
          goto Error_Unspecified
       end Prepare_Finish_Response_Verify;
+
+      state Prepare_Key_Update
+      is
+         Success : Boolean;
+      begin
+         Success := Plat_Key_Update (Request.Key_Update_Request_Key_Operation);
+         Response :=
+            SPDM::Response'(Meas_Cap                              => Cap_Meas,
+                            Hash_Type                             => SPDM::No_Measurement,
+                            Hash_Length                           => Hash_Length,
+                            Signature_Length                      => Signature_Length,
+                            Exchange_Data_Length                  => 0,
+                            Handshake_In_The_Clear                => True,
+                            Has_Signature                         => False,
+                            Has_Measurement_Hash                  => False,
+                            Major_Version                         => 1,
+                            Minor_Version                         => 1,
+                            Code                                  => SPDM::Key_Update_ACK,
+                            Key_Update_ACK_Response_Key_Operation => Request.Key_Update_Request_Key_Operation,
+                            Key_Update_ACK_Response_Tag           => Request.Key_Update_Request_Tag);
+      transition
+         goto Send_Idle
+            if Success
+         goto Error_Unspecified
+      exception
+         goto Error_Unspecified
+      end Prepare_Key_Update;
 #end if;
       state Error_Unsupported_Request
       is
@@ -1958,7 +1991,18 @@ package SPDM_Responder is
       transition
          goto Error_Zero_Data
       end Error_Invalid_Request;
-
+#if FEATURE_KEY_EXCHANGE then
+      --  This state doesn't depend on key exchange
+      --  but is currently only used by key exchange
+      --  features.
+      state Error_Unexpected_Request
+      is
+      begin
+         Error_Code := SPDM::Unexpected_Request;
+      transition
+         goto Error_Zero_Data
+      end Error_Unexpected_Request;
+#end if;
       state Error_Unspecified
       is
       begin

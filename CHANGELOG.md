@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for `Key_Exchange` request and response
 - Support for `Finish` request and response
+- Support for `Key_Update` request and response
 
 ### Changed
 

@@ -70,8 +70,7 @@ unsigned char spdm_platform_config_cap_handshake_in_the_clear(__attribute__((unu
 }
 
 unsigned char spdm_platform_config_cap_key_upd(__attribute__((unused)) instance_t *instance) {
-    //  Supported in WP 2.3.8
-    return 0;
+    return 1;
 }
 
 unsigned char spdm_platform_config_cap_hbeat(__attribute__((unused)) instance_t *instance) {
@@ -572,4 +571,10 @@ unsigned char spdm_platform_set_secure_session(instance_t *instance,
     printf("secure session: %u\n", enable);
     instance->secure_session = enable;
     return enable;
+}
+
+unsigned char spdm_platform_key_update(__attribute__((unused)) instance_t *instance,
+                                       __attribute__((unused)) unsigned operation)
+{
+    return 1;
 }

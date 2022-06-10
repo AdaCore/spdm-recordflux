@@ -287,5 +287,10 @@ is
    procedure Plat_Set_Secure_Session (Ctx    : in out Context;
                                       Enable :        Boolean;
                                       Result :    out Boolean);
+
+   overriding
+   procedure Plat_Key_Update (Ctx       : in out Context;
+                              Operation :        RFLX.SPDM.Key_Operation;
+                              Result    :    out Boolean);
 #end if;
 end SPDM_C_Responder;
