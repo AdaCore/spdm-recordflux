@@ -12,7 +12,7 @@ package SPDM_Proxy is
       SPDM_Transport : Channel with Readable, Writable;
    session Proxy with
       Initial => Proxy_Receive_Request,
-      Final => Proxy_Error
+      Final => Proxy_Shutdown
    is
       Emu_Packet  : SPDM_Emu::Platform_Port;
       SPDM_Packet : Packet;
@@ -24,6 +24,9 @@ package SPDM_Proxy is
       transition
          goto Proxy_Prepare_Request
             if Emu_Packet'Valid and Emu_Packet.Size > 0
+               and Emu_Packet.Command = SPDM_Emu::Normal
+         goto Proxy_Prepare_Shutdown
+            if Emu_Packet'Valid and Emu_Packet.Command = SPDM_Emu::Shutdown
          goto Proxy_Error
       end Proxy_Receive_Request;
 
@@ -76,7 +79,35 @@ package SPDM_Proxy is
          goto Proxy_Receive_Request
       end Proxy_Send_Response;
 
-      state Proxy_Error is null state;
+      state Proxy_Prepare_Shutdown
+      is
+      begin
+         Emu_Packet := SPDM_Emu::Platform_Port'(Command => SPDM_Emu::Shutdown,
+                                                Transport_Type => SPDM_Emu::None,
+                                                Size => 0,
+                                                SPDM_Payload => []);
+      transition
+         goto Proxy_Send_Shutdown
+      exception
+         goto Proxy_Error
+      end Proxy_Prepare_Shutdown;
+
+      state Proxy_Send_Shutdown
+      is
+      begin
+         Emu_Transport'Write (Emu_Packet);
+      transition
+         goto Proxy_Shutdown
+      end Proxy_Send_Shutdown;
+
+      state Proxy_Error
+      is
+      begin
+      transition
+         goto Proxy_Shutdown
+      end Proxy_Error;
+
+      state Proxy_Shutdown is null state;
    end Proxy;
 
 end SPDM_Proxy;
