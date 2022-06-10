@@ -126,6 +126,9 @@ void spdm_platform_get_exchange_data (instance_t *instance,
 
 unsigned char spdm_platform_get_heartbeat_period (instance_t *instance);
 
+unsigned char spdm_platform_valid_session_id (instance_t *instance,
+                                              unsigned short session_id);
+
 unsigned short spdm_platform_get_session_id (instance_t *instance,
                                              unsigned short session_id);
 
@@ -166,5 +169,7 @@ unsigned char spdm_platform_set_secure_session(instance_t *instance,
 
 unsigned char spdm_platform_key_update(instance_t *instance,
                                        unsigned operation);
+
+unsigned char spdm_platform_end_session(instance_t *instance);
 
 #endif // __SPDM_PLATFORM_INTERFACE__

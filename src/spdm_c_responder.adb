@@ -817,6 +817,21 @@ is
    end Plat_Get_Heartbeat_Period;
 
    overriding
+   procedure Plat_Valid_Session_ID (Ctx            : in out Context;
+                                    Req_Session_ID :        RFLX.SPDM.Session_ID;
+                                    Result         :    out Boolean)
+   is
+      use type Interfaces.C.unsigned_char;
+      function C_Interface (Instance   : System.Address;
+                            Session_ID : Interfaces.C.unsigned_short) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_valid_session_id";
+   begin
+      Result := C_Interface (Ctx.Instance, Interfaces.C.unsigned_short (Req_Session_ID)) > 0;
+   end Plat_Valid_Session_ID;
+
+   overriding
    procedure Plat_Get_Session_ID (Ctx            : in out Context;
                                   Req_Session_ID :        RFLX.SPDM.Session_ID;
                                   Result         :    out RFLX.SPDM.Session_ID)
@@ -1026,5 +1041,18 @@ is
    begin
       Result := C_Interface (Ctx.Instance, Interfaces.C.unsigned (RFLX.SPDM.To_U64 (Operation))) > 0;
    end Plat_Key_Update;
+
+   overriding
+   procedure Plat_End_Session (Ctx    : in out Context;
+                               Result :    out Boolean)
+   is
+      use type Interfaces.C.unsigned_char;
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_end_session";
+   begin
+      Result := C_Interface (Ctx.Instance) > 0;
+   end Plat_End_Session;
 #end if;
 end SPDM_C_Responder;

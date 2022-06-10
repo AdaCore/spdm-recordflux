@@ -12,7 +12,7 @@ sleep 1
 spawn ../tests/proxy
 set proxy_id $spawn_id
 expect -i $responder_id "State: Init"
-spawn ../spdm_emu/bin/spdm_requester_emu --trans NONE --exe_conn DIGEST,CERT,MEAS
+spawn ../spdm_emu/bin/spdm_requester_emu --trans NONE --exe_conn DIGEST,CERT,MEAS --exe_session KEY_EX,KEY_UPDATE,MEAS
 set requester_id $spawn_id
 match $requester_id "spdm_requester_emu version 0.1"
 match $responder_id "State: Receive_Get_Version"
@@ -67,4 +67,8 @@ match $requester_id "spdm_send_spdm_request\\\[ffff0000\\\] (0x4):"
 match $responder_id "State: Prepare_Measurements_Response"
 match $requester_id "spdm_send_spdm_request\\\[ffff0000\\\] (0x4):"
 match $requester_id "0000: 11 ec 00 00"
+match $responder_id "State: Prepare_End_Session"
+match $requester_id "spdm_stop_session - (nil)"
+match $requester_id "Platform port Transmit command: 00 00 ff fe"
+match $requester_id "receive_platform_data Error - 0"
 match $requester_id "Client stopped"

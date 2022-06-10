@@ -243,6 +243,11 @@ is
                                         Result :    out RFLX.SPDM.Heartbeat_Period);
 
    overriding
+   procedure Plat_Valid_Session_ID (Ctx            : in out Context;
+                                    Req_Session_ID :        RFLX.SPDM.Session_ID;
+                                    Result         :    out Boolean);
+
+   overriding
    procedure Plat_Get_Session_ID (Ctx            : in out Context;
                                   Req_Session_ID :        RFLX.SPDM.Session_ID;
                                   Result         :    out RFLX.SPDM.Session_ID);
@@ -292,5 +297,9 @@ is
    procedure Plat_Key_Update (Ctx       : in out Context;
                               Operation :        RFLX.SPDM.Key_Operation;
                               Result    :    out Boolean);
+
+   overriding
+   procedure Plat_End_Session (Ctx    : in out Context;
+                               Result :    out Boolean);
 #end if;
 end SPDM_C_Responder;

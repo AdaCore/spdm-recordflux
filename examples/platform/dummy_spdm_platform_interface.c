@@ -452,6 +452,12 @@ unsigned char spdm_platform_get_heartbeat_period (__attribute__((unused)) instan
     return 0;
 }
 
+unsigned char spdm_platform_valid_session_id (__attribute__((unused)) instance_t *instance,
+                                              __attribute__((unused)) unsigned short session_id)
+{
+    return 1;
+}
+
 unsigned short spdm_platform_get_session_id (__attribute__((unused)) instance_t *instance,
                                              unsigned short session_id)
 {
@@ -576,5 +582,13 @@ unsigned char spdm_platform_set_secure_session(instance_t *instance,
 unsigned char spdm_platform_key_update(__attribute__((unused)) instance_t *instance,
                                        __attribute__((unused)) unsigned operation)
 {
+    return 1;
+}
+
+unsigned char spdm_platform_end_session(instance_t *instance)
+{
+    instance->secure_session = 0;
+    memset(instance->dhe_key, 0, 512);
+    instance->dhe_key_size = 0;
     return 1;
 }
