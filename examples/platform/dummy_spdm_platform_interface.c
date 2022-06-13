@@ -359,6 +359,7 @@ void spdm_platform_get_meas_signature (instance_t *instance,
                                        void *message,
                                        __attribute__((unused)) unsigned message_length,
                                        __unused_cross__ unsigned nonce_offset,
+                                       __attribute__((unused)) unsigned char slot,
                                        __unused_cross__ void *signature,
                                        unsigned *signature_length)
 {
@@ -521,6 +522,7 @@ unsigned char spdm_platform_update_transcript_signature_cert(instance_t *instanc
 }
 
 void spdm_platform_get_transcript_signature(__unused_cross__ instance_t *instance,
+                                            __attribute__((unused)) unsigned char slot,
                                             __unused_cross__ void *signature,
                                             unsigned *size)
 {
@@ -562,6 +564,14 @@ void spdm_platform_get_key_ex_verify_data(__unused_cross__ instance_t *instance,
                                           unsigned *size)
 {
     *size = spdm_get_hash_size(instance->base_hash_algo);
+}
+
+unsigned char spdm_platform_validate_finish_signature(__attribute__((unused)) instance_t *instance,
+                                                      __attribute__((unused)) void *data,
+                                                      __attribute__((unused)) unsigned size,
+                                                      __attribute__((unused)) unsigned char slot)
+{
+    return 1;
 }
 
 void spdm_platform_get_finish_verify_data(__unused_cross__ instance_t *instance,

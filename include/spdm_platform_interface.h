@@ -108,6 +108,7 @@ void spdm_platform_get_meas_signature (instance_t *instance,
                                        void *message,
                                        unsigned message_length,
                                        unsigned nonce_offset,
+                                       unsigned char slot,
                                        void *signature,
                                        unsigned *signature_length);
 
@@ -149,6 +150,7 @@ unsigned char spdm_platform_update_transcript_signature_cert(instance_t *instanc
                                                              unsigned char slot);
 
 void spdm_platform_get_transcript_signature(instance_t *instance,
+                                            unsigned char slot,
                                             void *signature,
                                             unsigned *size);
 
@@ -159,6 +161,11 @@ void spdm_platform_get_key_ex_opaque_data(instance_t *instance,
 void spdm_platform_get_key_ex_verify_data(instance_t *instance,
                                           void *data,
                                           unsigned *size);
+
+unsigned char spdm_platform_validate_finish_signature(instance_t *instance,
+                                                      void *data,
+                                                      unsigned size,
+                                                      unsigned char slot);
 
 void spdm_platform_get_finish_verify_data(instance_t *instance,
                                           void *data,

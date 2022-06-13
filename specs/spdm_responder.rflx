@@ -185,7 +185,8 @@ package SPDM_Responder is
       with function Plat_Get_DMTF_Measurement_Field (Index : SPDM::Index) return SPDM::DMTF_Measurement_Field;
 
       with function Plat_Get_Meas_Signature (Unsigned_Message : Opaque;
-                                             Nonce_Offset     : SPDM::Length_24) return Signature;
+                                             Nonce_Offset     : SPDM::Length_24;
+                                             Slot             : SPDM::Narrow_Slot) return Signature;
 
       with function Plat_Update_Meas_Signature (Message : Opaque; Reset : Boolean) return Boolean;
 
@@ -208,11 +209,13 @@ package SPDM_Responder is
 
       with function Plat_Update_Transcript_Signature_Cert (Slot : SPDM::Slot) return Boolean;
 
-      with function Plat_Get_Transcript_Signature return Signature;
+      with function Plat_Get_Transcript_Signature (Slot : SPDM::Slot) return Signature;
 
       with function Plat_Get_Key_Ex_Opaque_Data (Request_Data : Opaque) return Opaque_Data;
 
       with function Plat_Get_Key_Ex_Verify_Data return Hash;
+
+      with function Plat_Validate_Finish_Signature (Request : Opaque; Slot : SPDM::Slot) return Boolean;
 
       with function Plat_Get_Finish_Verify_Data return Hash;
 
@@ -221,6 +224,8 @@ package SPDM_Responder is
       with function Plat_Key_Update (Operation : SPDM::Key_Operation) return Boolean;
 
       with function Plat_End_Session return Boolean;
+
+      with function To_Narrow_Slot (Slot : SPDM::Slot) return SPDM::Narrow_Slot;
 #end if;
    session Session with
       Initial => Init,
@@ -240,6 +245,7 @@ package SPDM_Responder is
       Resp_Alg_Structs       : SPDM::Resp_Alg_Structs;
       Resp_Alg_Struct_Count  : SPDM::Alg_Struct_Count;
       Reset_Measurement_Sig  : Boolean := True;
+      Measurement_Slot       : SPDM::Narrow_Slot;
       Measurement_Record     : SPDM::Measurement_Record;
       Current_Measurement    : SPDM::Index;
       Last_Measurement       : SPDM::Index;
@@ -1293,6 +1299,7 @@ package SPDM_Responder is
              DMTF_Measurement_Measurement_Value                => Measurement_Field.Measurement_Value));
          Current_Measurement := Current_Measurement + 1;
          Number_Of_Blocks := Number_Of_Blocks + 1;
+         Measurement_Slot := SPDM::NS_0;
       transition
          goto Prepare_Measurements_Records
             if Current_Measurement <= Last_Measurement
@@ -1300,10 +1307,22 @@ package SPDM_Responder is
          goto Prepare_Key_Exchange_Hash
             if Measurement_Summary
 #end if;
+         goto Prepare_Measurements_Slot
+            if Request.Get_Measurements_Request_Generate_Signature
          goto Prepare_Measurements_Response
       exception
          goto Error_Unspecified
       end Prepare_Measurements_Records;
+
+      state Prepare_Measurements_Slot
+      is
+      begin
+         Measurement_Slot := Request.Get_Measurements_Request_Slot_ID_Param;
+      transition
+         goto Prepare_Measurements_Response
+      exception
+         goto Error_Unspecified
+      end Prepare_Measurements_Slot;
 
       state Prepare_Measurements_Response
       is
@@ -1332,7 +1351,7 @@ package SPDM_Responder is
             Code                                            => SPDM::Measurements,
             Measurements_Response_Number_Of_Indices         => Number_Of_Indices,
             Measurements_Response_Reserved_1                => 0,
-            Measurements_Response_Slot_ID                   => SPDM::NS_0,
+            Measurements_Response_Slot_ID                   => Measurement_Slot,
             Measurements_Response_Number_Of_Blocks          => Number_Of_Blocks,
             Measurements_Response_Measurement_Record_Length => Measurement_Record'Size / 8,
             Measurements_Response_Measurement_Record        => Measurement_Record,
@@ -1369,7 +1388,8 @@ package SPDM_Responder is
             Length => Response.Measurements_Response_Opaque_Length,
             Data   => Response.Measurements_Response_Opaque_Data);
          Nonce_Offset      := Response.Measurements_Response_Measurement_Record_Length + 8;
-         Signature         := Plat_Get_Meas_Signature (Response'Opaque, Nonce_Offset);
+         Signature         := Plat_Get_Meas_Signature
+            (Response'Opaque, Nonce_Offset, Slot_ID);
          Response          := SPDM::Response'(
 #if FEATURE_KEY_EXCHANGE then
             Meas_Cap                                        => Cap_Meas,
@@ -1462,6 +1482,7 @@ package SPDM_Responder is
          Summary               : Measurement_Summary;
          Summary_Hash          : Hash;
          Opaque_Data           : Opaque_Data;
+         Narrow_Slot           : SPDM::Narrow_Slot;
       begin
          Nonce                 := Plat_Get_Nonce;
          Exchange_Data         := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
@@ -1473,6 +1494,7 @@ package SPDM_Responder is
          Summary_Hash          := Plat_Get_Summary_Hash (Summary'Opaque);
          Opaque_Data           := Plat_Get_Key_Ex_Opaque_Data (Request.Key_Exchange_Request_Opaque_Data);
          Exchange_Data_Length  := Exchange_Data.Length;
+         Narrow_Slot           := To_Narrow_Slot (Request.Key_Exchange_Request_Slot);
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
@@ -1495,7 +1517,7 @@ package SPDM_Responder is
                             Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
                             Key_Exchange_Response_Mutual_Auth              => Local_Use_Mutual_Auth,
                             Key_Exchange_Response_Reserved_2               => 0,
-                            Key_Exchange_Response_Slot_ID_Param            => SPDM::NS_0,
+                            Key_Exchange_Response_Slot_ID_Param            => Narrow_Slot,
                             Key_Exchange_Response_Random_Data              => Nonce.Data,
                             Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
                             Key_Exchange_Response_Measurement_Summary_Hash => Summary_Hash.Data,
@@ -1516,6 +1538,7 @@ package SPDM_Responder is
          Local_Use_Mutual_Auth : Boolean;
          Session_ID            : SPDM::Session_ID;
          Opaque_Data           : Opaque_Data;
+         Narrow_Slot           : SPDM::Narrow_Slot;
       begin
          Nonce                 := Plat_Get_Nonce;
          Exchange_Data         := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
@@ -1524,6 +1547,7 @@ package SPDM_Responder is
          Session_ID            := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
          Opaque_Data           := Plat_Get_Key_Ex_Opaque_Data (Request.Key_Exchange_Request_Opaque_Data);
          Exchange_Data_Length  := Exchange_Data.Length;
+         Narrow_Slot           := To_Narrow_Slot (Request.Key_Exchange_Request_Slot);
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
@@ -1546,7 +1570,7 @@ package SPDM_Responder is
                             Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
                             Key_Exchange_Response_Mutual_Auth              => Local_Use_Mutual_Auth,
                             Key_Exchange_Response_Reserved_2               => 0,
-                            Key_Exchange_Response_Slot_ID_Param            => SPDM::NS_0,
+                            Key_Exchange_Response_Slot_ID_Param            => Narrow_Slot,
                             Key_Exchange_Response_Random_Data              => Nonce.Data,
                             Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
                             Key_Exchange_Response_Measurement_Summary_Hash => [],
@@ -1584,6 +1608,7 @@ package SPDM_Responder is
          Nonce            : SPDM::Nonce;
          Exchange_Data    : Exchange_Data;
          Opaque_Data      : Opaque_Data;
+         Narrow_Slot      : SPDM::Narrow_Slot;
          --  ISSUE: Componolit/RecordFlux#1064
          --  Has_Summary_Hash : Boolean;
       begin
@@ -1596,9 +1621,10 @@ package SPDM_Responder is
                                             Data   => Response.Key_Exchange_Response_Exchange_Data);
          Opaque_Data      := Opaque_Data'(Length => Response.Key_Exchange_Response_Opaque_Data_Length,
                                           Data   => Response.Key_Exchange_Response_Opaque_Data);
+         Narrow_Slot      := Response.Key_Exchange_Response_Slot_ID_Param;
          --  ISSUE: Componolit/RecordFlux#1064
          --  Has_Summary_Hash := Response.Has_Measurement_Hash;
-         Signature        := Plat_Get_Transcript_Signature;
+         Signature        := Plat_Get_Transcript_Signature (Request.Key_Exchange_Request_Slot);
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
@@ -1623,7 +1649,7 @@ package SPDM_Responder is
                             Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
                             Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
                             Key_Exchange_Response_Reserved_2               => 0,
-                            Key_Exchange_Response_Slot_ID_Param            => SPDM::NS_0,
+                            Key_Exchange_Response_Slot_ID_Param            => Narrow_Slot,
                             Key_Exchange_Response_Random_Data              => Nonce.Data,
                             Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
                             Key_Exchange_Response_Measurement_Summary_Hash => [],
@@ -1649,6 +1675,7 @@ package SPDM_Responder is
          Exchange_Data    : Exchange_Data;
          Summary_Hash     : Hash;
          Opaque_Data      : Opaque_Data;
+         Narrow_Slot      : SPDM::Narrow_Slot;
          --  ISSUE: Componolit/RecordFlux#1064
          --  Has_Summary_Hash : Boolean;
       begin
@@ -1663,9 +1690,10 @@ package SPDM_Responder is
                                    Data   => Response.Key_Exchange_Response_Measurement_Summary_Hash);
          Opaque_Data      := Opaque_Data'(Length => Response.Key_Exchange_Response_Opaque_Data_Length,
                                           Data   => Response.Key_Exchange_Response_Opaque_Data);
+         Narrow_Slot      := Response.Key_Exchange_Response_Slot_ID_Param;
          --  ISSUE: Componolit/RecordFlux#1064
          --  Has_Summary_Hash := Response.Has_Measurement_Hash;
-         Signature        := Plat_Get_Transcript_Signature;
+         Signature        := Plat_Get_Transcript_Signature (Request.Key_Exchange_Request_Slot);
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
                             Hash_Type                                      => SPDM::No_Measurement,
@@ -1690,7 +1718,7 @@ package SPDM_Responder is
                             Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
                             Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
                             Key_Exchange_Response_Reserved_2               => 0,
-                            Key_Exchange_Response_Slot_ID_Param            => SPDM::NS_0,
+                            Key_Exchange_Response_Slot_ID_Param            => Narrow_Slot,
                             Key_Exchange_Response_Random_Data              => Nonce.Data,
                             Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
                             Key_Exchange_Response_Measurement_Summary_Hash => Summary_Hash.Data,
@@ -1715,6 +1743,7 @@ package SPDM_Responder is
          Exchange_Data    : Exchange_Data;
          Opaque_Data      : Opaque_Data;
          Verify_Data      : Hash;
+         Narrow_Slot      : SPDM::Narrow_Slot;
       begin
          Nonce            := SPDM::Nonce'(Data => Response.Key_Exchange_Response_Random_Data);
          Heartbeat_Period := Response.Key_Exchange_Response_Heartbeat_Period;
@@ -1727,6 +1756,7 @@ package SPDM_Responder is
                                           Data   => Response.Key_Exchange_Response_Opaque_Data);
          Signature        := Signature'(Length => Signature_Length,
                                         Data   => Response.Key_Exchange_Response_Signature);
+         Narrow_Slot      := Response.Key_Exchange_Response_Slot_ID_Param;
          Verify_Data      := Plat_Get_Key_Ex_Verify_Data;
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
@@ -1752,7 +1782,7 @@ package SPDM_Responder is
                             Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
                             Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
                             Key_Exchange_Response_Reserved_2               => 0,
-                            Key_Exchange_Response_Slot_ID_Param            => SPDM::NS_0,
+                            Key_Exchange_Response_Slot_ID_Param            => Narrow_Slot,
                             Key_Exchange_Response_Random_Data              => Nonce.Data,
                             Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
                             Key_Exchange_Response_Measurement_Summary_Hash => [],
@@ -1777,6 +1807,7 @@ package SPDM_Responder is
          Summary_Hash     : Hash;
          Opaque_Data      : Opaque_Data;
          Verify_Data      : Hash;
+         Narrow_Slot      : SPDM::Narrow_Slot;
       begin
          Nonce            := SPDM::Nonce'(Data => Response.Key_Exchange_Response_Random_Data);
          Heartbeat_Period := Response.Key_Exchange_Response_Heartbeat_Period;
@@ -1791,6 +1822,7 @@ package SPDM_Responder is
                                           Data   => Response.Key_Exchange_Response_Opaque_Data);
          Signature        := Signature'(Length => Signature_Length,
                                         Data   => Response.Key_Exchange_Response_Signature);
+         Narrow_Slot      := Response.Key_Exchange_Response_Slot_ID_Param;
          Verify_Data      := Plat_Get_Key_Ex_Verify_Data;
          Response :=
             SPDM::Response'(Meas_Cap                                       => Cap_Meas,
@@ -1816,7 +1848,7 @@ package SPDM_Responder is
                             Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
                             Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
                             Key_Exchange_Response_Reserved_2               => 0,
-                            Key_Exchange_Response_Slot_ID_Param            => SPDM::NS_0,
+                            Key_Exchange_Response_Slot_ID_Param            => Narrow_Slot,
                             Key_Exchange_Response_Random_Data              => Nonce.Data,
                             Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
                             Key_Exchange_Response_Measurement_Summary_Hash => Summary_Hash.Data,
@@ -1852,8 +1884,19 @@ package SPDM_Responder is
       begin
          Transport'Read (Request);
       transition
+         goto Validate_Finish_Response
+            if Request'Valid and Request.Code = SPDM::Finish
          goto Error_Invalid_Request
-            if Request'Valid = False or Request.Code /= SPDM::Finish
+      end Receive_Finish;
+
+      state Validate_Finish_Response
+      is
+         Valid : Boolean;
+      begin
+         Valid := Plat_Validate_Finish_Signature (Request'Opaque, Request.Finish_Request_Slot);
+      transition
+         goto Error_Invalid_Request
+            if Valid = False
          goto Prepare_Finish_Response
             if Cap_Handshake_In_The_Clear = False
          goto Prepare_Finish_Response_Verify
@@ -1861,7 +1904,9 @@ package SPDM_Responder is
          goto Prepare_Finish_Response_Mut_Auth
             if Cap_Handshake_In_The_Clear = True and Use_Mutual_Auth = True
          goto Error_Unspecified
-      end Receive_Finish;
+      exception
+         goto Error_Unspecified
+      end Validate_Finish_Response;
 
       state Prepare_Finish_Response
       is

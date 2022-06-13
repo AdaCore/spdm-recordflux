@@ -712,12 +712,14 @@ is
    procedure Plat_Get_Meas_Signature (Ctx              : in out Context;
                                       Unsigned_Message :        RFLX.RFLX_Types.Bytes;
                                       Nonce_Offset     :        RFLX.SPDM.Length_24;
+                                      Slot             :        RFLX.SPDM.Narrow_Slot;
                                       Result           :    out RFLX.SPDM_Responder.Signature.Structure)
    is
       procedure C_Interface (Instance         :        System.Address;
                              Message          :        System.Address;
                              Message_Length   :        Interfaces.C.unsigned;
                              Nonce_Offset     :        Interfaces.C.unsigned;
+                             Slot             :        Interfaces.C.unsigned_char;
                              Signature        :    out RFLX.RFLX_Types.Bytes;
                              Signature_Length : in out Interfaces.C.unsigned) with
          Import,
@@ -729,6 +731,7 @@ is
                    Unsigned_Message'Address,
                    Unsigned_Message'Length,
                    Interfaces.C.unsigned (Nonce_Offset),
+                   Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
                    Result.Data,
                    Signature_Length);
       if not RFLX.SPDM.Valid_Signature_Length (RFLX.RFLX_Types.U64 (Signature_Length)) then
@@ -927,9 +930,11 @@ is
 
    overriding
    procedure Plat_Get_Transcript_Signature (Ctx    : in out Context;
+                                            Slot   :        RFLX.SPDM.Slot;
                                             Result :    out RFLX.SPDM_Responder.Signature.Structure)
    is
       procedure C_Interface (Instance  :        System.Address;
+                             Slot      :        Interfaces.C.unsigned_char;
                              Signature :    out RFLX.RFLX_Types.Bytes;
                              Length    : in out Interfaces.C.unsigned) with
          Import,
@@ -938,6 +943,7 @@ is
       Length : Interfaces.C.unsigned := Result.Data'Length;
    begin
       C_Interface (Ctx.Instance,
+                   Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
                    Result.Data,
                    Length);
       if not RFLX.SPDM.Valid_Signature_Length (RFLX.RFLX_Types.U64 (Length)) then
@@ -992,6 +998,27 @@ is
       end if;
       Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Size));
    end Plat_Get_Key_Ex_Verify_Data;
+
+   overriding
+   procedure Plat_Validate_Finish_Signature (Ctx     : in out Context;
+                                             Request :        RFLX.RFLX_Types.Bytes;
+                                             Slot    :        RFLX.SPDM.Slot;
+                                             Result  :    out Boolean)
+   is
+      use type Interfaces.C.unsigned_char;
+      function C_Interface (Instance : System.Address;
+                            Request  : System.Address;
+                            Size     : Interfaces.C.unsigned;
+                            Slot     : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_validate_finish_signature";
+   begin
+      Result := C_Interface (Ctx.Instance,
+                             Request'Address,
+                             Request'Length,
+                             Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot))) > 0;
+   end Plat_Validate_Finish_Signature;
 
    overriding
    procedure Plat_Get_Finish_Verify_Data (Ctx    : in out Context;
@@ -1054,5 +1081,27 @@ is
    begin
       Result := C_Interface (Ctx.Instance) > 0;
    end Plat_End_Session;
+
+   overriding
+   procedure To_Narrow_Slot (Ctx    : in out Context;
+                             Slot   :        RFLX.SPDM.Slot;
+                             Result :    out RFLX.SPDM.Narrow_Slot)
+   is
+      pragma Unreferenced (Ctx);
+   begin
+      case Slot is
+         when RFLX.SPDM.Slot_0 => Result := RFLX.SPDM.NS_0;
+         when RFLX.SPDM.Slot_1 => Result := RFLX.SPDM.NS_1;
+         when RFLX.SPDM.Slot_2 => Result := RFLX.SPDM.NS_2;
+         when RFLX.SPDM.Slot_3 => Result := RFLX.SPDM.NS_3;
+         when RFLX.SPDM.Slot_4 => Result := RFLX.SPDM.NS_4;
+         when RFLX.SPDM.Slot_5 => Result := RFLX.SPDM.NS_5;
+         when RFLX.SPDM.Slot_6 => Result := RFLX.SPDM.NS_6;
+         when RFLX.SPDM.Slot_7 => Result := RFLX.SPDM.NS_7;
+         when RFLX.SPDM.Trusted_Environment =>
+            Result := RFLX.SPDM.NS_Trusted_Environment;
+      end case;
+   end To_Narrow_Slot;
+
 #end if;
 end SPDM_C_Responder;

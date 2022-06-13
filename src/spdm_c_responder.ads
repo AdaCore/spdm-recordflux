@@ -221,6 +221,7 @@ is
    procedure Plat_Get_Meas_Signature (Ctx              : in out Context;
                                       Unsigned_Message :        RFLX.RFLX_Types.Bytes;
                                       Nonce_Offset     :        RFLX.SPDM.Length_24;
+                                      Slot             :        RFLX.SPDM.Narrow_Slot;
                                       Result           :    out RFLX.SPDM_Responder.Signature.Structure);
 
    overriding
@@ -273,6 +274,7 @@ is
 
    overriding
    procedure Plat_Get_Transcript_Signature (Ctx    : in out Context;
+                                            Slot   :        RFLX.SPDM.Slot;
                                             Result :    out RFLX.SPDM_Responder.Signature.Structure);
 
    overriding
@@ -283,6 +285,12 @@ is
    overriding
    procedure Plat_Get_Key_Ex_Verify_Data (Ctx    : in out Context;
                                           Result :    out RFLX.SPDM_Responder.Hash.Structure);
+
+   overriding
+   procedure Plat_Validate_Finish_Signature (Ctx     : in out Context;
+                                             Request :        RFLX.RFLX_Types.Bytes;
+                                             Slot    :        RFLX.SPDM.Slot;
+                                             Result  :    out Boolean);
 
    overriding
    procedure Plat_Get_Finish_Verify_Data (Ctx    : in out Context;
@@ -301,5 +309,11 @@ is
    overriding
    procedure Plat_End_Session (Ctx    : in out Context;
                                Result :    out Boolean);
+
+   overriding
+   procedure To_Narrow_Slot (Ctx    : in out Context;
+                             Slot   :        RFLX.SPDM.Slot;
+                             Result :    out RFLX.SPDM.Narrow_Slot);
+
 #end if;
 end SPDM_C_Responder;
