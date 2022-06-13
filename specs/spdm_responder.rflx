@@ -1438,7 +1438,7 @@ package SPDM_Responder is
          goto Prepare_Measurements_All
             if Request.Key_Exchange_Request_Measurement_Summary_Hash_Type = SPDM::All_Measurements
                and Valid_ID
-         goto Error_Invalid_Session
+         goto Error_Invalid_Request
       exception
          goto Error_Unspecified
       end Prepare_Key_Exchange;
@@ -2047,41 +2047,6 @@ package SPDM_Responder is
       transition
          goto Error_Zero_Data
       end Error_Unexpected_Request;
-
-      state Error_Invalid_Session
-      is
-      begin
-         Response :=
-            SPDM::Response'(
-               Meas_Cap                          => Cap_Meas,
-               Hash_Type                         => SPDM::No_Measurement,
-               Hash_Length                       => Hash_Length,
-               Signature_Length                  => Signature_Length,
-               Exchange_Data_Length              => 0,
-               Handshake_In_The_Clear            => Cap_Handshake_In_The_Clear,
-               Has_Signature                     => False,
-               Has_Measurement_Hash              => False,
-               Major_Version                     => 1,
-               Minor_Version                     => 1,
-               Code                              => SPDM::Error,
-               Error_Response_Error_Code         => SPDM::Invalid_Session,
-               --  FIXME
-               --  This field is defined as:
-               --  This shall be the invalid session ID.
-               --  It's not clear if that only refers to the invalid requester part
-               --  or the whole session ID (why would the responder generate its
-               --  part of the ID if the requesters part is invalid?).
-               --  The other problem is that the sizes in the spec conflict. The spec
-               --  defines this field to be the Error Data [390] field which is
-               --  supposed to have a size of 1 byte [389]. Yet the requester part has
-               --  a size of 2 bytes. Libspdm implements this field as the 4 bytes
-               --  complete session ID.
-               Error_Response_Invalid_Session_ID => 0);
-      transition
-         goto Send_Error
-      exception
-         goto Error_Unspecified
-      end Error_Invalid_Session;
 #end if;
       state Error_Unspecified
       is
