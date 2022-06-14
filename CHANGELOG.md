@@ -7,17 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- Provability of examples
-- Incorrect sending of number of measurement indices when requesting all measurements (V525-053)
-- Missing handling of opaque data in `Get_Measurements`
-- Fix invalid capabilities if all features are disabled
-
-### Changed
-
-- Improved handling of signature length
-
 ### Added
 
 - Support for `Key_Exchange` request and response
@@ -27,7 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Improved handling of signature length
 - Enable assertions and compile-time checks in tests
+
+### Fixed
+
+- Provability of examples
+- Incorrect sending of number of measurement indices when requesting all measurements (V525-053)
+- Missing handling of opaque data in `Get_Measurements`
+- Invalid capabilities if all features are disabled
+- Handling of Slot IDs (V511-043)
+- Handling of `Get_Version` request in state machine (V422-041)
+- Missing code in examples (V316-067)
 
 ## [0.1.1] - 2022-05-25
 
