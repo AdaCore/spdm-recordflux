@@ -285,22 +285,8 @@ package SPDM_Responder is
       state Init
       is
       begin
-         Supp_Versions'Reset;
-         Supp_Versions'Append
-            (SPDM::Version_Number_Entry'(Alpha                 => 0,
-                                         Update_Version_Number => 0,
-                                         Minor_Version         => 1,
-                                         Major_Version         => 1));
-         Resp_Alg_Structs'Reset;
-         Resp_Alg_Struct_Count := 0;
-         --  FIXME: Reset all state
-#if FEATURE_KEY_EXCHANGE then
-         Secure_Session := Plat_Set_Secure_Session (False);
-#end if;
       transition
          goto Receive_Get_Version
-      exception
-         goto Error_Unspecified
       end Init;
 
       state Receive_Get_Version
@@ -323,6 +309,18 @@ package SPDM_Responder is
       state Prepare_Version
       is
       begin
+         Supp_Versions'Reset;
+         Supp_Versions'Append
+            (SPDM::Version_Number_Entry'(Alpha                 => 0,
+                                         Update_Version_Number => 0,
+                                         Minor_Version         => 1,
+                                         Major_Version         => 1));
+         Resp_Alg_Structs'Reset;
+         Resp_Alg_Struct_Count := 0;
+         Reset_Measurement_Sig := True;
+#if FEATURE_KEY_EXCHANGE then
+         Secure_Session := Plat_Set_Secure_Session (False);
+#end if;
          Response := SPDM::Response'(
 #if FEATURE_KEY_EXCHANGE then
             Meas_Cap                                    => Cap_Meas,
@@ -401,6 +399,8 @@ package SPDM_Responder is
       begin
          Transport'Read (Request);
       transition
+         goto Prepare_Version
+            if Request'Valid and Request.Code = SPDM::Get_Version
          goto Prepare_Capabilities
             if Request'Valid and Request.Code = SPDM::Get_Capabilities
          goto Error_Unsupported_Request
@@ -521,6 +521,8 @@ package SPDM_Responder is
       begin
          Transport'Read (Request);
       transition
+         goto Prepare_Version
+            if Request'Valid and Request.Code = SPDM::Get_Version
 #if FEATURE_KEY_EXCHANGE then
          goto Check_Algorithms_DHE
             if Request'Valid and Request.Code = SPDM::Negotiate_Algorithms and Cap_Key_Ex
@@ -1099,6 +1101,8 @@ package SPDM_Responder is
       begin
          Transport'Read (Request);
       transition
+         goto Prepare_Version
+            if Request'Valid and Request.Code = SPDM::Get_Version
          goto Prepare_Digests
             if Request'Valid and Request.Code = SPDM::Get_Digests
          goto Check_Certificate
@@ -1108,14 +1112,16 @@ package SPDM_Responder is
 #if FEATURE_KEY_EXCHANGE then
          goto Prepare_Key_Exchange
             if Request'Valid and Request.Code = SPDM::Key_Exchange and Cap_Key_Ex
+               and Secure_Session = False
          goto Prepare_Key_Update
             if Request'Valid and Request.Code = SPDM::Key_Update and Secure_Session
-         goto Error_Unexpected_Request
-            if Request'Valid and Request.Code = SPDM::Key_Update
          goto Prepare_End_Session
             if Request'Valid and Request.Code = SPDM::End_Session and Secure_Session
          goto Error_Unexpected_Request
-            if Request'Valid and Request.Code = SPDM::End_Session
+            if Request'Valid
+               and (Request.Code = SPDM::Key_Exchange
+                    or Request.Code = SPDM::End_Session
+                    or Request.Code = SPDM::Key_Update)
 #end if;
          goto Error_Unsupported_Request
             if Request'Valid
@@ -1884,6 +1890,8 @@ package SPDM_Responder is
       begin
          Transport'Read (Request);
       transition
+         goto Prepare_Version
+            if Request'Valid and Request.Code = SPDM::Get_Version
          goto Validate_Finish_Response
             if Request'Valid and Request.Code = SPDM::Finish
          goto Error_Invalid_Request
