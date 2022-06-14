@@ -98,6 +98,9 @@ is
       procedure Run_Responder_1 is new Run_Responder (Channel_1.Send, Channel_1.Receive, Channel_1.Has_Message);
       procedure Run_Responder_2 is new Run_Responder (Channel_2.Send, Channel_2.Receive, Channel_2.Has_Message);
    begin
+      --  ISSUE: Componolit/RecordFlux#1032
+      --  Context_1.Plat_Initialize;
+      --  Context_2.Plat_Initialize;
       SR.Initialize (Context_1);
       SR.Initialize (Context_2);
 

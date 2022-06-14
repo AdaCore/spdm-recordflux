@@ -115,6 +115,10 @@ is
          SPARK_Mode => Off;
 
    begin
+      --  ISSUE: Componolit/RecordFlux#1032
+      --  for Context of Contexts loop
+      --     Context.Plat_Initialize;
+      --  end loop;
       for I in Index loop
          SR.Initialize (Contexts (I));
       end loop;
