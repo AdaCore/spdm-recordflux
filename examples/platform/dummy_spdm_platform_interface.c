@@ -25,22 +25,14 @@ void spdm_platform_initialize(instance_t **instance)
     }
     memset(*instance, 0, sizeof(instance_t));
 }
-
+#ifdef FEATURE_KEY_EXCHANGE
 unsigned char spdm_platform_is_secure_session(instance_t *instance)
 {
     return instance->secure_session;
 }
-
+#endif
 unsigned char spdm_platform_config_ct_exponent(__attribute__((unused)) instance_t *instance) {
     return 10;
-}
-
-unsigned char spdm_platform_config_cap_mac(__attribute__((unused)) instance_t *instance) {
-    return 1;
-}
-
-unsigned char spdm_platform_config_cap_encrypt(__attribute__((unused)) instance_t *instance) {
-    return 0;
 }
 
 unsigned char spdm_platform_config_cap_meas_fresh(__attribute__((unused)) instance_t *instance) {
@@ -65,10 +57,6 @@ unsigned char spdm_platform_config_cap_cache(__attribute__((unused)) instance_t 
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_handshake_in_the_clear(__attribute__((unused)) instance_t *instance) {
-    return 0;
-}
-
 unsigned char spdm_platform_config_cap_key_upd(__attribute__((unused)) instance_t *instance) {
     return 1;
 }
@@ -81,6 +69,22 @@ unsigned char spdm_platform_config_cap_encap(__attribute__((unused)) instance_t 
     return 0;
 }
 
+unsigned char spdm_platform_config_cap_mut_auth(__attribute__((unused)) instance_t *instance) {
+    return 0;
+}
+
+unsigned char spdm_platform_config_cap_pub_key_id(__attribute__((unused)) instance_t *instance) {
+    return 0;
+}
+#ifdef FEATURE_KEY_EXCHANGE
+unsigned char spdm_platform_config_cap_mac(__attribute__((unused)) instance_t *instance) {
+    return 1;
+}
+
+unsigned char spdm_platform_config_cap_encrypt(__attribute__((unused)) instance_t *instance) {
+    return 0;
+}
+
 unsigned char spdm_platform_config_cap_psk(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
@@ -89,14 +93,10 @@ unsigned char spdm_platform_config_cap_key_ex(__attribute__((unused)) instance_t
     return 1;
 }
 
-unsigned char spdm_platform_config_cap_mut_auth(__attribute__((unused)) instance_t *instance) {
+unsigned char spdm_platform_config_cap_handshake_in_the_clear(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
-
-unsigned char spdm_platform_config_cap_pub_key_id(__attribute__((unused)) instance_t *instance) {
-    return 0;
-}
-
+#endif
 unsigned char spdm_platform_select_measurement_hash_algo(instance_t *instance,
                                                          unsigned char tpm_alg_sha_256,
                                                          unsigned char tpm_alg_sha_384,
@@ -171,7 +171,7 @@ unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
     printf("instance->base_hash_algo=%u\n", instance->base_hash_algo);
     return instance->base_hash_algo;
 }
-
+#ifdef FEATURE_KEY_EXCHANGE
 unsigned char spdm_platform_select_dhe(instance_t *instance,
                                        unsigned char secp521r1,
                                        unsigned char secp384r1,
@@ -202,8 +202,7 @@ unsigned char spdm_platform_select_aead(__attribute__((unused)) instance_t *inst
     errx(5, "No AEAD selected");
     return 0;
 }
-
-
+#endif
 long spdm_platform_select_rbaa(__attribute__((unused)) instance_t *instance,
                                unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
                                unsigned char ra_tpm_alg_rsapss_4096,
@@ -316,12 +315,12 @@ unsigned char spdm_platform_get_number_of_indices (__attribute__((unused)) insta
 {
     return sizeof(measurements) / sizeof(const char *);
 }
-
+#ifdef FEATURE_KEY_EXCHANGE
 unsigned char spdm_platform_get_number_of_indices_tcb (__attribute__((unused)) instance_t *instance)
 {
     return sizeof(measurements) / sizeof(const char *);
 }
-
+#endif
 void spdm_platform_get_nonce(instance_t *instance,
                              __unused_cross__ void *nonce)
 {
@@ -423,7 +422,7 @@ void spdm_platform_get_meas_opaque_data(__attribute__((unused)) instance_t *inst
 {
     *size = 0;
 }
-
+#ifdef FEATURE_KEY_EXCHANGE
 void spdm_platform_get_exchange_data (__unused_cross__ instance_t *instance,
                                       __unused_cross__ void *data,
                                       unsigned size)
@@ -602,3 +601,4 @@ unsigned char spdm_platform_end_session(instance_t *instance)
     instance->dhe_key_size = 0;
     return 1;
 }
+#endif

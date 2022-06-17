@@ -12,6 +12,7 @@ FEATURE_KEY_EXCHANGE ?= True
 FEATURES = CHALLENGE_AUTH=$(FEATURE_CHALLENGE_AUTH),KEY_EXCHANGE=$(FEATURE_KEY_EXCHANGE),RESPOND_IF_READY=$(FEATURE_RESPOND_IF_READY)
 VALIDATE_STATIC = test_validate_static_base
 DUMP_VALIDATE_FLAGS =
+FEATURE_CFLAGS =
 
 TMPDIR := $(shell mktemp -d)
 FILE_LIST := $(shell mktemp)
@@ -116,6 +117,7 @@ GENERATED += \
     rflx-spdm-challenge_request.ads
 VALIDATE_STATIC += test_validate_static_challenge_auth
 DUMP_VALIDATE_FLAGS += --feature_challenge_auth
+FEATURE_CFLAGS += -DFEATURE_CHALLENGE_AUTH
 endif
 
 ifeq ($(FEATURE_KEY_EXCHANGE),True)
@@ -147,12 +149,14 @@ GENERATED += \
 
 VALIDATE_STATIC += test_validate_static_key_exchange
 DUMP_VALIDATE_FLAGS += --feature_key_exchange
+FEATURE_CFLAGS += -DFEATURE_KEY_EXCHANGE
 endif
 
 ifeq ($(FEATURE_RESPOND_IF_READY),True)
 GENERATED += \
     rflx-spdm-respond_if_ready_request.adb \
     rflx-spdm-respond_if_ready_request.ads
+FEATURE_CFLAGS += -DFEATURE_RESPOND_IF_READY
 endif
 
 GENERATED += \
@@ -172,6 +176,8 @@ $(error Unhandled specifications: $(MISSING_SPECIFICATIONS))
 endif
 
 SPECIFICATIONS = $(addprefix build/specs/$(FEATURES)/, $(foreach spec, $(SOURCE_SPECIFICATIONS), $(notdir $(spec))))
+
+GPRBUILD_CARGS = -cargs:c $(FEATURE_CFLAGS)
 
 INTEGRATION_FILES = \
 	build/specs/$(FEATURES)/spdm_responder.rfi \
@@ -193,13 +199,13 @@ libriscv64: build/riscv64/lib/libspdm.a
 test: test_validate test_responder test_cross lib test_integration
 
 build/lib/libspdm.a: $(addprefix build/generated/,$(GENERATED))
-	gprbuild -j0 -P spdm
+	gprbuild -j0 -P spdm $(GPRBUILD_CARGS)
 
 build/%/lib/libspdm.a: $(addprefix build/generated/,$(GENERATED))
-	gprbuild -j0 -P spdm -XTARGET=$*
+	gprbuild -j0 -P spdm -XTARGET=$* $(GPRBUILD_CARGS)
 
 build/%/example/main: $(addprefix build/generated/,$(GENERATED))
-	gprbuild -j0 -P examples/build.gpr -XTARGET=$*
+	gprbuild -j0 -P examples/build.gpr -XTARGET=$* $(GPRBUILD_CARGS)
 	test -f $@
 
 test_cross: build/arm/example/main build/riscv64/example/main libarm libriscv64
@@ -229,7 +235,7 @@ build/%/gnatstack/example/gnatstack.log: build/%/gnatstack/example/main
 	mv $@.tmp $@
 
 build/%/gnatstack/example/main: $(addprefix build/generated/,$(GENERATED))
-	gprbuild -j0 -P examples/build.gpr -XCHECK_STACK=True -XTARGET=$*
+	gprbuild -j0 -P examples/build.gpr -XCHECK_STACK=True -XTARGET=$* $(GPRBUILD_CARGS)
 
 build/spdm_dump:
 	mkdir -p build/spdm_dump
@@ -265,7 +271,7 @@ build/generated/%: build/debug/generated/% build/generated
 	grep -v "RFLX.RFLX_Debug" $< > $@
 
 build/tests/proxy build/tests/responder build/tests/requester: $(addprefix build/debug/generated/,$(GENERATED)) build/spdm_emu/bin/spdm_responder_emu tests/tests.gpr tests/*.ad?
-	gprbuild -p tests/tests.gpr -s
+	gprbuild -p tests/tests.gpr -s $(GPRBUILD_CARGS)
 
 build/certificates:
 	mkdir -p build/certificates

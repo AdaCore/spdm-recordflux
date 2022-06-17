@@ -5,25 +5,27 @@ struct instance;
 typedef struct instance instance_t;
 
 void spdm_platform_initialize(instance_t **instance);
-
+#ifdef FEATURE_KEY_EXCHANGE
 unsigned char spdm_platform_is_secure_session(instance_t *instance);
-
+#endif
 unsigned char spdm_platform_config_ct_exponent(instance_t *instance);
-unsigned char spdm_platform_config_cap_mac(instance_t *instance);
-unsigned char spdm_platform_config_cap_encrypt(instance_t *instance);
 unsigned char spdm_platform_config_cap_meas_fresh(instance_t *instance);
 unsigned char spdm_platform_config_cap_meas(instance_t *instance);
 unsigned char spdm_platform_config_cap_chal(instance_t *instance);
 unsigned char spdm_platform_config_cap_cert(instance_t *instance);
 unsigned char spdm_platform_config_cap_cache(instance_t *instance);
-unsigned char spdm_platform_config_cap_handshake_in_the_clear(instance_t *instance);
 unsigned char spdm_platform_config_cap_key_upd(instance_t *instance);
 unsigned char spdm_platform_config_cap_hbeat(instance_t *instance);
 unsigned char spdm_platform_config_cap_encap(instance_t *instance);
-unsigned char spdm_platform_config_cap_psk(instance_t *instance);
-unsigned char spdm_platform_config_cap_key_ex(instance_t *instance);
 unsigned char spdm_platform_config_cap_mut_auth(instance_t *instance);
 unsigned char spdm_platform_config_cap_pub_key_id(instance_t *instance);
+#ifdef FEATURE_KEY_EXCHANGE
+unsigned char spdm_platform_config_cap_mac(instance_t *instance);
+unsigned char spdm_platform_config_cap_encrypt(instance_t *instance);
+unsigned char spdm_platform_config_cap_psk(instance_t *instance);
+unsigned char spdm_platform_config_cap_key_ex(instance_t *instance);
+unsigned char spdm_platform_config_cap_handshake_in_the_clear(instance_t *instance);
+#endif
 
 unsigned char spdm_platform_select_measurement_hash_algo(instance_t *instance,
                                                          unsigned char tpm_alg_sha_256,
@@ -52,7 +54,7 @@ unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
                                                   unsigned char tpm_alg_sha3_256,
                                                   unsigned char tpm_alg_sha3_384,
                                                   unsigned char tpm_alg_sha3_512);
-
+#ifdef FEATURE_KEY_EXCHANGE
 unsigned char spdm_platform_select_dhe(instance_t *instance,
                                        unsigned char secp521r1,
                                        unsigned char secp384r1,
@@ -65,7 +67,7 @@ unsigned char spdm_platform_select_aead(instance_t *instance,
                                         unsigned char chacha20_poly1305,
                                         unsigned char aes_256_gcm,
                                         unsigned char aes_128_gcm);
-
+#endif
 long spdm_platform_select_rbaa(instance_t *instance,
                                unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
                                unsigned char ra_tpm_alg_rsapss_4096,
@@ -92,9 +94,9 @@ void spdm_platform_get_certificate_data (instance_t *instance,
                                          unsigned short *total_length);
 
 unsigned char spdm_platform_get_number_of_indices (instance_t *instance);
-
+#ifdef FEATURE_KEY_EXCHANGE
 unsigned char spdm_platform_get_number_of_indices_tcb (instance_t *instance);
-
+#endif
 void spdm_platform_get_nonce(instance_t *instance, void *nonce);
 
 void spdm_platform_get_dmtf_measurement_field (instance_t *instance,
@@ -120,7 +122,7 @@ int spdm_platform_update_meas_signature (instance_t *instance,
 void spdm_platform_get_meas_opaque_data(instance_t *instance,
                                         void *data,
                                         unsigned *size);
-
+#ifdef FEATURE_KEY_EXCHANGE
 void spdm_platform_get_exchange_data (instance_t *instance,
                                       void *data,
                                       unsigned size);
@@ -178,5 +180,5 @@ unsigned char spdm_platform_key_update(instance_t *instance,
                                        unsigned operation);
 
 unsigned char spdm_platform_end_session(instance_t *instance);
-
+#endif
 #endif // __SPDM_PLATFORM_INTERFACE__

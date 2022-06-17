@@ -23,8 +23,9 @@ is
    end record;
 
    procedure Plat_Initialize (Ctx : in out Context);
-
+#if FEATURE_KEY_EXCHANGE then
    function Plat_Is_Secure_Session (Ctx : Context) return Boolean;
+#end if;
 
    overriding
    procedure Plat_Cfg_CT_Exponent
