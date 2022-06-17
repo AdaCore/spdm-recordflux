@@ -358,7 +358,7 @@ void spdm_platform_get_meas_signature (instance_t *instance,
                                        void *message,
                                        __attribute__((unused)) unsigned message_length,
                                        __unused_cross__ unsigned nonce_offset,
-                                       __attribute__((unused)) unsigned char slot,
+                                       unsigned char slot,
                                        __unused_cross__ void *signature,
                                        unsigned *signature_length)
 {
@@ -366,7 +366,7 @@ void spdm_platform_get_meas_signature (instance_t *instance,
     __unused_cross__ const unsigned hash_size = spdm_get_hash_size(instance->measurement_hash_algo);
     __unused_cross__ unsigned char hash[hash_size];
     uintn sig_size = *signature_length;
-    if(!instance->valid_nonce){
+    if(!instance->valid_nonce || slot >= 3){
         *signature_length = 0;
         return;
     }

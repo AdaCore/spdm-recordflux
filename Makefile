@@ -319,6 +319,7 @@ test_integration: build/tests/responder build/tests/proxy build/tests/requester 
 	tests/integration/V523-003.expect
 	tests/integration/V422-041.expect
 	tests/integration/V614-025.expect
+	tests/integration/V616-034.expect
 
 $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx:
 	python3 -m venv $(TMPDIR)/venv
