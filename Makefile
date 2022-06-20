@@ -196,7 +196,7 @@ libarm: build/arm/lib/libspdm.a
 
 libriscv64: build/riscv64/lib/libspdm.a
 
-test: test_validate test_responder test_cross lib test_integration
+test: test_validate test_cross lib test_integration
 
 build/lib/libspdm.a: $(addprefix build/generated/,$(GENERATED))
 	gprbuild -j0 -P spdm $(GPRBUILD_CARGS)
@@ -308,12 +308,12 @@ test_validate_static_key_exchange: | build/specs/$(FEATURES)/spdm.rflx $(RFLX)
 	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_request_feature_key_exchange.log -v tests/data/spdm/Request/valid_feature_key_exchange build/specs/$(FEATURES)/spdm.rflx SPDM::Request
 	$(RFLX) --no-verification --max-errors=1 validate -o build/validate_static_response_feature_key_exchange.log -v tests/data/spdm/Response/valid_feature_key_exchange build/specs/$(FEATURES)/spdm.rflx SPDM::Response
 
-test_responder: build/tests/responder build/tests/proxy build/spdm_emu/bin/spdm_requester_emu build/certificates
-	tools/run_responder.expect
+test_integration_build: build/tests/responder build/tests/proxy build/tests/requester build/certificates build/spdm_emu/bin/spdm_requester_emu
 
-test_integration: build/tests/responder build/tests/proxy build/tests/requester build/certificates
-	tests/integration/V407-039.expect
+test_integration: test_integration_build
+	tests/integration/meas_single_secure_session.expect
 	tests/integration/meas_op_all.expect
+	tests/integration/V407-039.expect
 	tests/integration/V511-039.expect
 	tests/integration/V503-050.expect
 	tests/integration/V523-003.expect
