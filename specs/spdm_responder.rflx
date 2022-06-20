@@ -373,10 +373,6 @@ package SPDM_Responder is
             if Next_Transcript_State = Send_Cap
          goto Send_Idle
             if Next_Transcript_State = Send_Alg
-         --  ISSUE: Componolit/RecordFlux#1064
-         goto Prepare_Key_Exchange_Sign_Hash
-            if Next_Transcript_State = Sign_Key_Ex
-               and Response.Has_Measurement_Hash
          goto Prepare_Key_Exchange_Sign
             if Next_Transcript_State = Sign_Key_Ex
          goto Send_Idle
@@ -1398,7 +1394,7 @@ package SPDM_Responder is
          Nonce_Offset      := Response.Measurements_Response_Measurement_Record_Length + 8;
          Signature         := Plat_Get_Meas_Signature
             (Response'Opaque, Nonce_Offset, Slot_ID);
-         Response          := SPDM::Response'(
+         Response'Reset (
 #if FEATURE_KEY_EXCHANGE then
             Meas_Cap                                        => Cap_Meas,
             Hash_Type                                       => SPDM::No_Measurement,
@@ -1409,23 +1405,25 @@ package SPDM_Responder is
             Exchange_Data_Length                            => Exchange_Data_Length,
             Handshake_In_The_Clear                          => Cap_Handshake_In_The_Clear,
 #end if;
-            Has_Signature                                   => True,
 #if FEATURE_KEY_EXCHANGE then
-            Has_Measurement_Hash                            => False,
+            Has_Signature                                   => True,
+            Has_Measurement_Hash                            => False);
+#else
+            Has_Signature                                   => True);
 #end if;
-            Major_Version                                   => Major_Version,
-            Minor_Version                                   => Minor_Version,
-            Code                                            => Code,
-            Measurements_Response_Number_Of_Indices         => Number_Of_Indices,
-            Measurements_Response_Reserved_1                => 0,
-            Measurements_Response_Slot_ID                   => Slot_ID,
-            Measurements_Response_Number_Of_Blocks          => Number_Of_Blocks,
-            Measurements_Response_Measurement_Record_Length => Measurement_Record'Size / 8,
-            Measurements_Response_Measurement_Record        => Measurement_Record,
-            Measurements_Response_Nonce_Data                => Nonce.Data,
-            Measurements_Response_Opaque_Length             => Opaque_Data.Length,
-            Measurements_Response_Opaque_Data               => Opaque_Data.Data,
-            Measurements_Response_Signature                 => Signature.Data);
+         Response.Major_Version                                   := Major_Version;
+         Response.Minor_Version                                   := Minor_Version;
+         Response.Code                                            := Code;
+         Response.Measurements_Response_Number_Of_Indices         := Number_Of_Indices;
+         Response.Measurements_Response_Reserved_1                := 0;
+         Response.Measurements_Response_Slot_ID                   := Slot_ID;
+         Response.Measurements_Response_Number_Of_Blocks          := Number_Of_Blocks;
+         Response.Measurements_Response_Measurement_Record_Length := Measurement_Record'Size / 8;
+         Response.Measurements_Response_Measurement_Record        := Measurement_Record;
+         Response.Measurements_Response_Nonce_Data                := Nonce.Data;
+         Response.Measurements_Response_Opaque_Length             := Opaque_Data.Length;
+         Response.Measurements_Response_Opaque_Data               := Opaque_Data.Data;
+         Response.Measurements_Response_Signature                 := Signature.Data;
          Reset_Measurement_Sig := True;
       transition
          goto Send_Idle
@@ -1448,14 +1446,54 @@ package SPDM_Responder is
 #if FEATURE_KEY_EXCHANGE then
       state Prepare_Key_Exchange
       is
-         Valid_ID : Boolean;
-         Req_Session_ID : SPDM::Session_ID;
+         Valid_ID              : Boolean;
+         Session_ID            : SPDM::Session_ID;
+         Heartbeat_Period      : SPDM::Heartbeat_Period;
+         Local_Use_Mutual_Auth : Boolean;
+         Narrow_Slot           : SPDM::Narrow_Slot;
+         Nonce                 : SPDM::Nonce;
+         Exchange_Data         : Exchange_Data;
+         Has_Measurement_Hash  : Boolean;
       begin
-         Req_Session_ID := Request.Key_Exchange_Request_Req_Session_ID;
-         Valid_ID := Plat_Valid_Session_ID (Req_Session_ID);
          Measurement_Record'Reset;
-         Measurement_Summary := True;
-         Current_Measurement := 1;
+         Session_ID            := Request.Key_Exchange_Request_Req_Session_ID;
+         Valid_ID              := Plat_Valid_Session_ID (Session_ID);
+         Measurement_Summary   := True;
+         Current_Measurement   := 1;
+         Heartbeat_Period      := Plat_Get_Heartbeat_Period;
+         Session_ID            := Plat_Get_Session_ID (Session_ID);
+         Local_Use_Mutual_Auth := Plat_Use_Mutual_Auth;
+         Narrow_Slot           := To_Narrow_Slot (Request.Key_Exchange_Request_Slot);
+         Nonce                 := Plat_Get_Nonce;
+         Exchange_Data         := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
+         Has_Measurement_Hash :=
+            Request.Key_Exchange_Request_Measurement_Summary_Hash_Type = SPDM::TCB_Measurement
+            or Request.Key_Exchange_Request_Measurement_Summary_Hash_Type = SPDM::All_Measurements;
+         Response'Reset (
+            Meas_Cap               => Cap_Meas,
+            Hash_Type              => SPDM::No_Measurement,
+            Hash_Length            => Hash_Length,
+            Signature_Length       => 0,
+            Exchange_Data_Length   => Exchange_Data_Length,
+            Handshake_In_The_Clear => True,
+            Has_Signature          => False,
+            Has_Measurement_Hash   => Has_Measurement_Hash);
+         Response.Major_Version                                  := 1;
+         Response.Minor_Version                                  := 1;
+         Response.Code                                           := SPDM::Key_Exchange_RSP;
+         Response.Key_Exchange_Response_Heartbeat_Period         := Heartbeat_Period;
+         Response.Key_Exchange_Response_Param_2                  := 0;
+         Response.Key_Exchange_Response_Resp_Session_ID          := Session_ID;
+         Response.Key_Exchange_Response_Reserved_1               := 0;
+         --  Both Mutual_Auth_Implicit and Mutual_Auth_Encapsulated
+         --  require Encapsulated requests that are not supported.
+         Response.Key_Exchange_Response_Mutual_Auth_Implicit     := False;
+         Response.Key_Exchange_Response_Mutual_Auth_Encapsulated := False;
+         Response.Key_Exchange_Response_Mutual_Auth              := Local_Use_Mutual_Auth;
+         Response.Key_Exchange_Response_Reserved_2               := 0;
+         Response.Key_Exchange_Response_Slot_ID_Param            := Narrow_Slot;
+         Response.Key_Exchange_Response_Random_Data              := Nonce.Data;
+         Response.Key_Exchange_Response_Exchange_Data            := Exchange_Data.Data;
       transition
          goto Prepare_Key_Exchange_No_Hash
             if Request.Key_Exchange_Request_Measurement_Summary_Hash_Type = SPDM::No_Measurement
@@ -1482,114 +1520,39 @@ package SPDM_Responder is
 
       state Prepare_Key_Exchange_Hash
       is
-         Nonce                 : SPDM::Nonce;
-         Exchange_Data         : Exchange_Data;
-         Heartbeat_Period      : SPDM::Heartbeat_Period;
-         Local_Use_Mutual_Auth : Boolean;
-         Session_ID            : SPDM::Session_ID;
-         Summary               : Measurement_Summary;
-         Summary_Hash          : Hash;
-         Opaque_Data           : Opaque_Data;
-         Narrow_Slot           : SPDM::Narrow_Slot;
+         Summary_Hash : Hash;
       begin
-         Nonce                 := Plat_Get_Nonce;
-         Exchange_Data         := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
-         Heartbeat_Period      := Plat_Get_Heartbeat_Period;
-         Local_Use_Mutual_Auth := Plat_Use_Mutual_Auth;
-         Session_ID            := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
-         --  ISSUE: Componolit/RecordFlux#1021
-         Summary               := Measurement_Summary'(Data => Measurement_Record);
-         Summary_Hash          := Plat_Get_Summary_Hash (Summary'Opaque);
-         Opaque_Data           := Plat_Get_Key_Ex_Opaque_Data (Request.Key_Exchange_Request_Opaque_Data);
-         Exchange_Data_Length  := Exchange_Data.Length;
-         Narrow_Slot           := To_Narrow_Slot (Request.Key_Exchange_Request_Slot);
-         Response :=
-            SPDM::Response'(Meas_Cap                                       => Cap_Meas,
-                            Hash_Type                                      => SPDM::No_Measurement,
-                            Hash_Length                                    => Hash_Length,
-                            Signature_Length                               => 0,
-                            Exchange_Data_Length                           => Exchange_Data.Length,
-                            Handshake_In_The_Clear                         => True,
-                            Has_Signature                                  => False,
-                            Has_Measurement_Hash                           => True,
-                            Major_Version                                  => 1,
-                            Minor_Version                                  => 1,
-                            Code                                           => SPDM::Key_Exchange_RSP,
-                            Key_Exchange_Response_Heartbeat_Period         => Heartbeat_Period,
-                            Key_Exchange_Response_Param_2                  => 0,
-                            Key_Exchange_Response_Resp_Session_ID          => Session_ID,
-                            Key_Exchange_Response_Reserved_1               => 0,
-                            --  Both Mutual_Auth_Implicit and Mutual_Auth_Encapsulated
-                            --  require Encapsulated requests that are not supported.
-                            Key_Exchange_Response_Mutual_Auth_Implicit     => False,
-                            Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
-                            Key_Exchange_Response_Mutual_Auth              => Local_Use_Mutual_Auth,
-                            Key_Exchange_Response_Reserved_2               => 0,
-                            Key_Exchange_Response_Slot_ID_Param            => Narrow_Slot,
-                            Key_Exchange_Response_Random_Data              => Nonce.Data,
-                            Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
-                            Key_Exchange_Response_Measurement_Summary_Hash => Summary_Hash.Data,
-                            Key_Exchange_Response_Opaque_Data_Length       => Opaque_Data.Length,
-                            Key_Exchange_Response_Opaque_Data              => Opaque_Data.Data,
-                            Key_Exchange_Response_Signature                => []);
+         Summary_Hash := Plat_Get_Summary_Hash (Measurement_Record'Opaque);
+         Response.Key_Exchange_Response_Measurement_Summary_Hash := Summary_Hash.Data;
       transition
-         goto Update_Transcript_Hash_Cert
+         goto Prepare_Key_Exchange_Opaque_Data
       exception
          goto Error_Unspecified
       end Prepare_Key_Exchange_Hash;
 
       state Prepare_Key_Exchange_No_Hash
       is
-         Nonce                 : SPDM::Nonce;
-         Exchange_Data         : Exchange_Data;
-         Heartbeat_Period      : SPDM::Heartbeat_Period;
-         Local_Use_Mutual_Auth : Boolean;
-         Session_ID            : SPDM::Session_ID;
-         Opaque_Data           : Opaque_Data;
-         Narrow_Slot           : SPDM::Narrow_Slot;
       begin
-         Nonce                 := Plat_Get_Nonce;
-         Exchange_Data         := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
-         Heartbeat_Period      := Plat_Get_Heartbeat_Period;
-         Local_Use_Mutual_Auth := Plat_Use_Mutual_Auth;
-         Session_ID            := Plat_Get_Session_ID (Request.Key_Exchange_Request_Req_Session_ID);
-         Opaque_Data           := Plat_Get_Key_Ex_Opaque_Data (Request.Key_Exchange_Request_Opaque_Data);
-         Exchange_Data_Length  := Exchange_Data.Length;
-         Narrow_Slot           := To_Narrow_Slot (Request.Key_Exchange_Request_Slot);
-         Response :=
-            SPDM::Response'(Meas_Cap                                       => Cap_Meas,
-                            Hash_Type                                      => SPDM::No_Measurement,
-                            Hash_Length                                    => Hash_Length,
-                            Signature_Length                               => 0,
-                            Exchange_Data_Length                           => Exchange_Data.Length,
-                            Handshake_In_The_Clear                         => True,
-                            Has_Signature                                  => False,
-                            Has_Measurement_Hash                           => False,
-                            Major_Version                                  => 1,
-                            Minor_Version                                  => 1,
-                            Code                                           => SPDM::Key_Exchange_RSP,
-                            Key_Exchange_Response_Heartbeat_Period         => Heartbeat_Period,
-                            Key_Exchange_Response_Param_2                  => 0,
-                            Key_Exchange_Response_Resp_Session_ID          => Session_ID,
-                            Key_Exchange_Response_Reserved_1               => 0,
-                            --  Both Mutual_Auth_Implicit and Mutual_Auth_Encapsulated
-                            --  require Encapsulated requests that are not supported.
-                            Key_Exchange_Response_Mutual_Auth_Implicit     => False,
-                            Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
-                            Key_Exchange_Response_Mutual_Auth              => Local_Use_Mutual_Auth,
-                            Key_Exchange_Response_Reserved_2               => 0,
-                            Key_Exchange_Response_Slot_ID_Param            => Narrow_Slot,
-                            Key_Exchange_Response_Random_Data              => Nonce.Data,
-                            Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
-                            Key_Exchange_Response_Measurement_Summary_Hash => [],
-                            Key_Exchange_Response_Opaque_Data_Length       => Opaque_Data.Length,
-                            Key_Exchange_Response_Opaque_Data              => Opaque_Data.Data,
-                            Key_Exchange_Response_Signature                => []);
+         Response.Key_Exchange_Response_Measurement_Summary_Hash := [];
+      transition
+         goto Prepare_Key_Exchange_Opaque_Data
+      exception
+         goto Error_Unspecified
+      end Prepare_Key_Exchange_No_Hash;
+
+      state Prepare_Key_Exchange_Opaque_Data
+      is
+         Opaque_Data : Opaque_Data;
+      begin
+         Opaque_Data := Plat_Get_Key_Ex_Opaque_Data (Request.Key_Exchange_Request_Opaque_Data);
+         Response.Key_Exchange_Response_Opaque_Data_Length := Opaque_Data.Length;
+         Response.Key_Exchange_Response_Opaque_Data        := Opaque_Data.Data;
+         Response.Key_Exchange_Response_Signature          := [];
       transition
          goto Update_Transcript_Hash_Cert
       exception
          goto Error_Unspecified
-      end Prepare_Key_Exchange_No_Hash;
+      end Prepare_Key_Exchange_Opaque_Data;
 
       state Update_Transcript_Hash_Cert
       is
@@ -1617,8 +1580,8 @@ package SPDM_Responder is
          Exchange_Data    : Exchange_Data;
          Opaque_Data      : Opaque_Data;
          Narrow_Slot      : SPDM::Narrow_Slot;
-         --  ISSUE: Componolit/RecordFlux#1064
-         --  Has_Summary_Hash : Boolean;
+         Has_Summary_Hash : Boolean;
+         Summary_Hash     : Hash;
       begin
          Nonce            := SPDM::Nonce'(Data => Response.Key_Exchange_Response_Random_Data);
          Heartbeat_Period := Response.Key_Exchange_Response_Heartbeat_Period;
@@ -1630,40 +1593,39 @@ package SPDM_Responder is
          Opaque_Data      := Opaque_Data'(Length => Response.Key_Exchange_Response_Opaque_Data_Length,
                                           Data   => Response.Key_Exchange_Response_Opaque_Data);
          Narrow_Slot      := Response.Key_Exchange_Response_Slot_ID_Param;
-         --  ISSUE: Componolit/RecordFlux#1064
-         --  Has_Summary_Hash := Response.Has_Measurement_Hash;
+         Has_Summary_Hash := Response.Has_Measurement_Hash;
+         Summary_Hash     := Hash'(Length => Hash_Length,
+                                   Data   => Response.Key_Exchange_Response_Measurement_Summary_Hash);
          Signature        := Plat_Get_Transcript_Signature (Request.Key_Exchange_Request_Slot);
-         Response :=
-            SPDM::Response'(Meas_Cap                                       => Cap_Meas,
-                            Hash_Type                                      => SPDM::No_Measurement,
-                            Hash_Length                                    => Hash_Length,
-                            Signature_Length                               => Signature_Length,
-                            Exchange_Data_Length                           => Exchange_Data_Length,
-                            Handshake_In_The_Clear                         => True,
-                            Has_Signature                                  => True,
-                            --  ISSUE: Componolit/RecordFlux#1064
-                            --  Has_Measurement_Hash                           => Has_Summary_Hash,
-                            Has_Measurement_Hash                           => False,
-                            Major_Version                                  => 1,
-                            Minor_Version                                  => 1,
-                            Code                                           => SPDM::Key_Exchange_RSP,
-                            Key_Exchange_Response_Heartbeat_Period         => Heartbeat_Period,
-                            Key_Exchange_Response_Param_2                  => 0,
-                            Key_Exchange_Response_Resp_Session_ID          => Session_ID,
-                            Key_Exchange_Response_Reserved_1               => 0,
-                            --  Both Mutual_Auth_Implicit and Mutual_Auth_Encapsulated
-                            --  require Encapsulated requests that are not supported.
-                            Key_Exchange_Response_Mutual_Auth_Implicit     => False,
-                            Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
-                            Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
-                            Key_Exchange_Response_Reserved_2               => 0,
-                            Key_Exchange_Response_Slot_ID_Param            => Narrow_Slot,
-                            Key_Exchange_Response_Random_Data              => Nonce.Data,
-                            Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
-                            Key_Exchange_Response_Measurement_Summary_Hash => [],
-                            Key_Exchange_Response_Opaque_Data_Length       => Opaque_Data.Length,
-                            Key_Exchange_Response_Opaque_Data              => Opaque_Data.Data,
-                            Key_Exchange_Response_Signature                => Signature.Data);
+         Response'Reset (
+            Meas_Cap               => Cap_Meas,
+            Hash_Type              => SPDM::No_Measurement,
+            Hash_Length            => Hash_Length,
+            Signature_Length       => Signature_Length,
+            Exchange_Data_Length   => Exchange_Data_Length,
+            Handshake_In_The_Clear => Cap_Handshake_In_The_Clear,
+            Has_Signature          => True,
+            Has_Measurement_Hash   => Has_Summary_Hash);
+         Response.Major_Version                                  := 1;
+         Response.Minor_Version                                  := 1;
+         Response.Code                                           := SPDM::Key_Exchange_RSP;
+         Response.Key_Exchange_Response_Heartbeat_Period         := Heartbeat_Period;
+         Response.Key_Exchange_Response_Param_2                  := 0;
+         Response.Key_Exchange_Response_Resp_Session_ID          := Session_ID;
+         Response.Key_Exchange_Response_Reserved_1               := 0;
+         --  Both Mutual_Auth_Implicit and Mutual_Auth_Encapsulated
+         --  require Encapsulated requests that are not supported.
+         Response.Key_Exchange_Response_Mutual_Auth_Implicit     := False;
+         Response.Key_Exchange_Response_Mutual_Auth_Encapsulated := False;
+         Response.Key_Exchange_Response_Mutual_Auth              := Use_Mutual_Auth;
+         Response.Key_Exchange_Response_Reserved_2               := 0;
+         Response.Key_Exchange_Response_Slot_ID_Param            := Narrow_Slot;
+         Response.Key_Exchange_Response_Random_Data              := Nonce.Data;
+         Response.Key_Exchange_Response_Exchange_Data            := Exchange_Data.Data;
+         Response.Key_Exchange_Response_Measurement_Summary_Hash := Summary_Hash.Data;
+         Response.Key_Exchange_Response_Opaque_Data_Length       := Opaque_Data.Length;
+         Response.Key_Exchange_Response_Opaque_Data              := Opaque_Data.Data;
+         Response.Key_Exchange_Response_Signature                := Signature.Data;
          Secure_Session := False;
       transition
          goto Send_Key_Exchange
@@ -1673,203 +1635,18 @@ package SPDM_Responder is
          goto Error_Unspecified
       end Prepare_Key_Exchange_Sign;
 
-      --  ISSUE: Componolit/RecordFlux#1064
-      state Prepare_Key_Exchange_Sign_Hash
-      is
-         Signature        : Signature;
-         Heartbeat_Period : SPDM::Heartbeat_Period;
-         Session_ID       : SPDM::Session_ID;
-         Nonce            : SPDM::Nonce;
-         Exchange_Data    : Exchange_Data;
-         Summary_Hash     : Hash;
-         Opaque_Data      : Opaque_Data;
-         Narrow_Slot      : SPDM::Narrow_Slot;
-         --  ISSUE: Componolit/RecordFlux#1064
-         --  Has_Summary_Hash : Boolean;
-      begin
-         Nonce            := SPDM::Nonce'(Data => Response.Key_Exchange_Response_Random_Data);
-         Heartbeat_Period := Response.Key_Exchange_Response_Heartbeat_Period;
-         Session_ID       := Response.Key_Exchange_Response_Resp_Session_ID;
-         Use_Mutual_Auth  := Response.Key_Exchange_Response_Mutual_Auth;
-         Exchange_Data    := Exchange_Data'(Length => Exchange_Data_Length,
-                                            Pad    => 0,
-                                            Data   => Response.Key_Exchange_Response_Exchange_Data);
-         Summary_Hash     := Hash'(Length => Hash_Length,
-                                   Data   => Response.Key_Exchange_Response_Measurement_Summary_Hash);
-         Opaque_Data      := Opaque_Data'(Length => Response.Key_Exchange_Response_Opaque_Data_Length,
-                                          Data   => Response.Key_Exchange_Response_Opaque_Data);
-         Narrow_Slot      := Response.Key_Exchange_Response_Slot_ID_Param;
-         --  ISSUE: Componolit/RecordFlux#1064
-         --  Has_Summary_Hash := Response.Has_Measurement_Hash;
-         Signature        := Plat_Get_Transcript_Signature (Request.Key_Exchange_Request_Slot);
-         Response :=
-            SPDM::Response'(Meas_Cap                                       => Cap_Meas,
-                            Hash_Type                                      => SPDM::No_Measurement,
-                            Hash_Length                                    => Summary_Hash.Length,
-                            Signature_Length                               => Signature_Length,
-                            Exchange_Data_Length                           => Exchange_Data_Length,
-                            Handshake_In_The_Clear                         => True,
-                            Has_Signature                                  => True,
-                            --  ISSUE: Componolit/RecordFlux#1064
-                            --  Has_Measurement_Hash                           => Has_Summary_Hash,
-                            Has_Measurement_Hash                           => True,
-                            Major_Version                                  => 1,
-                            Minor_Version                                  => 1,
-                            Code                                           => SPDM::Key_Exchange_RSP,
-                            Key_Exchange_Response_Heartbeat_Period         => Heartbeat_Period,
-                            Key_Exchange_Response_Param_2                  => 0,
-                            Key_Exchange_Response_Resp_Session_ID          => Session_ID,
-                            Key_Exchange_Response_Reserved_1               => 0,
-                            --  Both Mutual_Auth_Implicit and Mutual_Auth_Encapsulated
-                            --  require Encapsulated requests that are not supported.
-                            Key_Exchange_Response_Mutual_Auth_Implicit     => False,
-                            Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
-                            Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
-                            Key_Exchange_Response_Reserved_2               => 0,
-                            Key_Exchange_Response_Slot_ID_Param            => Narrow_Slot,
-                            Key_Exchange_Response_Random_Data              => Nonce.Data,
-                            Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
-                            Key_Exchange_Response_Measurement_Summary_Hash => Summary_Hash.Data,
-                            Key_Exchange_Response_Opaque_Data_Length       => Opaque_Data.Length,
-                            Key_Exchange_Response_Opaque_Data              => Opaque_Data.Data,
-                            Key_Exchange_Response_Signature                => Signature.Data);
-         Secure_Session := False;
-      transition
-         goto Send_Key_Exchange
-            if Cap_Handshake_In_The_Clear
-         goto Set_Key_Exchange_Verify_Data_Hash
-      exception
-         goto Error_Unspecified
-      end Prepare_Key_Exchange_Sign_Hash;
-
       state Set_Key_Exchange_Verify_Data
       is
-         Signature        : Signature;
-         Heartbeat_Period : SPDM::Heartbeat_Period;
-         Session_ID       : SPDM::Session_ID;
-         Nonce            : SPDM::Nonce;
-         Exchange_Data    : Exchange_Data;
-         Opaque_Data      : Opaque_Data;
-         Verify_Data      : Hash;
-         Narrow_Slot      : SPDM::Narrow_Slot;
+         Verify_Data : Hash;
       begin
-         Nonce            := SPDM::Nonce'(Data => Response.Key_Exchange_Response_Random_Data);
-         Heartbeat_Period := Response.Key_Exchange_Response_Heartbeat_Period;
-         Session_ID       := Response.Key_Exchange_Response_Resp_Session_ID;
-         Use_Mutual_Auth  := Response.Key_Exchange_Response_Mutual_Auth;
-         Exchange_Data    := Exchange_Data'(Length => Exchange_Data_Length,
-                                            Pad    => 0,
-                                            Data   => Response.Key_Exchange_Response_Exchange_Data);
-         Opaque_Data      := Opaque_Data'(Length => Response.Key_Exchange_Response_Opaque_Data_Length,
-                                          Data   => Response.Key_Exchange_Response_Opaque_Data);
-         Signature        := Signature'(Length => Signature_Length,
-                                        Data   => Response.Key_Exchange_Response_Signature);
-         Narrow_Slot      := Response.Key_Exchange_Response_Slot_ID_Param;
-         Verify_Data      := Plat_Get_Key_Ex_Verify_Data;
-         Response :=
-            SPDM::Response'(Meas_Cap                                       => Cap_Meas,
-                            Hash_Type                                      => SPDM::No_Measurement,
-                            Hash_Length                                    => Hash_Length,
-                            Signature_Length                               => Signature_Length,
-                            Exchange_Data_Length                           => Exchange_Data_Length,
-                            Handshake_In_The_Clear                         => False,
-                            Has_Signature                                  => True,
-                            --  ISSUE: Componolit/RecordFlux#1064
-                            --  Has_Measurement_Hash                           => Has_Summary_Hash,
-                            Has_Measurement_Hash                           => False,
-                            Major_Version                                  => 1,
-                            Minor_Version                                  => 1,
-                            Code                                           => SPDM::Key_Exchange_RSP,
-                            Key_Exchange_Response_Heartbeat_Period         => Heartbeat_Period,
-                            Key_Exchange_Response_Param_2                  => 0,
-                            Key_Exchange_Response_Resp_Session_ID          => Session_ID,
-                            Key_Exchange_Response_Reserved_1               => 0,
-                            --  Both Mutual_Auth_Implicit and Mutual_Auth_Encapsulated
-                            --  require Encapsulated requests that are not supported.
-                            Key_Exchange_Response_Mutual_Auth_Implicit     => False,
-                            Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
-                            Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
-                            Key_Exchange_Response_Reserved_2               => 0,
-                            Key_Exchange_Response_Slot_ID_Param            => Narrow_Slot,
-                            Key_Exchange_Response_Random_Data              => Nonce.Data,
-                            Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
-                            Key_Exchange_Response_Measurement_Summary_Hash => [],
-                            Key_Exchange_Response_Opaque_Data_Length       => Opaque_Data.Length,
-                            Key_Exchange_Response_Opaque_Data              => Opaque_Data.Data,
-                            Key_Exchange_Response_Signature                => Signature.Data,
-                            Key_Exchange_Response_Responder_Verify_Data    => Verify_Data.Data);
+         Verify_Data := Plat_Get_Key_Ex_Verify_Data;
+         Response.Key_Exchange_Response_Responder_Verify_Data := Verify_Data.Data;
          Secure_Session := True;
       transition
          goto Send_Key_Exchange
       exception
          goto Error_Unspecified
       end Set_Key_Exchange_Verify_Data;
-
-      state Set_Key_Exchange_Verify_Data_Hash
-      is
-         Signature        : Signature;
-         Heartbeat_Period : SPDM::Heartbeat_Period;
-         Session_ID       : SPDM::Session_ID;
-         Nonce            : SPDM::Nonce;
-         Exchange_Data    : Exchange_Data;
-         Summary_Hash     : Hash;
-         Opaque_Data      : Opaque_Data;
-         Verify_Data      : Hash;
-         Narrow_Slot      : SPDM::Narrow_Slot;
-      begin
-         Nonce            := SPDM::Nonce'(Data => Response.Key_Exchange_Response_Random_Data);
-         Heartbeat_Period := Response.Key_Exchange_Response_Heartbeat_Period;
-         Session_ID       := Response.Key_Exchange_Response_Resp_Session_ID;
-         Use_Mutual_Auth  := Response.Key_Exchange_Response_Mutual_Auth;
-         Exchange_Data    := Exchange_Data'(Length => Exchange_Data_Length,
-                                            Pad    => 0,
-                                            Data   => Response.Key_Exchange_Response_Exchange_Data);
-         Summary_Hash     := Hash'(Length => Hash_Length,
-                                   Data   => Response.Key_Exchange_Response_Measurement_Summary_Hash);
-         Opaque_Data      := Opaque_Data'(Length => Response.Key_Exchange_Response_Opaque_Data_Length,
-                                          Data   => Response.Key_Exchange_Response_Opaque_Data);
-         Signature        := Signature'(Length => Signature_Length,
-                                        Data   => Response.Key_Exchange_Response_Signature);
-         Narrow_Slot      := Response.Key_Exchange_Response_Slot_ID_Param;
-         Verify_Data      := Plat_Get_Key_Ex_Verify_Data;
-         Response :=
-            SPDM::Response'(Meas_Cap                                       => Cap_Meas,
-                            Hash_Type                                      => SPDM::No_Measurement,
-                            Hash_Length                                    => Summary_Hash.Length,
-                            Signature_Length                               => Signature_Length,
-                            Exchange_Data_Length                           => Exchange_Data_Length,
-                            Handshake_In_The_Clear                         => False,
-                            Has_Signature                                  => True,
-                            --  ISSUE: Componolit/RecordFlux#1064
-                            --  Has_Measurement_Hash                           => Has_Summary_Hash,
-                            Has_Measurement_Hash                           => True,
-                            Major_Version                                  => 1,
-                            Minor_Version                                  => 1,
-                            Code                                           => SPDM::Key_Exchange_RSP,
-                            Key_Exchange_Response_Heartbeat_Period         => Heartbeat_Period,
-                            Key_Exchange_Response_Param_2                  => 0,
-                            Key_Exchange_Response_Resp_Session_ID          => Session_ID,
-                            Key_Exchange_Response_Reserved_1               => 0,
-                            --  Both Mutual_Auth_Implicit and Mutual_Auth_Encapsulated
-                            --  require Encapsulated requests that are not supported.
-                            Key_Exchange_Response_Mutual_Auth_Implicit     => False,
-                            Key_Exchange_Response_Mutual_Auth_Encapsulated => False,
-                            Key_Exchange_Response_Mutual_Auth              => Use_Mutual_Auth,
-                            Key_Exchange_Response_Reserved_2               => 0,
-                            Key_Exchange_Response_Slot_ID_Param            => Narrow_Slot,
-                            Key_Exchange_Response_Random_Data              => Nonce.Data,
-                            Key_Exchange_Response_Exchange_Data            => Exchange_Data.Data,
-                            Key_Exchange_Response_Measurement_Summary_Hash => Summary_Hash.Data,
-                            Key_Exchange_Response_Opaque_Data_Length       => Opaque_Data.Length,
-                            Key_Exchange_Response_Opaque_Data              => Opaque_Data.Data,
-                            Key_Exchange_Response_Signature                => Signature.Data,
-                            Key_Exchange_Response_Responder_Verify_Data    => Verify_Data.Data);
-         Secure_Session := True;
-      transition
-         goto Send_Key_Exchange
-      exception
-         goto Error_Unspecified
-      end Set_Key_Exchange_Verify_Data_Hash;
 
       state Send_Key_Exchange
       is
