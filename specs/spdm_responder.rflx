@@ -1274,6 +1274,8 @@ package SPDM_Responder is
       begin
          Number_Of_Indices := Plat_Get_Number_Of_Indices;
       transition
+         goto Prepare_Measurements_Slot
+            if Request.Get_Measurements_Request_Generate_Signature
          goto Prepare_Measurements_Response
       end Prepare_Measurements_Number_Of_Indices;
 

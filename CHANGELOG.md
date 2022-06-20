@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Improper deletion of code for disabled features (V616-037)
+- Incomplete initialization of Slot ID for measurement signature (V616-034)
 
 ## [0.2.0] - 2022-06-16
 
