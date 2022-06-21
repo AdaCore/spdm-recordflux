@@ -1655,13 +1655,9 @@ package SPDM_Responder is
       transition
          goto Error_Invalid_Request
             if Valid = False
-         goto Prepare_Finish_Response
-            if Cap_Handshake_In_The_Clear = False
-         goto Prepare_Finish_Response_Verify
-            if Cap_Handshake_In_The_Clear = True and Use_Mutual_Auth = False
          goto Prepare_Finish_Response_Mut_Auth
-            if Cap_Handshake_In_The_Clear = True and Use_Mutual_Auth = True
-         goto Error_Unspecified
+            if Use_Mutual_Auth = True
+         goto Prepare_Finish_Response
       exception
          goto Error_Unspecified
       end Validate_Finish_Response;
@@ -1671,44 +1667,29 @@ package SPDM_Responder is
          Success : Boolean;
       begin
          Success := Plat_Update_Transcript_Signature_Cert (Request.Finish_Request_Slot);
-         Response :=
-            SPDM::Response'(Meas_Cap                => Cap_Meas,
-                            Hash_Type               => SPDM::No_Measurement,
-                            Hash_Length             => Hash_Length,
-                            Signature_Length        => Signature_Length,
-                            Exchange_Data_Length    => 0,
-                            Handshake_In_The_Clear  => False,
-                            Has_Signature           => False,
-                            Has_Measurement_Hash    => False,
-                            Major_Version           => 1,
-                            Minor_Version           => 1,
-                            Code                    => SPDM::Finish_RSP,
-                            Finish_Response_Param_1 => 0,
-                            Finish_Response_Param_2 => 0);
+         Response'Reset (Meas_Cap                => Cap_Meas,
+                         Hash_Type               => SPDM::No_Measurement,
+                         Hash_Length             => Hash_Length,
+                         Signature_Length        => Signature_Length,
+                         Exchange_Data_Length    => 0,
+                         Handshake_In_The_Clear  => Cap_Handshake_In_The_Clear,
+                         Has_Signature           => False,
+                         Has_Measurement_Hash    => False);
+         Response.Major_Version           := 1;
+         Response.Minor_Version           := 1;
+         Response.Code                    := SPDM::Finish_RSP;
+         Response.Finish_Response_Param_1 := 0;
+         Response.Finish_Response_Param_2 := 0;
          Next_Transcript_State := Send_Finish;
       transition
+         goto Prepare_Finish_Response_Verify
+            if Success and Cap_Handshake_In_The_Clear
          goto Update_Transcript_Hash
             if Success
          goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Prepare_Finish_Response;
-
-      state Prepare_Finish_Response_Mut_Auth
-      is
-         Success             : Boolean;
-         Finish_Request_Slot : SPDM::Slot;
-      begin
-         -- ISSUE: Componolit/RecordFlux#1063
-         Finish_Request_Slot := Request.Finish_Request_Slot;
-         Success             := Plat_Update_Transcript_Signature_Cert (Finish_Request_Slot);
-      transition
-         goto Prepare_Finish_Response_Verify
-            if Success = True
-         goto Error_Unspecified
-      exception
-         goto Error_Unspecified
-      end Prepare_Finish_Response_Mut_Auth;
 
       state Prepare_Finish_Response_Verify
       is
@@ -1723,21 +1704,7 @@ package SPDM_Responder is
          Req_Success  := Plat_Update_Transcript_Signature (Request'Opaque, False);
          Resp_Success := Plat_Update_Transcript_Signature (Header'Opaque, False);
          Verify_Data  := Plat_Get_Finish_Verify_Data;
-         Response :=
-            SPDM::Response'(Meas_Cap                              => Cap_Meas,
-                            Hash_Type                             => SPDM::No_Measurement,
-                            Hash_Length                           => Hash_Length,
-                            Signature_Length                      => Signature_Length,
-                            Exchange_Data_Length                  => 0,
-                            Handshake_In_The_Clear                => True,
-                            Has_Signature                         => False,
-                            Has_Measurement_Hash                  => False,
-                            Major_Version                         => 1,
-                            Minor_Version                         => 1,
-                            Code                                  => SPDM::Finish_RSP,
-                            Finish_Response_Param_1               => 0,
-                            Finish_Response_Param_2               => 0,
-                            Finish_Response_Responder_Verify_Data => Verify_Data.Data);
+         Response.Finish_Response_Responder_Verify_Data := Verify_Data.Data;
          Secure_Session := Plat_Set_Secure_Session (True);
       transition
          goto Send_Idle
@@ -1746,6 +1713,22 @@ package SPDM_Responder is
       exception
          goto Error_Unspecified
       end Prepare_Finish_Response_Verify;
+
+      state Prepare_Finish_Response_Mut_Auth
+      is
+         Success             : Boolean;
+         Finish_Request_Slot : SPDM::Slot;
+      begin
+         -- ISSUE: Componolit/RecordFlux#1063
+         Finish_Request_Slot := Request.Finish_Request_Slot;
+         Success             := Plat_Update_Transcript_Signature_Cert (Finish_Request_Slot);
+      transition
+         goto Prepare_Finish_Response
+            if Success = True
+         goto Error_Unspecified
+      exception
+         goto Error_Unspecified
+      end Prepare_Finish_Response_Mut_Auth;
 
       state Prepare_Key_Update
       is
