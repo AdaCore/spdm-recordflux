@@ -1834,31 +1834,9 @@ package SPDM_Responder is
       state Error_Unsupported_Request
       is
       begin
-         Response :=
-            SPDM::Response'(
-#if FEATURE_KEY_EXCHANGE then
-               Meas_Cap                             => Cap_Meas,
-               Hash_Type                            => SPDM::No_Measurement,
-#end if;
-               Hash_Length                          => Hash_Length,
-               Signature_Length                     => Signature_Length,
-#if FEATURE_KEY_EXCHANGE then
-               Exchange_Data_Length                 => 0,
-               Handshake_In_The_Clear               => Cap_Handshake_In_The_Clear,
-#end if;
-               Has_Signature                        => False,
-#if FEATURE_KEY_EXCHANGE then
-               Has_Measurement_Hash                 => False,
-#end if;
-               Major_Version                        => 1,
-               Minor_Version                        => 1,
-               Code                                 => SPDM::Error,
-               Error_Response_Error_Code            => SPDM::Unsupported_Request,
-               Error_Response_Request_Response_Code => Request.Code);
+         Error_Code := SPDM::Unexpected_Request;
       transition
-         goto Send_Error
-      exception
-         goto End_Session
+         goto Prepare_Error
       end Error_Unsupported_Request;
 
       state Error_Invalid_Request
@@ -1866,7 +1844,7 @@ package SPDM_Responder is
       begin
          Error_Code := SPDM::Invalid_Request;
       transition
-         goto Error_Zero_Data
+         goto Prepare_Error
       end Error_Invalid_Request;
 #if FEATURE_KEY_EXCHANGE then
       --  This state doesn't depend on key exchange
@@ -1877,7 +1855,7 @@ package SPDM_Responder is
       begin
          Error_Code := SPDM::Unexpected_Request;
       transition
-         goto Error_Zero_Data
+         goto Prepare_Error
       end Error_Unexpected_Request;
 #end if;
       state Error_Unspecified
@@ -1885,38 +1863,60 @@ package SPDM_Responder is
       begin
          Error_Code := SPDM::Unspecified;
       transition
-         goto Error_Zero_Data
+         goto Prepare_Error
       end Error_Unspecified;
 
-      state Error_Zero_Data
+      state Prepare_Error
       is
       begin
-         Response :=
-            SPDM::Response'(
+         Response'Reset (
 #if FEATURE_KEY_EXCHANGE then
-               Meas_Cap                       => Cap_Meas,
-               Hash_Type                      => SPDM::No_Measurement,
+            Meas_Cap               => Cap_Meas,
+            Hash_Type              => SPDM::No_Measurement,
 #end if;
-               Hash_Length                    => Hash_Length,
-               Signature_Length               => Signature_Length,
+            Hash_Length            => Hash_Length,
+            Signature_Length       => Signature_Length,
 #if FEATURE_KEY_EXCHANGE then
-               Exchange_Data_Length           => 0,
-               Handshake_In_The_Clear         => Cap_Handshake_In_The_Clear,
+            Exchange_Data_Length   => 0,
+            Handshake_In_The_Clear => Cap_Handshake_In_The_Clear,
 #end if;
-               Has_Signature                  => False,
 #if FEATURE_KEY_EXCHANGE then
-               Has_Measurement_Hash           => False,
+            Has_Signature          => False,
+            Has_Measurement_Hash   => False);
+#else
+            Has_Signature          => False);
 #end if;
-               Major_Version                  => 1,
-               Minor_Version                  => 1,
-               Code                           => SPDM::Error,
-               Error_Response_Error_Code      => Error_Code,
-               Error_Response_Zero_Error_Data => 0);
+         Response.Major_Version             := 1;
+         Response.Minor_Version             := 1;
+         Response.Code                      := SPDM::Error;
+         Response.Error_Response_Error_Code := Error_Code;
+      transition
+         goto Prepare_Unexpected_Request_Error
+            if Error_Code = SPDM::Unexpected_Request
+         goto Prepare_Zero_Data_Error
+      exception
+         goto End_Session
+      end Prepare_Error;
+
+      state Prepare_Zero_Data_Error
+      is
+      begin
+         Response.Error_Response_Zero_Error_Data := 0;
       transition
          goto Send_Error
       exception
          goto End_Session
-      end Error_Zero_Data;
+      end Prepare_Zero_Data_Error;
+
+      state Prepare_Unexpected_Request_Error
+      is
+      begin
+         Response.Error_Response_Request_Response_Code := Request.Code;
+      transition
+         goto Send_Error
+      exception
+         goto End_Session
+      end Prepare_Unexpected_Request_Error;
 
       state Send_Error
       is
