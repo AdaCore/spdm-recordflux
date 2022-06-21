@@ -903,10 +903,12 @@ is
    overriding
    procedure Plat_Update_Transcript_Signature (Ctx     : in out Context;
                                                Message :        RFLX.RFLX_Types.Bytes;
+                                               Length  :        RFLX.SPDM.Length_16;
                                                Reset   :        Boolean;
                                                Result  :    out Boolean)
    is
       use type Interfaces.C.unsigned_char;
+      use type RFLX.SPDM.Length_16;
       function C_Interface (Instance : System.Address;
                             Message  : System.Address;
                             Length   : Interfaces.C.unsigned;
@@ -914,10 +916,16 @@ is
          Import,
          Convention => C,
          External_Name => "spdm_platform_update_transcript_signature";
+      Data_Length : Interfaces.C.unsigned;
    begin
+      if Message'Length < Length then
+         Data_Length := Message'Length;
+      else
+         Data_Length := Interfaces.C.unsigned (Length);
+      end if;
       Result := C_Interface (Ctx.Instance,
                              Message'Address,
-                             Message'Length,
+                             Data_Length,
                              (if Reset then 1 else 0)) > 0;
    end Plat_Update_Transcript_Signature;
 
@@ -1112,6 +1120,16 @@ is
    end To_Narrow_Slot;
 
    overriding
+   procedure Null_Hash (Ctx    : in out Context;
+                        Length :        RFLX.SPDM.Hash_Length;
+                        Result :    out RFLX.SPDM_Responder.Hash.Structure)
+   is
+   begin
+      Result.Data := (others => 0);
+      Result.Length := Length;
+   end Null_Hash;
+#end if;
+   overriding
    procedure Null_Signature (Ctx    : in out Context;
                              Length :        RFLX.SPDM.Signature_Length;
                              Result :    out RFLX.SPDM_Responder.Signature.Structure)
@@ -1120,5 +1138,4 @@ is
       Result.Data := (others => 0);
       Result.Length := Length;
    end Null_Signature;
-#end if;
 end SPDM_C_Responder;

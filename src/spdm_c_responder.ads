@@ -267,6 +267,7 @@ is
    overriding
    procedure Plat_Update_Transcript_Signature (Ctx     : in out Context;
                                                Message :        RFLX.RFLX_Types.Bytes;
+                                               Length  :        RFLX.SPDM.Length_16;
                                                Reset   :        Boolean;
                                                Result  :    out Boolean);
    overriding
@@ -318,8 +319,12 @@ is
                              Result :    out RFLX.SPDM.Narrow_Slot);
 
    overriding
+   procedure Null_Hash (Ctx    : in out Context;
+                        Length :        RFLX.SPDM.Hash_Length;
+                        Result :    out RFLX.SPDM_Responder.Hash.Structure);
+#end if;
+   overriding
    procedure Null_Signature (Ctx    : in out Context;
                              Length :        RFLX.SPDM.Signature_Length;
                              Result :    out RFLX.SPDM_Responder.Signature.Structure);
-#end if;
 end SPDM_C_Responder;

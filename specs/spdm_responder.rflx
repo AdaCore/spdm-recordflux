@@ -92,7 +92,7 @@ package SPDM_Responder is
          Code : SPDM::Response_Code;
       end message;
 
-   type Next_Transcript_State is (Send_Vers, Send_Cap, Send_Alg, Sign_Key_Ex, Send_Finish) with
+   type Next_Transcript_State is (Send_Vers, Send_Cap, Send_Alg, Send_Finish) with
       Size => 8;
 #end if;
 
@@ -206,7 +206,9 @@ package SPDM_Responder is
 
       with function Plat_Get_Summary_Hash (Data : Opaque) return Hash;
 
-      with function Plat_Update_Transcript_Signature (Message : Opaque; Reset : Boolean) return Boolean;
+      with function Plat_Update_Transcript_Signature (Message : Opaque;
+                                                      Length  : SPDM::Length_16;
+                                                      Reset   : Boolean) return Boolean;
 
       with function Plat_Update_Transcript_Signature_Cert (Slot : SPDM::Slot) return Boolean;
 
@@ -227,6 +229,8 @@ package SPDM_Responder is
       with function Plat_End_Session return Boolean;
 
       with function To_Narrow_Slot (Slot : SPDM::Slot) return SPDM::Narrow_Slot;
+
+      with function Null_Hash (Length : SPDM::Hash_Length) return Hash;
 #end if;
       with function Null_Signature (Length : SPDM::Signature_Length) return Signature;
    session Session with
@@ -363,9 +367,15 @@ package SPDM_Responder is
       is
          Req_Success  : Boolean;
          Resp_Success : Boolean;
+         Req_Length   : SPDM::Length_16;
+         Resp_Length  : SPDM::Length_16;
       begin
-         Req_Success  := Plat_Update_Transcript_Signature (Request'Opaque, True);
-         Resp_Success := Plat_Update_Transcript_Signature (Response'Opaque, False);
+         Req_Length   := Request'Size;
+         Req_Length   := Req_Length * 8;
+         Resp_Length  := Response'Size;
+         Resp_Length  := Resp_Length * 8;
+         Req_Success  := Plat_Update_Transcript_Signature (Request'Opaque, Req_Length, True);
+         Resp_Success := Plat_Update_Transcript_Signature (Response'Opaque, Resp_Length, False);
       transition
          goto Error_Unspecified
             if Req_Success = False or Resp_Success = False
@@ -375,8 +385,6 @@ package SPDM_Responder is
             if Next_Transcript_State = Send_Cap
          goto Send_Idle
             if Next_Transcript_State = Send_Alg
-         goto Prepare_Key_Exchange_Sign
-            if Next_Transcript_State = Sign_Key_Ex
          goto Send_Idle
             if Next_Transcript_State = Send_Finish
          goto Error_Unspecified
@@ -1444,10 +1452,10 @@ package SPDM_Responder is
             Meas_Cap               => Cap_Meas,
             Hash_Type              => SPDM::No_Measurement,
             Hash_Length            => Hash_Length,
-            Signature_Length       => 0,
+            Signature_Length       => Signature_Length,
             Exchange_Data_Length   => Exchange_Data_Length,
-            Handshake_In_The_Clear => True,
-            Has_Signature          => False,
+            Handshake_In_The_Clear => Cap_Handshake_In_The_Clear,
+            Has_Signature          => True,
             Has_Measurement_Hash   => Has_Measurement_Hash);
          Response.Major_Version                                  := 1;
          Response.Minor_Version                                  := 1;
@@ -1514,29 +1522,58 @@ package SPDM_Responder is
       state Prepare_Key_Exchange_Opaque_Data
       is
          Opaque_Data : Opaque_Data;
+         Signature   : Signature;
       begin
+         Signature   := Null_Signature (Signature_Length);
          Opaque_Data := Plat_Get_Key_Ex_Opaque_Data (Request.Key_Exchange_Request_Opaque_Data);
          Response.Key_Exchange_Response_Opaque_Data_Length := Opaque_Data.Length;
          Response.Key_Exchange_Response_Opaque_Data        := Opaque_Data.Data;
-         Response.Key_Exchange_Response_Signature          := [];
+         Response.Key_Exchange_Response_Signature          := Signature.Data;
       transition
          goto Update_Transcript_Hash_Cert
+            if Cap_Handshake_In_The_Clear
+         goto Prepare_Key_Exchange_Verify_Data
       exception
          goto Error_Unspecified
       end Prepare_Key_Exchange_Opaque_Data;
 
+      state Prepare_Key_Exchange_Verify_Data
+      is
+         Verify_Data : Hash;
+      begin
+         Verify_Data := Null_Hash (Hash_Length);
+         Response.Key_Exchange_Response_Responder_Verify_Data := Verify_Data.Data;
+      transition
+         goto Update_Transcript_Hash_Cert
+      exception
+         goto Error_Unspecified
+      end Prepare_Key_Exchange_Verify_Data;
+
       state Update_Transcript_Hash_Cert
       is
          Success           : Boolean;
+         Req_Success       : Boolean;
+         Resp_Success      : Boolean;
+         Req_Length        : SPDM::Length_16;
+         Resp_Length       : SPDM::Length_16;
          Key_Exchange_Slot : SPDM::Slot;
+         Hash_Len          : SPDM::Length_16;
+         Sig_Len           : SPDM::Length_16;
       begin
+         Req_Length   := Request'Size;
+         Req_Length   := Req_Length * 8;
+         Resp_Length  := Response'Size;
+         Hash_Len     := Hash_Length;
+         Sig_Len      := Signature_Length;
+         Resp_Length  := Resp_Length * 8 - Hash_Len - Sig_Len;
+         Req_Success  := Plat_Update_Transcript_Signature (Request'Opaque, Req_Length, True);
+         Resp_Success := Plat_Update_Transcript_Signature (Response'Opaque, Resp_Length, False);
          -- ISSUE: Componolit/RecordFlux#1063
          Key_Exchange_Slot     := Request.Key_Exchange_Request_Slot;
          Success               := Plat_Update_Transcript_Signature_Cert (Key_Exchange_Slot);
-         Next_Transcript_State := Sign_Key_Ex;
       transition
-         goto Update_Transcript_Hash
-            if Success = True
+         goto Prepare_Key_Exchange_Sign
+            if Success and Req_Success and Resp_Success
          goto Error_Unspecified
       exception
          goto Error_Unspecified
@@ -1545,58 +1582,9 @@ package SPDM_Responder is
       state Prepare_Key_Exchange_Sign
       is
          Signature        : Signature;
-         Heartbeat_Period : SPDM::Heartbeat_Period;
-         Session_ID       : SPDM::Session_ID;
-         Nonce            : SPDM::Nonce;
-         Exchange_Data    : Exchange_Data;
-         Opaque_Data      : Opaque_Data;
-         Narrow_Slot      : SPDM::Narrow_Slot;
-         Has_Summary_Hash : Boolean;
-         Summary_Hash     : Hash;
       begin
-         Nonce            := SPDM::Nonce'(Data => Response.Key_Exchange_Response_Random_Data);
-         Heartbeat_Period := Response.Key_Exchange_Response_Heartbeat_Period;
-         Session_ID       := Response.Key_Exchange_Response_Resp_Session_ID;
-         Use_Mutual_Auth  := Response.Key_Exchange_Response_Mutual_Auth;
-         Exchange_Data    := Exchange_Data'(Length => Exchange_Data_Length,
-                                            Pad    => 0,
-                                            Data   => Response.Key_Exchange_Response_Exchange_Data);
-         Opaque_Data      := Opaque_Data'(Length => Response.Key_Exchange_Response_Opaque_Data_Length,
-                                          Data   => Response.Key_Exchange_Response_Opaque_Data);
-         Narrow_Slot      := Response.Key_Exchange_Response_Slot_ID_Param;
-         Has_Summary_Hash := Response.Has_Measurement_Hash;
-         Summary_Hash     := Hash'(Length => Hash_Length,
-                                   Data   => Response.Key_Exchange_Response_Measurement_Summary_Hash);
-         Signature        := Plat_Get_Transcript_Signature (Request.Key_Exchange_Request_Slot);
-         Response'Reset (
-            Meas_Cap               => Cap_Meas,
-            Hash_Type              => SPDM::No_Measurement,
-            Hash_Length            => Hash_Length,
-            Signature_Length       => Signature_Length,
-            Exchange_Data_Length   => Exchange_Data_Length,
-            Handshake_In_The_Clear => Cap_Handshake_In_The_Clear,
-            Has_Signature          => True,
-            Has_Measurement_Hash   => Has_Summary_Hash);
-         Response.Major_Version                                  := 1;
-         Response.Minor_Version                                  := 1;
-         Response.Code                                           := SPDM::Key_Exchange_RSP;
-         Response.Key_Exchange_Response_Heartbeat_Period         := Heartbeat_Period;
-         Response.Key_Exchange_Response_Param_2                  := 0;
-         Response.Key_Exchange_Response_Resp_Session_ID          := Session_ID;
-         Response.Key_Exchange_Response_Reserved_1               := 0;
-         --  Both Mutual_Auth_Implicit and Mutual_Auth_Encapsulated
-         --  require Encapsulated requests that are not supported.
-         Response.Key_Exchange_Response_Mutual_Auth_Implicit     := False;
-         Response.Key_Exchange_Response_Mutual_Auth_Encapsulated := False;
-         Response.Key_Exchange_Response_Mutual_Auth              := Use_Mutual_Auth;
-         Response.Key_Exchange_Response_Reserved_2               := 0;
-         Response.Key_Exchange_Response_Slot_ID_Param            := Narrow_Slot;
-         Response.Key_Exchange_Response_Random_Data              := Nonce.Data;
-         Response.Key_Exchange_Response_Exchange_Data            := Exchange_Data.Data;
-         Response.Key_Exchange_Response_Measurement_Summary_Hash := Summary_Hash.Data;
-         Response.Key_Exchange_Response_Opaque_Data_Length       := Opaque_Data.Length;
-         Response.Key_Exchange_Response_Opaque_Data              := Opaque_Data.Data;
-         Response.Key_Exchange_Response_Signature                := Signature.Data;
+         Signature := Plat_Get_Transcript_Signature (Request.Key_Exchange_Request_Slot);
+         Response.Key_Exchange_Response_Signature := Signature.Data;
          Secure_Session := False;
       transition
          goto Send_Key_Exchange
@@ -1693,16 +1681,22 @@ package SPDM_Responder is
 
       state Prepare_Finish_Response_Verify
       is
-         Verify_Data  : Hash;
-         Header       : SPDM_Header;
-         Resp_Success : Boolean;
-         Req_Success  : Boolean;
+         Verify_Data   : Hash;
+         Header        : SPDM_Header;
+         Resp_Success  : Boolean;
+         Req_Success   : Boolean;
+         Req_Length    : SPDM::Length_16;
+         Header_Length : SPDM::Length_16;
       begin
+         Req_Length   := Request'Size;
+         Req_Length   := Req_Length * 8;
          Header := SPDM_Header'(Major_Version => 1,
                                 Minor_Version => 1,
                                 Code          => SPDM::Finish_RSP);
-         Req_Success  := Plat_Update_Transcript_Signature (Request'Opaque, False);
-         Resp_Success := Plat_Update_Transcript_Signature (Header'Opaque, False);
+         Header_Length := Header'Size;
+         Header_Length := Header_Length * 8;
+         Req_Success  := Plat_Update_Transcript_Signature (Request'Opaque, Req_Length, False);
+         Resp_Success := Plat_Update_Transcript_Signature (Header'Opaque, Header_Length, False);
          Verify_Data  := Plat_Get_Finish_Verify_Data;
          Response.Finish_Response_Responder_Verify_Data := Verify_Data.Data;
          Secure_Session := Plat_Set_Secure_Session (True);
