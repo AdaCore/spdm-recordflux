@@ -221,6 +221,7 @@ is
    overriding
    procedure Plat_Get_Meas_Signature (Ctx              : in out Context;
                                       Unsigned_Message :        RFLX.RFLX_Types.Bytes;
+                                      Sign_Length      :        RFLX.SPDM.Length_24;
                                       Nonce_Offset     :        RFLX.SPDM.Length_24;
                                       Slot             :        RFLX.SPDM.Narrow_Slot;
                                       Result           :    out RFLX.SPDM_Responder.Signature.Structure);
@@ -316,5 +317,9 @@ is
                              Slot   :        RFLX.SPDM.Slot;
                              Result :    out RFLX.SPDM.Narrow_Slot);
 
+   overriding
+   procedure Null_Signature (Ctx    : in out Context;
+                             Length :        RFLX.SPDM.Signature_Length;
+                             Result :    out RFLX.SPDM_Responder.Signature.Structure);
 #end if;
 end SPDM_C_Responder;

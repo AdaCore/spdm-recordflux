@@ -711,10 +711,12 @@ is
    overriding
    procedure Plat_Get_Meas_Signature (Ctx              : in out Context;
                                       Unsigned_Message :        RFLX.RFLX_Types.Bytes;
+                                      Sign_Length      :        RFLX.SPDM.Length_24;
                                       Nonce_Offset     :        RFLX.SPDM.Length_24;
                                       Slot             :        RFLX.SPDM.Narrow_Slot;
                                       Result           :    out RFLX.SPDM_Responder.Signature.Structure)
    is
+      use type RFLX.SPDM.Length_24;
       procedure C_Interface (Instance         :        System.Address;
                              Message          :        System.Address;
                              Message_Length   :        Interfaces.C.unsigned;
@@ -726,10 +728,16 @@ is
          Convention => C,
          External_Name => "spdm_platform_get_meas_signature";
       Signature_Length : Interfaces.C.unsigned := Result.Data'Length;
+      Data_Length      : Interfaces.C.unsigned;
    begin
+      if Sign_Length > Unsigned_Message'Length then
+         Data_Length := Unsigned_Message'Length;
+      else
+         Data_Length := Interfaces.C.unsigned (Sign_Length);
+      end if;
       C_Interface (Ctx.Instance,
                    Unsigned_Message'Address,
-                   Unsigned_Message'Length,
+                   Data_Length,
                    Interfaces.C.unsigned (Nonce_Offset),
                    Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
                    Result.Data,
@@ -1103,5 +1111,14 @@ is
       end case;
    end To_Narrow_Slot;
 
+   overriding
+   procedure Null_Signature (Ctx    : in out Context;
+                             Length :        RFLX.SPDM.Signature_Length;
+                             Result :    out RFLX.SPDM_Responder.Signature.Structure)
+   is
+   begin
+      Result.Data := (others => 0);
+      Result.Length := Length;
+   end Null_Signature;
 #end if;
 end SPDM_C_Responder;
