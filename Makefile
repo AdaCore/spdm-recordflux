@@ -1,4 +1,4 @@
-.PHONY: all test check check_spec check_stack check_stack_riscv64 check_stack_arm package test_package test_cross test_integration prove clean
+.PHONY: all test check check_spec check_stack check_stack_riscv64 check_stack_arm package test_package test_cross test_size test_integration prove clean
 
 SHELL := /bin/bash
 
@@ -196,7 +196,7 @@ libarm: build/arm/lib/libspdm.a
 
 libriscv64: build/riscv64/lib/libspdm.a
 
-test: test_validate test_cross lib test_integration
+test: test_validate test_cross test_size lib test_integration
 
 build/lib/libspdm.a: $(addprefix build/generated/,$(GENERATED))
 	gprbuild -j0 -P spdm $(GPRBUILD_CARGS)
@@ -209,6 +209,10 @@ build/%/example/main: $(addprefix build/generated/,$(GENERATED))
 	test -f $@
 
 test_cross: build/arm/example/main build/riscv64/example/main libarm libriscv64
+
+test_size: build/arm/example/main build/riscv64/example/main
+	tools/check_size.py arm build/arm/example/main .text 77000
+	tools/check_size.py riscv64 build/riscv64/example/main .text 67000
 
 check: check_spec check_stack
 
