@@ -1782,7 +1782,7 @@ package SPDM_Responder is
       state Error_Unsupported_Request
       is
       begin
-         Error_Code := SPDM::Unexpected_Request;
+         Error_Code := SPDM::Unsupported_Request;
       transition
          goto Prepare_Error
       end Error_Unsupported_Request;
@@ -1840,7 +1840,7 @@ package SPDM_Responder is
          Response.Error_Response_Error_Code := Error_Code;
       transition
          goto Prepare_Unexpected_Request_Error
-            if Error_Code = SPDM::Unexpected_Request
+            if Error_Code = SPDM::Unsupported_Request
          goto Prepare_Zero_Data_Error
       exception
          goto End_Session
