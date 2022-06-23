@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Use single field setting to improve binary size (V621-019)
+- Pass length of opaque object into platform functions
+
 ### Fixed
 
 - Improper deletion of code for disabled features (V616-037)
