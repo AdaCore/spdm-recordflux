@@ -236,6 +236,21 @@ is
    procedure Plat_Get_Meas_Opaque_Data (Ctx    : in out Context;
                                         Result :    out RFLX.SPDM_Responder.Opaque_Data.Structure);
 #if FEATURE_KEY_EXCHANGE then
+
+   overriding
+   procedure Plat_Get_New_Hash (Ctx    : in out Context;
+                                Result :    out RFLX.SPDM_Responder.Hash_ID);
+
+   overriding
+   procedure Plat_Valid_Hash_ID (Ctx    : in out Context;
+                                 Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                                 Result :    out Boolean);
+
+   overriding
+   procedure Plat_Reset_Hash (Ctx    : in out Context;
+                              Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                              Result :    out RFLX.SPDM_Responder.Hash_ID);
+
    overriding
    procedure Plat_Get_Exchange_Data (Ctx           : in out Context;
                                      Exchange_Data :        RFLX.RFLX_Types.Bytes;
@@ -265,20 +280,24 @@ is
                                     Result :    out RFLX.SPDM_Responder.Hash.Structure);
 
    overriding
-   procedure Plat_Update_Transcript_Signature (Ctx     : in out Context;
-                                               Message :        RFLX.RFLX_Types.Bytes;
-                                               Length  :        RFLX.SPDM.Length_16;
-                                               Reset   :        Boolean;
-                                               Result  :    out Boolean);
-   overriding
-   procedure Plat_Update_Transcript_Signature_Cert (Ctx    : in out Context;
-                                                    Slot   :        RFLX.SPDM.Slot;
-                                                    Result :    out Boolean);
+   procedure Plat_Update_Hash (Ctx    : in out Context;
+                               Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                               Data   :        RFLX.RFLX_Types.Bytes;
+                               Offset :        RFLX.SPDM.Length_16;
+                               Length :        RFLX.SPDM.Length_16;
+                               Result :    out Boolean);
 
    overriding
-   procedure Plat_Get_Transcript_Signature (Ctx    : in out Context;
-                                            Slot   :        RFLX.SPDM.Slot;
-                                            Result :    out RFLX.SPDM_Responder.Signature.Structure);
+   procedure Plat_Update_Hash_Cert (Ctx    : in out Context;
+                                    Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                                    Slot   :        RFLX.SPDM.Slot;
+                                    Result :    out Boolean);
+
+   overriding
+   procedure Plat_Get_Signature (Ctx    : in out Context;
+                                 Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                                 Slot   :        RFLX.SPDM.Slot;
+                                 Result :    out RFLX.SPDM_Responder.Signature.Structure);
 
    overriding
    procedure Plat_Get_Key_Ex_Opaque_Data (Ctx          : in out Context;
@@ -290,13 +309,23 @@ is
                                           Result :    out RFLX.SPDM_Responder.Hash.Structure);
 
    overriding
-   procedure Plat_Validate_Finish_Signature (Ctx     : in out Context;
-                                             Request :        RFLX.RFLX_Types.Bytes;
-                                             Slot    :        RFLX.SPDM.Slot;
-                                             Result  :    out Boolean);
+   procedure Plat_Validate_Finish_Signature (Ctx       : in out Context;
+                                             Hash      :        RFLX.SPDM_Responder.Hash_ID;
+                                             Signature :        RFLX.RFLX_Types.Bytes;
+                                             Slot      :        RFLX.SPDM.Slot;
+                                             Result    :    out Boolean);
+
+   overriding
+   procedure Plat_Validate_Finish_HMAC (Ctx    : in out Context;
+                                        Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                                        HMAC   :        RFLX.RFLX_Types.Bytes;
+                                        Slot   :        RFLX.SPDM.Slot;
+                                        Result :    out Boolean);
 
    overriding
    procedure Plat_Get_Finish_Verify_Data (Ctx    : in out Context;
+                                          Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                                          Slot   :        RFLX.SPDM.Slot;
                                           Result :    out RFLX.SPDM_Responder.Hash.Structure);
 
    overriding

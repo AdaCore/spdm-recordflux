@@ -423,6 +423,26 @@ void spdm_platform_get_meas_opaque_data(__attribute__((unused)) instance_t *inst
     *size = 0;
 }
 #ifdef FEATURE_KEY_EXCHANGE
+unsigned spdm_platform_get_new_hash(__attribute__((unused)) instance_t *instance)
+{
+    //TODO
+    return 0;
+}
+
+unsigned char spdm_platform_valid_hash_id(__attribute__((unused)) instance_t *instance,
+                                          __attribute__((unused)) unsigned hash)
+{
+    //TODO
+    return 1;
+}
+
+unsigned spdm_platform_reset_hash(__attribute__((unused)) instance_t *instance,
+                                  unsigned hash)
+{
+    //TODO
+    return hash;
+}
+
 void spdm_platform_get_exchange_data (__unused_cross__ instance_t *instance,
                                       __unused_cross__ void *data,
                                       unsigned size)
@@ -482,28 +502,32 @@ void spdm_platform_get_summary_hash(__unused_cross__ instance_t *instance,
     *hash_length = spdm_get_hash_size(instance->base_hash_algo);
 }
 
-unsigned char spdm_platform_update_transcript_signature(instance_t *instance,
-                                                        __unused_cross__ void *message,
-                                                        unsigned size,
-                                                        int reset)
+unsigned char spdm_platform_update_hash(instance_t *instance,
+                                        __attribute__((unused)) unsigned hash,
+                                        __unused_cross__ void *data,
+                                        __attribute__((unused)) unsigned offset,
+                                        unsigned size)
 {
+    /*
     if(reset){
         free(instance->transcript);
         instance->transcript = 0;
         instance->transcript_size = 0;
     }
+    */
     instance->transcript = realloc(instance->transcript, instance->transcript_size + size);
     if(!instance->transcript){
         errx(1, "failed to allocate transcript buffer");
         return 0;
     }
-    memcpy(instance->transcript + instance->transcript_size, message, size);
+    memcpy(instance->transcript + instance->transcript_size, data, size);
     instance->transcript_size += size;
     return 1;
 }
 
-unsigned char spdm_platform_update_transcript_signature_cert(instance_t *instance,
-                                                             unsigned char slot)
+unsigned char spdm_platform_update_hash_cert(instance_t *instance,
+                                             unsigned hash,
+                                             unsigned char slot)
 {
     if(slot != 0){
         return 0;
@@ -517,22 +541,23 @@ unsigned char spdm_platform_update_transcript_signature_cert(instance_t *instanc
     if(!res){
         errx(0, "failed to get certificate");
     }
-    return spdm_platform_update_transcript_signature(instance, raw_data, size, 0);
+    return spdm_platform_update_hash(instance, hash, raw_data, 0, size);
 }
 
-void spdm_platform_get_transcript_signature(__unused_cross__ instance_t *instance,
-                                            __attribute__((unused)) unsigned char slot,
-                                            __unused_cross__ void *signature,
-                                            unsigned *size)
+void spdm_platform_get_signature(__unused_cross__ instance_t *instance,
+                                 __attribute__((unused)) unsigned hash,
+                                 __attribute__((unused)) unsigned char slot,
+                                 __unused_cross__ void *signature,
+                                 unsigned *size)
 {
     __unused_cross__ const spdm_version_number_t version = {0, 0, 1, 1};
     __unused_cross__ const unsigned hash_size = spdm_get_hash_size(instance->base_hash_algo);
-    __unused_cross__ unsigned char hash[hash_size];
+    __unused_cross__ unsigned char hash_data[hash_size];
     uintn sig_size = *size;
     boolean res = spdm_hash_all(instance->base_hash_algo,
                                 instance->transcript,
                                 instance->transcript_size,
-                                hash);
+                                hash_data);
     if(!res){
         errx(1, "failed to hash summary");
     }
@@ -541,7 +566,7 @@ void spdm_platform_get_transcript_signature(__unused_cross__ instance_t *instanc
                                  instance->base_asym_algo,
                                  instance->base_hash_algo,
                                  1,
-                                 (const uint8 *)&hash,
+                                 (const uint8 *)&hash_data,
                                  hash_size,
                                  signature,
                                  &sig_size)){
@@ -566,14 +591,26 @@ void spdm_platform_get_key_ex_verify_data(__unused_cross__ instance_t *instance,
 }
 
 unsigned char spdm_platform_validate_finish_signature(__attribute__((unused)) instance_t *instance,
-                                                      __attribute__((unused)) void *data,
+                                                      __attribute__((unused)) unsigned hash,
+                                                      __attribute__((unused)) void *signature,
                                                       __attribute__((unused)) unsigned size,
                                                       __attribute__((unused)) unsigned char slot)
 {
     return 1;
 }
 
+unsigned char spdm_platform_validate_finish_hmac(__attribute__((unused)) instance_t *instance,
+                                                 __attribute__((unused)) unsigned hash,
+                                                 __attribute__((unused)) void *hmac,
+                                                 __attribute__((unused)) unsigned size,
+                                                 __attribute__((unused)) unsigned char slot)
+{
+    return 1;
+}
+
 void spdm_platform_get_finish_verify_data(__unused_cross__ instance_t *instance,
+                                          __attribute__((unused)) unsigned hash,
+                                          __attribute__((unused)) unsigned char slot,
                                           __attribute__((unused)) void *data,
                                           unsigned *size)
 {

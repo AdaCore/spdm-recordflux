@@ -143,9 +143,7 @@ GENERATED += \
     rflx-spdm_responder-exchange_data.adb \
     rflx-spdm_responder-exchange_data.ads \
     rflx-spdm_responder-measurement_summary.adb \
-    rflx-spdm_responder-measurement_summary.ads \
-    rflx-spdm_responder-spdm_header.adb \
-    rflx-spdm_responder-spdm_header.ads
+    rflx-spdm_responder-measurement_summary.ads
 
 VALIDATE_STATIC += test_validate_static_key_exchange
 DUMP_VALIDATE_FLAGS += --feature_key_exchange
@@ -211,8 +209,8 @@ build/%/example/main: $(addprefix build/generated/,$(GENERATED))
 test_cross: build/arm/example/main build/riscv64/example/main libarm libriscv64
 
 test_size: build/arm/example/main build/riscv64/example/main
-	tools/check_size.py arm build/arm/example/main .text 77000
-	tools/check_size.py riscv64 build/riscv64/example/main .text 67000
+	tools/check_size.py arm build/arm/example/main .text 78000
+	tools/check_size.py riscv64 build/riscv64/example/main .text 68000
 
 check: check_spec check_stack
 
