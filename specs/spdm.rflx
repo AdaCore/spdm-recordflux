@@ -1068,13 +1068,13 @@ package SPDM is
          with Byte_Order => Low_Order_First;
 
    type Response (
-#if FEATURE_KEY_EXCHANGE then
+#if FEATURE_CHALLENGE_AUTH then
       Meas_Cap               : Meas_Cap;
       Hash_Type              : Measurement_Summary_Hash_Type;
 #end if;
       Hash_Length            : Hash_Length;
       Signature_Length       : Signature_Length;
-#if FEATURE_CHALLENGE_AUTH then
+#if FEATURE_KEY_EXCHANGE then
       Exchange_Data_Length   : Exchange_Data_Length;
       Handshake_In_The_Clear : Boolean;
       Has_Signature          : Boolean;

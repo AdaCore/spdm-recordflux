@@ -328,7 +328,7 @@ package SPDM_Responder is
          Secure_Session := Plat_Set_Secure_Session (False);
 #end if;
          Response := SPDM::Response'(
-#if FEATURE_KEY_EXCHANGE then
+#if FEATURE_CHALLENGE_AUTH then
             Meas_Cap                                    => Cap_Meas,
             Hash_Type                                   => SPDM::No_Measurement,
 #end if;
@@ -446,7 +446,7 @@ package SPDM_Responder is
          --  without taking into account what the requester supports.
          Response :=
             SPDM::Response'(
-#if FEATURE_KEY_EXCHANGE then
+#if FEATURE_CHALLENGE_AUTH then
                Meas_Cap                                         => Cap_Meas,
                Hash_Type                                        => SPDM::No_Measurement,
 #end if;
@@ -806,7 +806,7 @@ package SPDM_Responder is
 
          Response :=
             SPDM::Response'(
-#if FEATURE_KEY_EXCHANGE then
+#if FEATURE_CHALLENGE_AUTH then
                Meas_Cap                                          => Cap_Meas,
                Hash_Type                                         => SPDM::No_Measurement,
 #end if;
@@ -1158,7 +1158,7 @@ package SPDM_Responder is
          Slot_7_Present := Digests_Data.Slot_7_Present;
 
          Response := SPDM::Response'(
-#if FEATURE_KEY_EXCHANGE then
+#if FEATURE_CHALLENGE_AUTH then
             Meas_Cap                                    => Cap_Meas,
             Hash_Type                                   => SPDM::No_Measurement,
 #end if;
@@ -1221,7 +1221,7 @@ package SPDM_Responder is
          Cert_Remainder_Length := Cert.Remainder_Length;
 
          Response := SPDM::Response'(
-#if FEATURE_KEY_EXCHANGE then
+#if FEATURE_CHALLENGE_AUTH then
             Meas_Cap                              => Cap_Meas,
             Hash_Type                             => SPDM::No_Measurement,
 #end if;
@@ -1348,7 +1348,7 @@ package SPDM_Responder is
          Opaque_Data := Plat_Get_Meas_Opaque_Data;
          Has_Signature := Request.Get_Measurements_Request_Generate_Signature;
          Response'Reset (
-#if FEATURE_KEY_EXCHANGE then
+#if FEATURE_CHALLENGE_AUTH then
             Meas_Cap               => Cap_Meas,
             Hash_Type              => SPDM::No_Measurement,
 #end if;
@@ -1449,8 +1449,10 @@ package SPDM_Responder is
             Request.Key_Exchange_Request_Measurement_Summary_Hash_Type = SPDM::TCB_Measurement
             or Request.Key_Exchange_Request_Measurement_Summary_Hash_Type = SPDM::All_Measurements;
          Response'Reset (
+#if FEATURE_CHALLENGE_AUTH then
             Meas_Cap               => Cap_Meas,
             Hash_Type              => SPDM::No_Measurement,
+#end if;
             Hash_Length            => Hash_Length,
             Signature_Length       => Signature_Length,
             Exchange_Data_Length   => Exchange_Data_Length,
@@ -1655,14 +1657,17 @@ package SPDM_Responder is
          Success : Boolean;
       begin
          Success := Plat_Update_Transcript_Signature_Cert (Request.Finish_Request_Slot);
-         Response'Reset (Meas_Cap                => Cap_Meas,
-                         Hash_Type               => SPDM::No_Measurement,
-                         Hash_Length             => Hash_Length,
-                         Signature_Length        => Signature_Length,
-                         Exchange_Data_Length    => 0,
-                         Handshake_In_The_Clear  => Cap_Handshake_In_The_Clear,
-                         Has_Signature           => False,
-                         Has_Measurement_Hash    => False);
+         Response'Reset (
+#if FEATURE_CHALLENGE_AUTH then
+            Meas_Cap                => Cap_Meas,
+            Hash_Type               => SPDM::No_Measurement,
+#end if;
+            Hash_Length             => Hash_Length,
+            Signature_Length        => Signature_Length,
+            Exchange_Data_Length    => 0,
+            Handshake_In_The_Clear  => Cap_Handshake_In_The_Clear,
+            Has_Signature           => False,
+            Has_Measurement_Hash    => False);
          Response.Major_Version           := 1;
          Response.Minor_Version           := 1;
          Response.Code                    := SPDM::Finish_RSP;
@@ -1730,19 +1735,22 @@ package SPDM_Responder is
       begin
          Success := Plat_Key_Update (Request.Key_Update_Request_Key_Operation);
          Response :=
-            SPDM::Response'(Meas_Cap                              => Cap_Meas,
-                            Hash_Type                             => SPDM::No_Measurement,
-                            Hash_Length                           => Hash_Length,
-                            Signature_Length                      => Signature_Length,
-                            Exchange_Data_Length                  => 0,
-                            Handshake_In_The_Clear                => True,
-                            Has_Signature                         => False,
-                            Has_Measurement_Hash                  => False,
-                            Major_Version                         => 1,
-                            Minor_Version                         => 1,
-                            Code                                  => SPDM::Key_Update_ACK,
-                            Key_Update_ACK_Response_Key_Operation => Request.Key_Update_Request_Key_Operation,
-                            Key_Update_ACK_Response_Tag           => Request.Key_Update_Request_Tag);
+            SPDM::Response'(
+#if FEATURE_CHALLENGE_AUTH then
+               Meas_Cap                              => Cap_Meas,
+               Hash_Type                             => SPDM::No_Measurement,
+#end if;
+               Hash_Length                           => Hash_Length,
+               Signature_Length                      => Signature_Length,
+               Exchange_Data_Length                  => 0,
+               Handshake_In_The_Clear                => True,
+               Has_Signature                         => False,
+               Has_Measurement_Hash                  => False,
+               Major_Version                         => 1,
+               Minor_Version                         => 1,
+               Code                                  => SPDM::Key_Update_ACK,
+               Key_Update_ACK_Response_Key_Operation => Request.Key_Update_Request_Key_Operation,
+               Key_Update_ACK_Response_Tag           => Request.Key_Update_Request_Tag);
       transition
          goto Send_Idle
             if Success
@@ -1757,19 +1765,22 @@ package SPDM_Responder is
       begin
          Success := Plat_End_Session;
          Response :=
-            SPDM::Response'(Meas_Cap                              => Cap_Meas,
-                            Hash_Type                             => SPDM::No_Measurement,
-                            Hash_Length                           => Hash_Length,
-                            Signature_Length                      => Signature_Length,
-                            Exchange_Data_Length                  => 0,
-                            Handshake_In_The_Clear                => True,
-                            Has_Signature                         => False,
-                            Has_Measurement_Hash                  => False,
-                            Major_Version                         => 1,
-                            Minor_Version                         => 1,
-                            Code                                  => SPDM::End_Session_ACK,
-                            End_Session_Response_Reserved_1       => 0,
-                            End_Session_Response_Reserved_2       => 0);
+            SPDM::Response'(
+#if FEATURE_CHALLENGE_AUTH then
+               Meas_Cap                              => Cap_Meas,
+               Hash_Type                             => SPDM::No_Measurement,
+#end if;
+               Hash_Length                           => Hash_Length,
+               Signature_Length                      => Signature_Length,
+               Exchange_Data_Length                  => 0,
+               Handshake_In_The_Clear                => True,
+               Has_Signature                         => False,
+               Has_Measurement_Hash                  => False,
+               Major_Version                         => 1,
+               Minor_Version                         => 1,
+               Code                                  => SPDM::End_Session_ACK,
+               End_Session_Response_Reserved_1       => 0,
+               End_Session_Response_Reserved_2       => 0);
          Secure_Session := False;
       transition
          goto Send_Idle
@@ -1818,7 +1829,7 @@ package SPDM_Responder is
       is
       begin
          Response'Reset (
-#if FEATURE_KEY_EXCHANGE then
+#if FEATURE_CHALLENGE_AUTH then
             Meas_Cap               => Cap_Meas,
             Hash_Type              => SPDM::No_Measurement,
 #end if;

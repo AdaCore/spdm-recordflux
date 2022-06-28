@@ -80,7 +80,14 @@ jobs:
               run: make clean
             - name: Test (all features off, partial)
               env:
-                FEATURE_CHALLENGE_AUTH: False
-                FEATURE_KEY_EXCHANGE: False
-                FEATURE_RESPOND_IF_READY: False
+                FEATURE_CHALLENGE_AUTH: "False"
+                FEATURE_KEY_EXCHANGE: "False"
+                FEATURE_RESPOND_IF_READY: "False"
+              run: make check_spec test_cross test_size check_stack prove build/tests/responder
+            - name: Clean
+              run: make clean
+            - name: Test (only Key_Exchange, partial)
+              env:
+                FEATURE_CHALLENGE_AUTH: "False"
+                FEATURE_RESPOND_IF_READY: "False"
               run: make check_spec test_cross test_size check_stack prove build/tests/responder
