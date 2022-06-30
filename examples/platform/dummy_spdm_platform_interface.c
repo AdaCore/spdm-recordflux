@@ -15,6 +15,8 @@ struct instance {
     unsigned char dhe_key[512];
     unsigned dhe_key_size;
     unsigned char secure_session;
+    unsigned transcript_stage;
+    uint16 transcript_headers[16];
 };
 
 void spdm_platform_initialize(instance_t **instance)
@@ -24,6 +26,22 @@ void spdm_platform_initialize(instance_t **instance)
         errx(1, "failed to create instance");
     }
     memset(*instance, 0, sizeof(instance_t));
+    (*instance)->transcript_headers[0]  = 0x8410; //[GET_VERSION].*
+    (*instance)->transcript_headers[1]  = 0x0410; //[VERSION].*
+    (*instance)->transcript_headers[2]  = 0xe111; //[GET_CAPABILITIES].*
+    (*instance)->transcript_headers[3]  = 0x6111; //[CAPABILITIES].*
+    (*instance)->transcript_headers[4]  = 0xe311; //[NEGOTIATE_ALGORITHMS].*
+    (*instance)->transcript_headers[5]  = 0x6311; //[ALGORITHMS].*
+    (*instance)->transcript_headers[6]  = 0xffff; //Hash of the specified certificate chain in DER format (i.e., KEY_EXCHANGE Param2)
+    (*instance)->transcript_headers[7]  = 0xe411; //[KEY_EXCHANGE].*
+    (*instance)->transcript_headers[8]  = 0x6411; //[KEY_EXCHANGE_RSP].* except the `Signature` and `ResponderVerifyData` fields.
+    (*instance)->transcript_headers[9]  = 0xffff; //[KEY_EXCHANGE_RSP].Signature ([KEY_EXCHANGE_RSP].* except the `ResponderVerifyData` field.)
+    (*instance)->transcript_headers[10] = 0xffff; //[KEY_EXCHANGE_RSP].ResponderVerifyData ([KEY_EXCHANGE].*)
+    (*instance)->transcript_headers[11] = 0xffff; //Hash of the specified certificate chain in DER format (i.e., FINISH Param2)
+    (*instance)->transcript_headers[12] = 0xe511; //[FINISH].SPDM Header Fields
+    (*instance)->transcript_headers[13] = 0xffff; //[FINISH].Signature
+    (*instance)->transcript_headers[14] = 0x6511; //[FINISH_RSP].SPDM Header fields
+    (*instance)->transcript_headers[15] = 0xffff; //[FINISH_RSP].*
 }
 #ifdef FEATURE_KEY_EXCHANGE
 unsigned char spdm_platform_is_secure_session(instance_t *instance)
@@ -440,6 +458,7 @@ unsigned spdm_platform_reset_hash(__attribute__((unused)) instance_t *instance,
                                   unsigned hash)
 {
     //TODO
+    instance->transcript_stage = 0;
     return hash;
 }
 
@@ -508,13 +527,11 @@ unsigned char spdm_platform_update_hash(instance_t *instance,
                                         __attribute__((unused)) unsigned offset,
                                         unsigned size)
 {
-    /*
-    if(reset){
-        free(instance->transcript);
-        instance->transcript = 0;
-        instance->transcript_size = 0;
+    if(instance->transcript_headers[instance->transcript_stage] != 0xffff
+            && instance->transcript_headers[instance->transcript_stage] != *(uint16 *)data){
+        errx(1, "unexpected transcript stage, expected %04hx, got %04hx", instance->transcript_headers[instance->transcript_stage], *(uint16 *)data);
     }
-    */
+    instance->transcript_stage = instance->transcript_stage + 1;
     instance->transcript = realloc(instance->transcript, instance->transcript_size + size);
     if(!instance->transcript){
         errx(1, "failed to allocate transcript buffer");

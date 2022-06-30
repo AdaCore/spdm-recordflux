@@ -50,6 +50,7 @@ typedef struct {
 typedef unsigned long uintn;
 typedef unsigned char boolean;
 typedef unsigned char uint8;
+typedef unsigned short uint16;
 
 #endif
 
