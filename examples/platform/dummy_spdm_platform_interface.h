@@ -46,6 +46,8 @@ typedef struct {
     unsigned char major_version;
 } spdm_version_number_t;
 #define __unused_cross__ __attribute__((unused))
+#define SPDM_MEASUREMENTS 0x60
+#define SPDM_KEY_EXCHANGE_RSP 0x64
 
 typedef unsigned long uintn;
 typedef unsigned char boolean;

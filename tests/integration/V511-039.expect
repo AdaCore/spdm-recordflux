@@ -39,7 +39,6 @@ match $requester_id "Response: 11 63 1 0 28 0 1 0 4 0 0 0 80 0 0 0 2 0 0 0 0 0 0
 match $responder_id "State: Error_Unsupported_Request"
 match $responder_id "State: Send_Error"
 match $requester_id "Response: 11 7F 7 E3"
-match $responder_id "State: Init"
 match $responder_id "State: Receive_Get_Version"
 match $responder_id "State: Prepare_Version"
 match $responder_id "State: Send_Version"

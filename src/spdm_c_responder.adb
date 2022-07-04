@@ -709,67 +709,6 @@ is
    end Plat_Get_DMTF_Measurement_Field;
 
    overriding
-   procedure Plat_Get_Meas_Signature (Ctx              : in out Context;
-                                      Unsigned_Message :        RFLX.RFLX_Types.Bytes;
-                                      Sign_Length      :        RFLX.SPDM.Length_24;
-                                      Nonce_Offset     :        RFLX.SPDM.Length_24;
-                                      Slot             :        RFLX.SPDM.Narrow_Slot;
-                                      Result           :    out RFLX.SPDM_Responder.Signature.Structure)
-   is
-      use type RFLX.SPDM.Length_24;
-      procedure C_Interface (Instance         :        System.Address;
-                             Message          :        System.Address;
-                             Message_Length   :        Interfaces.C.unsigned;
-                             Nonce_Offset     :        Interfaces.C.unsigned;
-                             Slot             :        Interfaces.C.unsigned_char;
-                             Signature        :    out RFLX.RFLX_Types.Bytes;
-                             Signature_Length : in out Interfaces.C.unsigned) with
-         Import,
-         Convention => C,
-         External_Name => "spdm_platform_get_meas_signature";
-      Signature_Length : Interfaces.C.unsigned := Result.Data'Length;
-      Data_Length      : Interfaces.C.unsigned;
-   begin
-      if Sign_Length > Unsigned_Message'Length then
-         Data_Length := Unsigned_Message'Length;
-      else
-         Data_Length := Interfaces.C.unsigned (Sign_Length);
-      end if;
-      C_Interface (Ctx.Instance,
-                   Unsigned_Message'Address,
-                   Data_Length,
-                   Interfaces.C.unsigned (Nonce_Offset),
-                   Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
-                   Result.Data,
-                   Signature_Length);
-      if not RFLX.SPDM.Valid_Signature_Length (RFLX.RFLX_Types.U64 (Signature_Length)) then
-         raise Constraint_Error;
-      end if;
-      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Signature_Length));
-   end Plat_Get_Meas_Signature;
-
-   overriding
-   procedure Plat_Update_Meas_Signature (Ctx     : in out Context;
-                                         Message :        RFLX.RFLX_Types.Bytes;
-                                         Reset   :        Boolean;
-                                         Result  :    out Boolean)
-   is
-      use type Interfaces.C.int;
-      function C_Interface (Instance : System.Address;
-                            Message  : System.Address;
-                            Size     : Interfaces.C.unsigned;
-                            Reset    : Interfaces.C.int) return Interfaces.C.int with
-         Import,
-         Convention => C,
-         External_Name => "spdm_platform_update_meas_signature";
-   begin
-      Result := C_Interface (Ctx.Instance,
-                             Message'Address,
-                             Message'Length,
-                             (if Reset then 1 else 0)) /= 0;
-   end Plat_Update_Meas_Signature;
-
-   overriding
    procedure Plat_Get_Meas_Opaque_Data (Ctx    : in out Context;
                                         Result :    out RFLX.SPDM_Responder.Opaque_Data.Structure)
    is
@@ -787,7 +726,7 @@ is
       end if;
       Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Length));
    end Plat_Get_Meas_Opaque_Data;
-#if FEATURE_KEY_EXCHANGE then
+
    overriding
    procedure Plat_Get_New_Hash (Ctx    : in out Context;
                                 Result :    out RFLX.SPDM_Responder.Hash_ID)
@@ -839,6 +778,101 @@ is
       Result := RFLX.SPDM_Responder.To_Actual (New_Hash);
    end Plat_Reset_Hash;
 
+   overriding
+   procedure Plat_Update_Hash (Ctx    : in out Context;
+                               Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                               Data   :        RFLX.RFLX_Types.Bytes;
+                               Offset :        RFLX.SPDM.Length_16;
+                               Length :        RFLX.SPDM.Length_16;
+                               Result :    out Boolean)
+   is
+      use type Interfaces.C.unsigned_char;
+      use type RFLX.SPDM.Length_16;
+      function C_Interface (Instance : System.Address;
+                            Hash     : Interfaces.C.unsigned;
+                            Data     : System.Address;
+                            Offset   : Interfaces.C.unsigned;
+                            Length   : Interfaces.C.unsigned) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_update_hash";
+      Data_Length : Interfaces.C.unsigned;
+   begin
+      if Data'Length < Length then
+         Data_Length := Data'Length;
+      else
+         Data_Length := Interfaces.C.unsigned (Length);
+      end if;
+      Result := C_Interface (Ctx.Instance,
+                             Interfaces.C.unsigned (Hash),
+                             Data'Address,
+                             Interfaces.C.unsigned (Offset),
+                             Data_Length) > 0;
+   end Plat_Update_Hash;
+
+   overriding
+   procedure Plat_Update_Hash_Nonce (Ctx  : in out Context;
+                                     Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                                     Result :    out Boolean)
+   is
+      use type Interfaces.C.unsigned_char;
+      function C_Interface (Instance : System.Address;
+                            Hash     : Interfaces.C.unsigned) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_update_hash_nonce";
+   begin
+      Result := C_Interface (Ctx.Instance, Interfaces.C.unsigned (Hash)) > 0;
+   end Plat_Update_Hash_Nonce;
+
+   overriding
+   procedure Plat_Get_Signature (Ctx    : in out Context;
+                                 Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                                 Slot   :        RFLX.SPDM.Slot;
+                                 Result :    out RFLX.SPDM_Responder.Signature.Structure)
+   is
+      procedure C_Interface (Instance  :        System.Address;
+                             Hash      :        Interfaces.C.unsigned;
+                             Slot      :        Interfaces.C.unsigned_char;
+                             Signature :    out RFLX.RFLX_Types.Bytes;
+                             Length    : in out Interfaces.C.unsigned) with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_get_signature";
+      Length : Interfaces.C.unsigned := Result.Data'Length;
+   begin
+      C_Interface (Ctx.Instance,
+                   Interfaces.C.unsigned (Hash),
+                   Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
+                   Result.Data,
+                   Length);
+      if not RFLX.SPDM.Valid_Signature_Length (RFLX.RFLX_Types.U64 (Length)) then
+         raise Constraint_Error;
+      end if;
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Length));
+   end Plat_Get_Signature;
+
+   overriding
+   procedure To_Slot (Ctx    : in out Context;
+                      Slot   :        RFLX.SPDM.Narrow_Slot;
+                      Result :    out RFLX.SPDM.Slot)
+   is
+      pragma Unreferenced (Ctx);
+   begin
+      case Slot is
+         when RFLX.SPDM.NS_0 => Result := RFLX.SPDM.Slot_0;
+         when RFLX.SPDM.NS_1 => Result := RFLX.SPDM.Slot_1;
+         when RFLX.SPDM.NS_2 => Result := RFLX.SPDM.Slot_2;
+         when RFLX.SPDM.NS_3 => Result := RFLX.SPDM.Slot_3;
+         when RFLX.SPDM.NS_4 => Result := RFLX.SPDM.Slot_4;
+         when RFLX.SPDM.NS_5 => Result := RFLX.SPDM.Slot_5;
+         when RFLX.SPDM.NS_6 => Result := RFLX.SPDM.Slot_6;
+         when RFLX.SPDM.NS_7 => Result := RFLX.SPDM.Slot_7;
+         when RFLX.SPDM.NS_Trusted_Environment =>
+            Result := RFLX.SPDM.Trusted_Environment;
+      end case;
+   end To_Slot;
+#if FEATURE_KEY_EXCHANGE then
    overriding
    procedure Plat_Get_Exchange_Data (Ctx           : in out Context;
                                      Exchange_Data :        RFLX.RFLX_Types.Bytes;
@@ -952,38 +986,6 @@ is
    end Plat_Get_Summary_Hash;
 
    overriding
-   procedure Plat_Update_Hash (Ctx    : in out Context;
-                               Hash   :        RFLX.SPDM_Responder.Hash_ID;
-                               Data   :        RFLX.RFLX_Types.Bytes;
-                               Offset :        RFLX.SPDM.Length_16;
-                               Length :        RFLX.SPDM.Length_16;
-                               Result :    out Boolean)
-   is
-      use type Interfaces.C.unsigned_char;
-      use type RFLX.SPDM.Length_16;
-      function C_Interface (Instance : System.Address;
-                            Hash     : Interfaces.C.unsigned;
-                            Data     : System.Address;
-                            Offset   : Interfaces.C.unsigned;
-                            Length   : Interfaces.C.unsigned) return Interfaces.C.unsigned_char with
-         Import,
-         Convention => C,
-         External_Name => "spdm_platform_update_hash";
-      Data_Length : Interfaces.C.unsigned;
-   begin
-      if Data'Length < Length then
-         Data_Length := Data'Length;
-      else
-         Data_Length := Interfaces.C.unsigned (Length);
-      end if;
-      Result := C_Interface (Ctx.Instance,
-                             Interfaces.C.unsigned (Hash),
-                             Data'Address,
-                             Interfaces.C.unsigned (Offset),
-                             Data_Length) > 0;
-   end Plat_Update_Hash;
-
-   overriding
    procedure Plat_Update_Hash_Cert (Ctx    : in out Context;
                                     Hash   :        RFLX.SPDM_Responder.Hash_ID;
                                     Slot   :        RFLX.SPDM.Slot;
@@ -1001,33 +1003,6 @@ is
                              Interfaces.C.unsigned (Hash),
                              Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot))) > 0;
    end Plat_Update_Hash_Cert;
-
-   overriding
-   procedure Plat_Get_Signature (Ctx    : in out Context;
-                                 Hash   :        RFLX.SPDM_Responder.Hash_ID;
-                                 Slot   :        RFLX.SPDM.Slot;
-                                 Result :    out RFLX.SPDM_Responder.Signature.Structure)
-   is
-      procedure C_Interface (Instance  :        System.Address;
-                             Hash      :        Interfaces.C.unsigned;
-                             Slot      :        Interfaces.C.unsigned_char;
-                             Signature :    out RFLX.RFLX_Types.Bytes;
-                             Length    : in out Interfaces.C.unsigned) with
-         Import,
-         Convention => C,
-         External_Name => "spdm_platform_get_signature";
-      Length : Interfaces.C.unsigned := Result.Data'Length;
-   begin
-      C_Interface (Ctx.Instance,
-                   Interfaces.C.unsigned (Hash),
-                   Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
-                   Result.Data,
-                   Length);
-      if not RFLX.SPDM.Valid_Signature_Length (RFLX.RFLX_Types.U64 (Length)) then
-         raise Constraint_Error;
-      end if;
-      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Length));
-   end Plat_Get_Signature;
 
    overriding
    procedure Plat_Get_Key_Ex_Opaque_Data (Ctx          : in out Context;

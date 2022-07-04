@@ -172,22 +172,26 @@ package SPDM_Responder is
 
       with function Plat_Get_DMTF_Measurement_Field (Index : SPDM::Index) return SPDM::DMTF_Measurement_Field;
 
-      with function Plat_Get_Meas_Signature (Unsigned_Message : Opaque;
-                                             Sign_Length      : SPDM::Length_24;
-                                             Nonce_Offset     : SPDM::Length_24;
-                                             Slot             : SPDM::Narrow_Slot) return Signature;
-
-      with function Plat_Update_Meas_Signature (Message : Opaque; Reset : Boolean) return Boolean;
-
       with function Plat_Get_Meas_Opaque_Data return Opaque_Data;
 
-#if FEATURE_KEY_EXCHANGE then
       with function Plat_Get_New_Hash return Hash_ID;
 
       with function Plat_Valid_Hash_ID (Hash : Hash_ID) return Boolean;
 
       with function Plat_Reset_Hash (Hash : Hash_ID) return Hash_ID;
 
+      with function Plat_Update_Hash (Hash   : Hash_ID;
+                                      Data   : Opaque;
+                                      Offset : SPDM::Length_16;
+                                      Length : SPDM::Length_16) return Boolean;
+
+      with function Plat_Update_Hash_Nonce (Hash : Hash_ID) return Boolean;
+
+      with function Plat_Get_Signature (Hash : Hash_ID;
+                                        Slot : SPDM::Slot) return Signature;
+
+      with function To_Slot (Slot : SPDM::Narrow_Slot) return SPDM::Slot;
+#if FEATURE_KEY_EXCHANGE then
       with function Plat_Get_Exchange_Data (Exchange_Data : Opaque) return Exchange_Data;
 
       with function Plat_Get_Heartbeat_Period return SPDM::Heartbeat_Period;
@@ -200,16 +204,8 @@ package SPDM_Responder is
 
       with function Plat_Get_Summary_Hash (Data : Opaque) return Hash;
 
-      with function Plat_Update_Hash (Hash   : Hash_ID;
-                                      Data   : Opaque;
-                                      Offset : SPDM::Length_16;
-                                      Length : SPDM::Length_16) return Boolean;
-
       with function Plat_Update_Hash_Cert (Hash : Hash_ID;
                                            Slot : SPDM::Slot) return Boolean;
-
-      with function Plat_Get_Signature (Hash : Hash_ID;
-                                        Slot : SPDM::Slot) return Signature;
 
       with function Plat_Get_Key_Ex_Opaque_Data (Request_Data : Opaque) return Opaque_Data;
 
@@ -257,6 +253,7 @@ package SPDM_Responder is
       Reset_Measurement_Sig  : Boolean := True;
       Measurement_Slot       : SPDM::Narrow_Slot;
       Measurement_Record     : SPDM::Measurement_Record;
+      Measurement_Hash       : Hash_ID;
       Current_Measurement    : SPDM::Index;
       Last_Measurement       : SPDM::Index;
       Number_Of_Indices      : SPDM::Measurement_Count;
@@ -294,20 +291,22 @@ package SPDM_Responder is
    begin
       state Init
       is
-#if FEATURE_KEY_EXCHANGE then
          Valid : Boolean;
+#if FEATURE_KEY_EXCHANGE then
+         Next_Valid : Boolean;
 #end if;
       begin
+         Measurement_Hash := Plat_Get_New_Hash;
+         Valid := Plat_Valid_Hash_ID (Measurement_Hash);
 #if FEATURE_KEY_EXCHANGE then
          Transcript_Hash := Plat_Get_New_Hash;
-         Valid := Plat_Valid_Hash_ID (Transcript_Hash);
+         Next_Valid := Plat_Valid_Hash_ID (Transcript_Hash);
+         Valid := Valid and Next_Valid;
 #end if;
       transition
          goto Receive_Get_Version
-#if FEATURE_KEY_EXCHANGE then
             if Valid
          goto Error_Unspecified
-#end if;
       end Init;
 
       state Receive_Get_Version
@@ -1132,6 +1131,9 @@ package SPDM_Responder is
             if Request'Valid and Request.Code = SPDM::Get_Digests
          goto Check_Certificate
             if Request'Valid and Request.Code = SPDM::Get_Certificate
+         goto Reset_Measurements_Hash
+            if Request'Valid and Request.Code = SPDM::Get_Measurements
+               and Reset_Measurement_Sig
          goto Prepare_Measurements
             if Request'Valid and Request.Code = SPDM::Get_Measurements
 #if FEATURE_KEY_EXCHANGE then
@@ -1268,12 +1270,27 @@ package SPDM_Responder is
          goto Error_Unspecified
       end Prepare_Certificate;
 
+      state Reset_Measurements_Hash
+      is
+         Valid    : Boolean;
+      begin
+         Measurement_Hash      := Plat_Reset_Hash (Measurement_Hash);
+         Valid                 := Plat_Valid_Hash_ID (Measurement_Hash);
+         Reset_Measurement_Sig := False;
+      transition
+         goto Prepare_Measurements
+            if Valid
+         goto Error_Unspecified
+      end Reset_Measurements_Hash;
+
       state Prepare_Measurements
       is
-         Success : Boolean;
+         Success  : Boolean;
+         Req_Size : SPDM::Length_16;
       begin
-         Success               := Plat_Update_Meas_Signature (Request'Opaque, Reset_Measurement_Sig);
-         Reset_Measurement_Sig := False;
+         Req_Size         := Request'Size;
+         Req_Size         := Req_Size / 8;
+         Success          := Plat_Update_Hash (Measurement_Hash, Request'Opaque, 0, Req_Size);
          Measurement_Record'Reset;
          Current_Measurement   := Request.Get_Measurements_Request_Measurement_Operation;
          Last_Measurement      := Request.Get_Measurements_Request_Measurement_Operation;
@@ -1405,24 +1422,37 @@ package SPDM_Responder is
 
       state Prepare_Measurements_Sign
       is
-         Slot_ID       : SPDM::Narrow_Slot;
-         Nonce_Offset  : SPDM::Length_24;
-         Sign_Length   : SPDM::Length_24;
-         Signature     : Signature;
-         Opaque_Length_16 : SPDM::Length_16;
-         Opaque_Length_24 : SPDM::Length_24;
+         Narrow_Slot_ID   : SPDM::Narrow_Slot;
+         Slot_ID          : SPDM::Slot;
+         Nonce_Offset     : SPDM::Length_16;
+         Signature        : Signature;
+         Resp_Size        : SPDM::Length_16;
+         Record_Length_16 : SPDM::Length_16;
+         Record_Length_24 : SPDM::Length_24;
+         Success          : Boolean;
+         Next_Success     : Boolean;
       begin
-         Signature := Null_Signature (Signature_Length);
+         Signature                                := Null_Signature (Signature_Length);
          Response.Measurements_Response_Signature := Signature.Data;
-         Nonce_Offset  := Response.Measurements_Response_Measurement_Record_Length + 8;
-         Opaque_Length_16 := Response.Measurements_Response_Opaque_Length;
-         Opaque_Length_24 := Opaque_Length_16;
-         Sign_Length   := Response.Measurements_Response_Measurement_Record_Length + Opaque_Length_24 + 42;
-         Slot_ID       := Response.Measurements_Response_Slot_ID;
-         Signature := Plat_Get_Meas_Signature
-            (Response'Opaque, Sign_Length, Nonce_Offset, Slot_ID);
+         Record_Length_24                         := Response.Measurements_Response_Measurement_Record_Length;
+         Record_Length_16                         := Record_Length_24;
+         Resp_Size                                := Record_Length_16 + 8;
+         --  Hash message part before nonce
+         Success                                  := Plat_Update_Hash (Measurement_Hash, Response'Opaque, 0, Resp_Size);
+         --  Hash last generated nonce
+         Next_Success                             := Plat_Update_Hash_Nonce (Measurement_Hash);
+         Success                                  := Success and Next_Success;
+         Nonce_Offset                             := Resp_Size + 32;
+         Resp_Size                                := Response.Measurements_Response_Opaque_Length + 2;
+         --  Hash message part after nonce
+         Next_Success                             :=
+            Plat_Update_Hash (Measurement_Hash, Response'Opaque, Nonce_Offset, Resp_Size);
+         Success                                  := Success and Next_Success;
+         Narrow_Slot_ID                           := Response.Measurements_Response_Slot_ID;
+         Slot_ID                                  := To_Slot (Narrow_Slot_ID);
+         Signature                                := Plat_Get_Signature (Measurement_Hash, Slot_ID);
          Response.Measurements_Response_Signature := Signature.Data;
-         Reset_Measurement_Sig := True;
+         Reset_Measurement_Sig                    := True;
       transition
          goto Send_Idle
       exception
@@ -1431,9 +1461,12 @@ package SPDM_Responder is
 
       state Update_Measurement_Signature
       is
-         Success : Boolean;
+         Success   : Boolean;
+         Resp_Size : SPDM::Length_16;
       begin
-         Success := Plat_Update_Meas_Signature (Response'Opaque, Reset_Measurement_Sig);
+         Resp_Size := Response'Size;
+         Resp_Size := Resp_Size / 8;
+         Success   := Plat_Update_Hash (Measurement_Hash, Response'Opaque, 0, Resp_Size);
       transition
          goto Send_Idle
             if Success
@@ -1680,7 +1713,7 @@ package SPDM_Responder is
       is
          Success : Boolean;
       begin
-         Success := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, 2);
+         Success := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, 4);
       transition
          goto Validate_Finish_Signature
             if Success and Use_Mutual_Auth and Request.Finish_Request_Signature_Included
@@ -1727,8 +1760,8 @@ package SPDM_Responder is
          Req_Length : SPDM::Length_16;
       begin
          Req_Length := Request'Size;
-         Req_Length := Req_Length / 8 - 2;
-         Success := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 2, Req_Length);
+         Req_Length := Req_Length / 8 - 4;
+         Success := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 4, Req_Length);
          Response'Reset (
 #if FEATURE_CHALLENGE_AUTH then
             Meas_Cap                => Cap_Meas,
@@ -1771,7 +1804,7 @@ package SPDM_Responder is
       is
          Valid : Boolean;
       begin
-         Valid := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, 2);
+         Valid := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, 4);
       transition
          goto Set_Finish_Response_Verify
             if Valid and Cap_Handshake_In_The_Clear
@@ -1801,8 +1834,8 @@ package SPDM_Responder is
          Resp_Len : SPDM::Length_16;
       begin
          Resp_Len := Response'Size;
-         Resp_Len := Resp_Len / 8 - 2;
-         Valid := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 2, Resp_Len);
+         Resp_Len := Resp_Len / 8 - 4;
+         Valid := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 4, Resp_Len);
       transition
          goto Send_Idle
             if Valid
@@ -1964,7 +1997,7 @@ package SPDM_Responder is
       begin
          Transport'Write (Response);
       transition
-         goto Init
+         goto Receive_Get_Version
       end Send_Error;
 
       state End_Session is null state;

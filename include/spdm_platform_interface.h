@@ -106,23 +106,9 @@ void spdm_platform_get_dmtf_measurement_field (instance_t *instance,
                                                unsigned *size,
                                                void *buffer);
 
-void spdm_platform_get_meas_signature (instance_t *instance,
-                                       void *message,
-                                       unsigned message_length,
-                                       unsigned nonce_offset,
-                                       unsigned char slot,
-                                       void *signature,
-                                       unsigned *signature_length);
-
-int spdm_platform_update_meas_signature (instance_t *instance,
-                                         void *message,
-                                         unsigned size,
-                                         int reset);
-
 void spdm_platform_get_meas_opaque_data(instance_t *instance,
                                         void *data,
                                         unsigned *size);
-#ifdef FEATURE_KEY_EXCHANGE
 unsigned spdm_platform_get_new_hash(instance_t *instance);
 
 unsigned char spdm_platform_valid_hash_id(instance_t *instance,
@@ -131,6 +117,22 @@ unsigned char spdm_platform_valid_hash_id(instance_t *instance,
 unsigned spdm_platform_reset_hash(instance_t *instance,
                                   unsigned hash);
 
+unsigned char spdm_platform_update_hash(instance_t *instance,
+                                        unsigned hash,
+                                        void *data,
+                                        unsigned offset,
+                                        unsigned size);
+
+unsigned char spdm_platform_update_hash_nonce(instance_t *instance,
+                                              unsigned hash);
+
+void spdm_platform_get_signature(instance_t *instance,
+                                 unsigned hash,
+                                 unsigned char slot,
+                                 void *signature,
+                                 unsigned *size);
+
+#ifdef FEATURE_KEY_EXCHANGE
 void spdm_platform_get_exchange_data (instance_t *instance,
                                       void *data,
                                       unsigned size);
@@ -151,21 +153,9 @@ void spdm_platform_get_summary_hash(instance_t *instance,
                                     void *hash,
                                     unsigned *hash_length);
 
-unsigned char spdm_platform_update_hash(instance_t *instance,
-                                        unsigned hash,
-                                        void *data,
-                                        unsigned offset,
-                                        unsigned size);
-
 unsigned char spdm_platform_update_hash_cert(instance_t *instance,
                                              unsigned hash,
                                              unsigned char slot);
-
-void spdm_platform_get_signature(instance_t *instance,
-                                 unsigned hash,
-                                 unsigned char slot,
-                                 void *signature,
-                                 unsigned *size);
 
 void spdm_platform_get_key_ex_opaque_data(instance_t *instance,
                                           void *data,

@@ -219,23 +219,8 @@ is
                                               Result :    out RFLX.SPDM.DMTF_Measurement_Field.Structure);
 
    overriding
-   procedure Plat_Get_Meas_Signature (Ctx              : in out Context;
-                                      Unsigned_Message :        RFLX.RFLX_Types.Bytes;
-                                      Sign_Length      :        RFLX.SPDM.Length_24;
-                                      Nonce_Offset     :        RFLX.SPDM.Length_24;
-                                      Slot             :        RFLX.SPDM.Narrow_Slot;
-                                      Result           :    out RFLX.SPDM_Responder.Signature.Structure);
-
-   overriding
-   procedure Plat_Update_Meas_Signature (Ctx     : in out Context;
-                                         Message :        RFLX.RFLX_Types.Bytes;
-                                         Reset   :        Boolean;
-                                         Result  :    out Boolean);
-
-   overriding
    procedure Plat_Get_Meas_Opaque_Data (Ctx    : in out Context;
                                         Result :    out RFLX.SPDM_Responder.Opaque_Data.Structure);
-#if FEATURE_KEY_EXCHANGE then
 
    overriding
    procedure Plat_Get_New_Hash (Ctx    : in out Context;
@@ -251,6 +236,30 @@ is
                               Hash   :        RFLX.SPDM_Responder.Hash_ID;
                               Result :    out RFLX.SPDM_Responder.Hash_ID);
 
+   overriding
+   procedure Plat_Update_Hash (Ctx    : in out Context;
+                               Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                               Data   :        RFLX.RFLX_Types.Bytes;
+                               Offset :        RFLX.SPDM.Length_16;
+                               Length :        RFLX.SPDM.Length_16;
+                               Result :    out Boolean);
+
+   overriding
+   procedure Plat_Update_Hash_Nonce (Ctx    : in out Context;
+                                     Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                                     Result :    out Boolean);
+
+   overriding
+   procedure Plat_Get_Signature (Ctx    : in out Context;
+                                 Hash   :        RFLX.SPDM_Responder.Hash_ID;
+                                 Slot   :        RFLX.SPDM.Slot;
+                                 Result :    out RFLX.SPDM_Responder.Signature.Structure);
+
+   overriding
+   procedure To_Slot (Ctx    : in out Context;
+                      Slot   :        RFLX.SPDM.Narrow_Slot;
+                      Result :    out RFLX.SPDM.Slot);
+#if FEATURE_KEY_EXCHANGE then
    overriding
    procedure Plat_Get_Exchange_Data (Ctx           : in out Context;
                                      Exchange_Data :        RFLX.RFLX_Types.Bytes;
@@ -280,24 +289,10 @@ is
                                     Result :    out RFLX.SPDM_Responder.Hash.Structure);
 
    overriding
-   procedure Plat_Update_Hash (Ctx    : in out Context;
-                               Hash   :        RFLX.SPDM_Responder.Hash_ID;
-                               Data   :        RFLX.RFLX_Types.Bytes;
-                               Offset :        RFLX.SPDM.Length_16;
-                               Length :        RFLX.SPDM.Length_16;
-                               Result :    out Boolean);
-
-   overriding
    procedure Plat_Update_Hash_Cert (Ctx    : in out Context;
                                     Hash   :        RFLX.SPDM_Responder.Hash_ID;
                                     Slot   :        RFLX.SPDM.Slot;
                                     Result :    out Boolean);
-
-   overriding
-   procedure Plat_Get_Signature (Ctx    : in out Context;
-                                 Hash   :        RFLX.SPDM_Responder.Hash_ID;
-                                 Slot   :        RFLX.SPDM.Slot;
-                                 Result :    out RFLX.SPDM_Responder.Signature.Structure);
 
    overriding
    procedure Plat_Get_Key_Ex_Opaque_Data (Ctx          : in out Context;

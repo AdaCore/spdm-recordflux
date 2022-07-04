@@ -9,9 +9,8 @@ struct instance {
     unsigned char dhe_named_group;
     int valid_nonce;
     unsigned char nonce[32];
-    void *measurement_hash_ctx;
-    void *transcript;
-    unsigned transcript_size;
+    void *hashes[8];
+    int hash_sizes[8];
     unsigned char dhe_key[512];
     unsigned dhe_key_size;
     unsigned char secure_session;
@@ -26,6 +25,7 @@ void spdm_platform_initialize(instance_t **instance)
         errx(1, "failed to create instance");
     }
     memset(*instance, 0, sizeof(instance_t));
+    memset((*instance)->hash_sizes, -1, sizeof(int) * 8);
     (*instance)->transcript_headers[0]  = 0x8410; //[GET_VERSION].*
     (*instance)->transcript_headers[1]  = 0x0410; //[VERSION].*
     (*instance)->transcript_headers[2]  = 0xe111; //[GET_CAPABILITIES].*
@@ -349,7 +349,6 @@ void spdm_platform_get_nonce(instance_t *instance,
     memcpy(nonce, instance->nonce, 32);
 }
 
-
 void spdm_platform_get_dmtf_measurement_field(instance_t *instance,
                                               unsigned index,
                                               unsigned *representation,
@@ -372,96 +371,143 @@ void spdm_platform_get_dmtf_measurement_field(instance_t *instance,
     }
 }
 
-void spdm_platform_get_meas_signature (instance_t *instance,
-                                       void *message,
-                                       __attribute__((unused)) unsigned message_length,
-                                       __unused_cross__ unsigned nonce_offset,
-                                       unsigned char slot,
-                                       __unused_cross__ void *signature,
-                                       unsigned *signature_length)
-{
-    __unused_cross__ const spdm_version_number_t version = {0, 0, 1, 1};
-    __unused_cross__ const unsigned hash_size = spdm_get_hash_size(instance->measurement_hash_algo);
-    __unused_cross__ unsigned char hash[hash_size];
-    uintn sig_size = *signature_length;
-    if(!instance->valid_nonce || slot >= 3){
-        *signature_length = 0;
-        return;
-    }
-    instance->valid_nonce = 0;
-    memcpy(message + nonce_offset, instance->nonce, 32);
-    spdm_platform_update_meas_signature(instance, message, message_length, 0);
-    if(!spdm_hash_final(instance->measurement_hash_algo, instance->measurement_hash_ctx, hash)){
-        return;
-    }
-    spdm_hash_free(instance->measurement_hash_algo, instance->measurement_hash_ctx);
-    instance->measurement_hash_ctx = 0;
-    if(!spdm_responder_data_sign(version,
-                                 SPDM_MEASUREMENTS,
-                                 instance->base_asym_algo,
-                                 instance->measurement_hash_algo,
-                                 1,
-                                 (const uint8 *)&hash,
-                                 hash_size,
-                                 signature,
-                                 &sig_size)){
-        sig_size = 0;
-        printf("failed to sign\n");
-    }
-    *signature_length = sig_size;
-    printf("signature_length=%u\n", *signature_length);
-}
-
-int spdm_platform_update_meas_signature (instance_t *instance,
-                                         __unused_cross__ void *message,
-                                         __unused_cross__ unsigned size,
-                                         int reset)
-{
-    if(reset){
-        spdm_hash_free(instance->measurement_hash_algo, instance->measurement_hash_ctx);
-        instance->measurement_hash_ctx = 0;
-    }
-    if(!instance->measurement_hash_ctx){
-        instance->measurement_hash_ctx = spdm_hash_new(instance->measurement_hash_algo);
-        if(!instance->measurement_hash_ctx){
-            return 1;
-        }
-    }
-    boolean result = spdm_hash_update(instance->measurement_hash_algo,
-                                      instance->measurement_hash_ctx,
-                                      message,
-                                      size);
-    return result;
-}
-
 void spdm_platform_get_meas_opaque_data(__attribute__((unused)) instance_t *instance,
                                         __attribute__((unused)) void *data,
                                         unsigned *size)
 {
     *size = 0;
 }
-#ifdef FEATURE_KEY_EXCHANGE
-unsigned spdm_platform_get_new_hash(__attribute__((unused)) instance_t *instance)
+
+unsigned spdm_platform_get_new_hash(instance_t *instance)
 {
-    //TODO
-    return 0;
+    for(int i = 0; i < 8; i++){
+        if(instance->hash_sizes[i] == -1){
+            instance->hashes[i] = 0;
+            instance->hash_sizes[i] = 0;
+            return i;
+        }
+    }
+    return 0xff;
 }
 
-unsigned char spdm_platform_valid_hash_id(__attribute__((unused)) instance_t *instance,
-                                          __attribute__((unused)) unsigned hash)
+unsigned char spdm_platform_valid_hash_id(instance_t *instance,
+                                          unsigned hash)
 {
-    //TODO
+    return hash <= 8 && instance->hash_sizes[hash] != -1;
+}
+
+unsigned spdm_platform_reset_hash(instance_t *instance,
+                                  unsigned hash)
+{
+    if(!spdm_platform_valid_hash_id(instance, hash)){
+        return hash;
+    }
+    if(instance->hash_sizes[hash] != -1){
+        free(instance->hashes[hash]);
+        instance->hash_sizes[hash] = -1;
+        instance->hashes[hash] = 0;
+    }
+#ifdef FEATURE_KEY_EXCHANGE
+    if(hash == 1){
+        instance->transcript_stage = 0;
+    }
+#endif
+    return spdm_platform_get_new_hash(instance);
+}
+
+unsigned char spdm_platform_update_hash(instance_t *instance,
+                                        unsigned hash,
+                                        __unused_cross__ void *data,
+                                        __unused_cross__ unsigned offset,
+                                        unsigned size)
+{
+#ifdef FEATURE_KEY_EXCHANGE
+    if(hash == 1){
+        printf("transcript stage %u: %04hx\n",
+               instance->transcript_stage,
+               instance->transcript_headers[instance->transcript_stage]);
+        if(instance->transcript_headers[instance->transcript_stage] != 0xffff
+                && instance->transcript_headers[instance->transcript_stage] != *(uint16 *)data){
+            errx(1, "unexpected transcript stage, expected %04hx, got %04hx",
+                    instance->transcript_headers[instance->transcript_stage],
+                    *(uint16 *)data);
+        }
+        instance->transcript_stage = instance->transcript_stage + 1;
+    }
+#endif
+    if(!spdm_platform_valid_hash_id(instance, hash)){
+        errx(1, "invalid hash slot");
+        return 0;
+    }
+    instance->hashes[hash] = realloc(instance->hashes[hash], instance->hash_sizes[hash] + size);
+    if(!instance->hashes[hash]){
+        errx(1, "realloc failed");
+        return 0;
+    }
+    memcpy(instance->hashes[hash] + instance->hash_sizes[hash], data + offset, size);
+    instance->hash_sizes[hash] = instance->hash_sizes[hash] + size;
     return 1;
 }
 
-unsigned spdm_platform_reset_hash(__attribute__((unused)) instance_t *instance,
-                                  unsigned hash)
+unsigned char spdm_platform_update_hash_nonce(instance_t *instance,
+                                              unsigned hash)
 {
-    //TODO
-    instance->transcript_stage = 0;
-    return hash;
+    if(!instance->valid_nonce){
+        return 0;
+    }
+    instance->valid_nonce = 0;
+    return spdm_platform_update_hash(instance, hash, instance->nonce, 0, 32);
 }
 
+void spdm_platform_get_signature(instance_t *instance,
+                                 unsigned hash,
+                                 __attribute__((unused)) unsigned char slot,
+                                 __unused_cross__ void *signature,
+                                 unsigned *size)
+{
+    __unused_cross__ const spdm_version_number_t version = {0, 0, 1, 1};
+    __unused_cross__ const unsigned hash_size = spdm_get_hash_size(instance->base_hash_algo);
+    __unused_cross__ unsigned char hash_data[*size];
+    if(slot >= 3){
+        *size = 0;
+        return;
+    }
+    uintn sig_size = *size;
+    if(!spdm_platform_valid_hash_id(instance, hash)){
+        errx(1, "invalid hash slot");
+    }
+    boolean res = spdm_hash_all(instance->base_hash_algo,
+                                instance->hashes[hash],
+                                instance->hash_sizes[hash],
+                                hash_data);
+    if(!res){
+        errx(1, "failed to hash summary");
+    }
+    __unused_cross__ unsigned code = 0;
+    if(hash == 0){
+        code = SPDM_MEASUREMENTS;
+#ifdef FEATURE_KEY_EXCHANGE
+    }
+    if(hash == 1){
+        code = SPDM_KEY_EXCHANGE_RSP;
+#endif
+    }
+    if(!spdm_responder_data_sign(version,
+                                 code,
+                                 instance->base_asym_algo,
+                                 instance->base_hash_algo,
+                                 1,
+                                 (const uint8 *)&hash_data,
+                                 hash_size,
+                                 signature,
+                                 &sig_size)){
+        sig_size = 0;
+        printf("failed to sign\n");
+    }
+    *size = sig_size;
+    printf("signature_length=%u\n", *size);
+}
+#ifdef FEATURE_KEY_EXCHANGE
 void spdm_platform_get_exchange_data (__unused_cross__ instance_t *instance,
                                       __unused_cross__ void *data,
                                       unsigned size)
@@ -521,27 +567,6 @@ void spdm_platform_get_summary_hash(__unused_cross__ instance_t *instance,
     *hash_length = spdm_get_hash_size(instance->base_hash_algo);
 }
 
-unsigned char spdm_platform_update_hash(instance_t *instance,
-                                        __attribute__((unused)) unsigned hash,
-                                        __unused_cross__ void *data,
-                                        __attribute__((unused)) unsigned offset,
-                                        unsigned size)
-{
-    if(instance->transcript_headers[instance->transcript_stage] != 0xffff
-            && instance->transcript_headers[instance->transcript_stage] != *(uint16 *)data){
-        errx(1, "unexpected transcript stage, expected %04hx, got %04hx", instance->transcript_headers[instance->transcript_stage], *(uint16 *)data);
-    }
-    instance->transcript_stage = instance->transcript_stage + 1;
-    instance->transcript = realloc(instance->transcript, instance->transcript_size + size);
-    if(!instance->transcript){
-        errx(1, "failed to allocate transcript buffer");
-        return 0;
-    }
-    memcpy(instance->transcript + instance->transcript_size, data, size);
-    instance->transcript_size += size;
-    return 1;
-}
-
 unsigned char spdm_platform_update_hash_cert(instance_t *instance,
                                              unsigned hash,
                                              unsigned char slot)
@@ -549,7 +574,7 @@ unsigned char spdm_platform_update_hash_cert(instance_t *instance,
     if(slot != 0){
         return 0;
     }
-    __unused_cross__ void *raw_data;
+    __unused_cross__ void *raw_data = 0;
     uintn size = 0;
     boolean res = read_responder_public_certificate_chain(instance->base_hash_algo,
                                                           instance->base_asym_algo,
@@ -559,39 +584,6 @@ unsigned char spdm_platform_update_hash_cert(instance_t *instance,
         errx(0, "failed to get certificate");
     }
     return spdm_platform_update_hash(instance, hash, raw_data, 0, size);
-}
-
-void spdm_platform_get_signature(__unused_cross__ instance_t *instance,
-                                 __attribute__((unused)) unsigned hash,
-                                 __attribute__((unused)) unsigned char slot,
-                                 __unused_cross__ void *signature,
-                                 unsigned *size)
-{
-    __unused_cross__ const spdm_version_number_t version = {0, 0, 1, 1};
-    __unused_cross__ const unsigned hash_size = spdm_get_hash_size(instance->base_hash_algo);
-    __unused_cross__ unsigned char hash_data[hash_size];
-    uintn sig_size = *size;
-    boolean res = spdm_hash_all(instance->base_hash_algo,
-                                instance->transcript,
-                                instance->transcript_size,
-                                hash_data);
-    if(!res){
-        errx(1, "failed to hash summary");
-    }
-    if(!spdm_responder_data_sign(version,
-                                 SPDM_KEY_EXCHANGE_RSP,
-                                 instance->base_asym_algo,
-                                 instance->base_hash_algo,
-                                 1,
-                                 (const uint8 *)&hash_data,
-                                 hash_size,
-                                 signature,
-                                 &sig_size)){
-        sig_size = 0;
-        printf("failed to sign\n");
-    }
-    *size = sig_size;
-    printf("signature_length=%u\n", *size);
 }
 
 void spdm_platform_get_key_ex_opaque_data(__attribute__((unused)) instance_t *instance,
