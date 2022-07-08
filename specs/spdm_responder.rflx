@@ -377,13 +377,11 @@ package SPDM_Responder is
             Version_Response_Version_Number_Entry_Count => 1,
             Version_Response_Version_Number_Entries     => Supp_Versions);
 #if FEATURE_KEY_EXCHANGE then
-         Req_Size := Request'Size;
-         Req_Size := Req_Size * 8;
-         Resp_Size := Response'Size;
-         Resp_Size := Resp_Size * 8;
+         Req_Size := Request'Size / 8;
+         Resp_Size := Response'Size / 8;
          Success_Next := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, Req_Size);
          Success := Success and Success_Next;
-         Success_Next := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Req_Size);
+         Success_Next := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Resp_Size);
          Success := Success and Success_Next;
 #end if;
       transition
@@ -512,12 +510,10 @@ package SPDM_Responder is
          Cap_Mut_Auth               := Cap_Mut_Auth and Request.Get_Capabilities_Request_Mut_Auth_Cap;
          Cap_Pub_Key_ID             := Cap_Pub_Key_ID and Request.Get_Capabilities_Request_Pub_Key_ID_Cap;
 #if FEATURE_KEY_EXCHANGE then
-         Req_Size := Request'Size;
-         Req_Size := Req_Size * 8;
-         Resp_Size := Response'Size;
-         Resp_Size := Resp_Size * 8;
+         Req_Size := Request'Size / 8;
+         Resp_Size := Response'Size / 8;
          Success := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, Req_Size);
-         Success_Next := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Req_Size);
+         Success_Next := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Resp_Size);
          Success := Success and Success_Next;
 #end if;
       transition
@@ -862,12 +858,10 @@ package SPDM_Responder is
                Algorithms_Response_Ext_Hash                      => Ext_Hash,
                Algorithms_Response_Resp_Alg_Structs              => Resp_Alg_Structs);
 #if FEATURE_KEY_EXCHANGE then
-         Req_Size := Request'Size;
-         Req_Size := Req_Size * 8;
-         Resp_Size := Response'Size;
-         Resp_Size := Resp_Size * 8;
+         Req_Size := Request'Size / 8;
+         Resp_Size := Response'Size / 8;
          Success := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, Req_Size);
-         Success_Next := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Req_Size);
+         Success_Next := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Resp_Size);
          Success := Success and Success_Next;
 #end if;
       transition
@@ -1288,8 +1282,7 @@ package SPDM_Responder is
          Success  : Boolean;
          Req_Size : SPDM::Length_16;
       begin
-         Req_Size         := Request'Size;
-         Req_Size         := Req_Size / 8;
+         Req_Size         := Request'Size / 8;
          Success          := Plat_Update_Hash (Measurement_Hash, Request'Opaque, 0, Req_Size);
          Measurement_Record'Reset;
          Current_Measurement   := Request.Get_Measurements_Request_Measurement_Operation;
@@ -1464,8 +1457,7 @@ package SPDM_Responder is
          Success   : Boolean;
          Resp_Size : SPDM::Length_16;
       begin
-         Resp_Size := Response'Size;
-         Resp_Size := Resp_Size / 8;
+         Resp_Size := Response'Size / 8;
          Success   := Plat_Update_Hash (Measurement_Hash, Response'Opaque, 0, Resp_Size);
       transition
          goto Send_Idle
@@ -1530,8 +1522,7 @@ package SPDM_Responder is
          Response.Key_Exchange_Response_Random_Data              := Nonce.Data;
          Response.Key_Exchange_Response_Exchange_Data            := Exchange_Data.Data;
          Cert_Hash_Success := Plat_Update_Hash_Cert (Transcript_Hash, Request.Key_Exchange_Request_Slot);
-         Req_Size := Request'Size;
-         Req_Size := Req_Size * 8;
+         Req_Size := Request'Size / 8;
          Success := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, Req_Size);
          Success := Success and Cert_Hash_Success;
       transition
@@ -1833,8 +1824,7 @@ package SPDM_Responder is
          Valid : Boolean;
          Resp_Len : SPDM::Length_16;
       begin
-         Resp_Len := Response'Size;
-         Resp_Len := Resp_Len / 8 - 4;
+         Resp_Len := Response'Size / 8 - 4;
          Valid := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 4, Resp_Len);
       transition
          goto Send_Idle
