@@ -37,11 +37,13 @@ void spdm_platform_initialize(instance_t **instance)
     (*instance)->transcript_headers[8]  = 0x6411; //[KEY_EXCHANGE_RSP].* except the `Signature` and `ResponderVerifyData` fields.
     (*instance)->transcript_headers[9]  = 0xffff; //[KEY_EXCHANGE_RSP].Signature ([KEY_EXCHANGE_RSP].* except the `ResponderVerifyData` field.)
     (*instance)->transcript_headers[10] = 0xffff; //[KEY_EXCHANGE_RSP].ResponderVerifyData ([KEY_EXCHANGE].*)
-    (*instance)->transcript_headers[11] = 0xffff; //Hash of the specified certificate chain in DER format (i.e., FINISH Param2)
-    (*instance)->transcript_headers[12] = 0xe511; //[FINISH].SPDM Header Fields
-    (*instance)->transcript_headers[13] = 0xffff; //[FINISH].Signature
-    (*instance)->transcript_headers[14] = 0x6511; //[FINISH_RSP].SPDM Header fields
-    (*instance)->transcript_headers[15] = 0xffff; //[FINISH_RSP].*
+    //Only if mutual authentication is used
+    //(*instance)->transcript_headers[10] = 0xffff; //Hash of the specified certificate chain in DER format (i.e., FINISH Param2)
+    (*instance)->transcript_headers[11] = 0xe511; //[FINISH].SPDM Header Fields
+    (*instance)->transcript_headers[12] = 0xffff; //[FINISH].RequesterVerifyData
+    (*instance)->transcript_headers[13] = 0x6511; //[FINISH_RSP].SPDM Header fields
+    //Only if Handshake_In_The_Clear is set
+    //(*instance)->transcript_headers[14] = 0xffff; //[FINISH_RSP].*
 }
 #ifdef FEATURE_KEY_EXCHANGE
 unsigned char spdm_platform_is_secure_session(instance_t *instance)

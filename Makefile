@@ -210,7 +210,7 @@ test_cross: build/arm/example/main build/riscv64/example/main libarm libriscv64
 
 test_size: build/arm/example/main build/riscv64/example/main
 	tools/check_size.py arm build/arm/example/main .text 78000
-	tools/check_size.py riscv64 build/riscv64/example/main .text 68000
+	tools/check_size.py riscv64 build/riscv64/example/main .text 68128
 
 check: check_spec check_stack
 
