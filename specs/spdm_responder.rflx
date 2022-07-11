@@ -843,7 +843,7 @@ package SPDM_Responder is
             Next_Transcript_State := Send_Alg;
 #end if;
       transition
-         --  ISSUE: Componolit/RecordFlux#907
+         --  https://github.com/Componolit/RecordFlux/issues/907
          --  This cannot be done more elegantly right now
          goto Set_Hash_Len_32
             if Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA_256
@@ -859,7 +859,7 @@ package SPDM_Responder is
          goto Error_Unspecified
       end Prepare_Algorithms;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Hash_Len_32
       is
       begin
@@ -868,7 +868,7 @@ package SPDM_Responder is
          goto Set_Signature_Len
       end Set_Hash_Len_32;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Hash_Len_48
       is
       begin
@@ -877,7 +877,7 @@ package SPDM_Responder is
          goto Set_Signature_Len
       end Set_Hash_Len_48;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Hash_Len_64
       is
       begin
@@ -886,7 +886,7 @@ package SPDM_Responder is
          goto Set_Signature_Len
       end Set_Hash_Len_64;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Signature_Len
       is
       begin
@@ -915,7 +915,7 @@ package SPDM_Responder is
 #end if;
       end Set_Signature_Len;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Signature_Len_64
       is
       begin
@@ -930,7 +930,7 @@ package SPDM_Responder is
 #end if;
       end Set_Signature_Len_64;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Signature_Len_96
       is
       begin
@@ -945,7 +945,7 @@ package SPDM_Responder is
 #end if;
       end Set_Signature_Len_96;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Signature_Len_132
       is
       begin
@@ -960,7 +960,7 @@ package SPDM_Responder is
 #end if;
       end Set_Signature_Len_132;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Signature_Len_256
       is
       begin
@@ -975,7 +975,7 @@ package SPDM_Responder is
 #end if;
       end Set_Signature_Len_256;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Signature_Len_384
       is
       begin
@@ -990,7 +990,7 @@ package SPDM_Responder is
 #end if;
       end Set_Signature_Len_384;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Signature_Len_512
       is
       begin
@@ -1005,7 +1005,7 @@ package SPDM_Responder is
 #end if;
       end Set_Signature_Len_512;
 #if FEATURE_KEY_EXCHANGE then
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Exchange_Data_Len
       is
       begin
@@ -1025,7 +1025,7 @@ package SPDM_Responder is
          goto Error_Unspecified
       end Set_Exchange_Data_Len;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Exchange_Data_Len_64
       is
       begin
@@ -1034,7 +1034,7 @@ package SPDM_Responder is
          goto Update_Transcript_Hash
       end Set_Exchange_Data_Len_64;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Exchange_Data_Len_96
       is
       begin
@@ -1043,7 +1043,7 @@ package SPDM_Responder is
          goto Update_Transcript_Hash
       end Set_Exchange_Data_Len_96;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Exchange_Data_Len_132
       is
       begin
@@ -1052,7 +1052,7 @@ package SPDM_Responder is
          goto Update_Transcript_Hash
       end Set_Exchange_Data_Len_132;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Exchange_Data_Len_256
       is
       begin
@@ -1061,7 +1061,7 @@ package SPDM_Responder is
          goto Update_Transcript_Hash
       end Set_Exchange_Data_Len_256;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Exchange_Data_Len_384
       is
       begin
@@ -1070,7 +1070,7 @@ package SPDM_Responder is
          goto Update_Transcript_Hash
       end Set_Exchange_Data_Len_384;
 
-      --  ISSUE: Componolit/RecordFlux#907
+      --  https://github.com/Componolit/RecordFlux/issues/907
       state Set_Exchange_Data_Len_512
       is
       begin
@@ -1290,7 +1290,7 @@ package SPDM_Responder is
          Local_Number_Of_Indices : SPDM::Measurement_Count;
       begin
          Current_Measurement := 1;
-         --  ISSUE: Componolit/RecordFlux#1055
+         --  https://github.com/Componolit/RecordFlux/issues/1055
          --  Use a local variable to prevent a type error in the generated code.
          Local_Number_Of_Indices := Plat_Get_Number_Of_Indices;
          Last_Measurement        := Local_Number_Of_Indices;
@@ -1570,7 +1570,7 @@ package SPDM_Responder is
          Resp_Length  := Resp_Length * 8 - Hash_Len - Sig_Len;
          Req_Success  := Plat_Update_Transcript_Signature (Request'Opaque, Req_Length, True);
          Resp_Success := Plat_Update_Transcript_Signature (Response'Opaque, Resp_Length, False);
-         -- ISSUE: Componolit/RecordFlux#1063
+         -- https://github.com/Componolit/RecordFlux/issues/1063
          Key_Exchange_Slot     := Request.Key_Exchange_Request_Slot;
          Success               := Plat_Update_Transcript_Signature_Cert (Key_Exchange_Slot);
       transition
@@ -1718,7 +1718,7 @@ package SPDM_Responder is
          Success             : Boolean;
          Finish_Request_Slot : SPDM::Slot;
       begin
-         -- ISSUE: Componolit/RecordFlux#1063
+         -- https://github.com/Componolit/RecordFlux/issues/1063
          Finish_Request_Slot := Request.Finish_Request_Slot;
          Success             := Plat_Update_Transcript_Signature_Cert (Finish_Request_Slot);
       transition

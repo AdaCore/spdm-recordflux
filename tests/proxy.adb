@@ -95,7 +95,7 @@ begin
       SP.Run (Context);
    end loop;
 
-   --  ISSUE: Componolit/Workarounds#32
+   --  https://github.com/Componolit/Workarounds/issues/32
    pragma Warnings (Off, """*"" is set by ""Finalize"" but not used after the call");
    SP.Finalize (Context);
    pragma Warnings (On, """*"" is set by ""Finalize"" but not used after the call");
