@@ -158,8 +158,8 @@ def dump(
                     )
                     has_signature = not (message_name == "SPDM_MEASUREMENTS" and len(message_data) < signed_measurement_length)
                     config.write(
-                        "Meas_Cap: 2\n"
-                        "Hash_Type: 1\n"
+                        "Meas_Cap: Meas_Signed\n"
+                        "Hash_Type: TCB_Measurement\n"
                         "Hash_Length: 48\n"
                         "Signature_Length: 96\n"
                         "Handshake_In_The_Clear: True\n"

@@ -1,5 +1,5 @@
-Meas_Cap: 2
-Hash_Type: 1
+Meas_Cap: Meas_Signed
+Hash_Type: TCB_Measurement
 Hash_Length: 48
 Signature_Length: 96
 Handshake_In_The_Clear: True
