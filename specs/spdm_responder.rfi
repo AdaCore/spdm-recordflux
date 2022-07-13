@@ -6,12 +6,7 @@ Session:
                 Request: 512
                 Response: 1280
                 Supp_Versions: 2
-#if FEATURE_KEY_EXCHANGE then
-                DHE_List: 100
-                AEAD_Cipher_Suite_List: 100
-                Key_Schedule_List: 100
-#end if;
-                Req_Base_Asym_Alg_List: 100
+                Resp_Alg_Struct: 16
                 Resp_Alg_Structs: 100
                 Measurement_Record: 512
             Local:
@@ -24,3 +19,15 @@ Session:
                     Measurement_Field: 256
                 Prepare_Certificate:
                     Cert: 515
+#if FEATURE_KEY_EXCHANGE then
+                Check_Algorithms_DHE:
+                    DHE_List: 100
+                Check_Algorithms_AEAD_Cipher_Suite:
+                    AEAD_Cipher_Suite_List: 100
+#end if;
+                Check_Algorithms_Req_Base_Asym_Alg:
+                    Req_Base_Asym_Alg_List: 100
+#if FEATURE_KEY_EXCHANGE then
+                Check_Algorithms_Key_Schedule:
+                    Key_Schedule_List: 100
+#end if;

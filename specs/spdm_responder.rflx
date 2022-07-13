@@ -247,8 +247,8 @@ package SPDM_Responder is
       Slot                   : SPDM::Slot;
       Offset                 : SPDM::Offset;
       Length                 : SPDM::Length_16;
-      Req_Base_Asym_Alg_List : SPDM::Req_Alg_Structs;
       Resp_Alg_Structs       : SPDM::Resp_Alg_Structs;
+      Resp_Alg_Struct        : SPDM::Alg_Struct;
       Resp_Alg_Struct_Count  : SPDM::Alg_Struct_Count;
       Reset_Measurement_Sig  : Boolean := True;
       Measurement_Slot       : SPDM::Narrow_Slot;
@@ -262,9 +262,6 @@ package SPDM_Responder is
 #if FEATURE_KEY_EXCHANGE then
       Transcript_Hash        : Hash_ID;
       DHE_Algo               : DHE_Algo;
-      DHE_List               : SPDM::Req_Alg_Structs;
-      AEAD_Cipher_Suite_List : SPDM::Req_Alg_Structs;
-      Key_Schedule_List      : SPDM::Req_Alg_Structs;
       Exchange_Data_Length   : SPDM::Exchange_Data_Length := 0;
       Measurement_Summary    : Boolean;
       Use_Mutual_Auth        : Boolean;
@@ -558,16 +555,16 @@ package SPDM_Responder is
 #if FEATURE_KEY_EXCHANGE then
       state Check_Algorithms_DHE
       is
+         DHE_List : SPDM::Req_Alg_Structs;
       begin
          Resp_Alg_Structs'Reset;
          DHE_List := [for A in Request.Negotiate_Algorithms_Request_Req_Alg_Structs
                       if A.Alg_Type = SPDM::DHE => A];
+         Resp_Alg_Struct := DHE_List'Head;
       transition
          goto Prepare_Algorithms_DHE
-            if DHE_List'Size > 0
-         goto Check_Algorithms_AEAD_Cipher_Suite
       exception
-         goto Error_Unspecified
+         goto Check_Algorithms_AEAD_Cipher_Suite
       end Check_Algorithms_DHE;
 
       state Prepare_Algorithms_DHE
@@ -578,16 +575,14 @@ package SPDM_Responder is
          Sel_FFDHE4096 : Boolean;
          Sel_FFDHE3072 : Boolean;
          Sel_FFDHE2048 : Boolean;
-         DHE           : SPDM::Alg_Struct;
       begin
-         DHE := DHE_List'Head;
          DHE_Algo := Plat_Cfg_Sel_DHE
-            (DHE.DHE_SecP521r1,
-             DHE.DHE_SecP384r1,
-             DHE.DHE_SecP256r1,
-             DHE.DHE_FFDHE4096,
-             DHE.DHE_FFDHE3072,
-             DHE.DHE_FFDHE2048);
+            (Resp_Alg_Struct.DHE_SecP521r1,
+             Resp_Alg_Struct.DHE_SecP384r1,
+             Resp_Alg_Struct.DHE_SecP256r1,
+             Resp_Alg_Struct.DHE_FFDHE4096,
+             Resp_Alg_Struct.DHE_FFDHE3072,
+             Resp_Alg_Struct.DHE_FFDHE2048);
 
          Sel_SecP521r1 := DHE_Algo = DA_SecP521r1;
          Sel_SecP384r1 := DHE_Algo = DA_SecP384r1;
@@ -620,31 +615,28 @@ package SPDM_Responder is
 
       state Check_Algorithms_AEAD_Cipher_Suite
       is
+         AEAD_Cipher_Suite_List : SPDM::Req_Alg_Structs;
       begin
          AEAD_Cipher_Suite_List := [for A in Request.Negotiate_Algorithms_Request_Req_Alg_Structs
                                     if A.Alg_Type = SPDM::AEAD_Cipher_Suite => A];
+         Resp_Alg_Struct := AEAD_Cipher_Suite_List'Head;
       transition
          goto Prepare_Algorithms_AEAD_Cipher_Suite
-            if AEAD_Cipher_Suite_List'Size > 0 and Cap_Key_Ex
-         goto Check_Algorithms_Req_Base_Asym_Alg
       exception
-         goto Error_Unspecified
+         goto Check_Algorithms_Req_Base_Asym_Alg
       end Check_Algorithms_AEAD_Cipher_Suite;
 
       state Prepare_Algorithms_AEAD_Cipher_Suite
       is
-         AEAD_Cipher_Suite     : SPDM::Alg_Struct;
          AEAD_Algo             : SPDM_Responder::AEAD_Algo;
          Sel_ChaCha20_Poly1305 : Boolean;
          Sel_AES_256_GCM       : Boolean;
          Sel_AES_128_GCM       : Boolean;
       begin
-         AEAD_Cipher_Suite := AEAD_Cipher_Suite_List'Head;
-
          AEAD_Algo := Plat_Cfg_Sel_AEAD
-            (AEAD_Cipher_Suite.AEAD_ChaCha20_Poly1305,
-             AEAD_Cipher_Suite.AEAD_AES_256_GCM,
-             AEAD_Cipher_Suite.AEAD_AES_128_GCM);
+            (Resp_Alg_Struct.AEAD_ChaCha20_Poly1305,
+             Resp_Alg_Struct.AEAD_AES_256_GCM,
+             Resp_Alg_Struct.AEAD_AES_128_GCM);
 
          Sel_ChaCha20_Poly1305 := AEAD_Algo = AA_ChaCha20_Poly1305;
          Sel_AES_256_GCM       := AEAD_Algo = AA_AES_256_GCM;
@@ -671,24 +663,23 @@ package SPDM_Responder is
 #end if;
       state Check_Algorithms_Req_Base_Asym_Alg
       is
+         Req_Base_Asym_Alg_List : SPDM::Req_Alg_Structs;
       begin
          Req_Base_Asym_Alg_List := [for A in Request.Negotiate_Algorithms_Request_Req_Alg_Structs
                                     if A.Alg_Type = SPDM::Req_Base_Asym_Alg => A];
+         Resp_Alg_Struct := Req_Base_Asym_Alg_List'Head;
       transition
          goto Prepare_Algorithms_Req_Base_Asym_Alg
-            if Req_Base_Asym_Alg_List'Size > 0
+      exception
 #if FEATURE_KEY_EXCHANGE then
          goto Check_Algorithms_Key_Schedule
-            if Cap_Key_Ex
-#end if;
+#else
          goto Prepare_Algorithms
-      exception
-         goto Error_Unspecified
+#end if;
       end Check_Algorithms_Req_Base_Asym_Alg;
 
       state Prepare_Algorithms_Req_Base_Asym_Alg
       is
-         Req_Base_Asym_Alg               : SPDM::Alg_Struct;
          Sel_TPM_ALG_ECDSA_ECC_NIST_P384 : Boolean;
          Sel_TPM_ALG_RSAPSS_4096         : Boolean;
          Sel_TPM_ALG_RSASSA_4096         : Boolean;
@@ -700,17 +691,16 @@ package SPDM_Responder is
          Sel_TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean;
          RBAA_Algo                       : SPDM::Base_Asym_Algo;
       begin
-         Req_Base_Asym_Alg := Req_Base_Asym_Alg_List'Head;
          RBAA_Algo := Plat_Cfg_Sel_RBAA
-            (Req_Base_Asym_Alg.RBAA_TPM_ALG_ECDSA_ECC_NIST_P384,
-             Req_Base_Asym_Alg.RBAA_TPM_ALG_RSAPSS_4096,
-             Req_Base_Asym_Alg.RBAA_TPM_ALG_RSASSA_4096,
-             Req_Base_Asym_Alg.RBAA_TPM_ALG_ECDSA_ECC_NIST_P256,
-             Req_Base_Asym_Alg.RBAA_TPM_ALG_RSAPSS_3072,
-             Req_Base_Asym_Alg.RBAA_TPM_ALG_RSASSA_3072,
-             Req_Base_Asym_Alg.RBAA_TPM_ALG_RSAPSS_2048,
-             Req_Base_Asym_Alg.RBAA_TPM_ALG_RSASSA_2048,
-             Req_Base_Asym_Alg.RBAA_TPM_ALG_ECDSA_ECC_NIST_P521);
+            (Resp_Alg_Struct.RBAA_TPM_ALG_ECDSA_ECC_NIST_P384,
+             Resp_Alg_Struct.RBAA_TPM_ALG_RSAPSS_4096,
+             Resp_Alg_Struct.RBAA_TPM_ALG_RSASSA_4096,
+             Resp_Alg_Struct.RBAA_TPM_ALG_ECDSA_ECC_NIST_P256,
+             Resp_Alg_Struct.RBAA_TPM_ALG_RSAPSS_3072,
+             Resp_Alg_Struct.RBAA_TPM_ALG_RSASSA_3072,
+             Resp_Alg_Struct.RBAA_TPM_ALG_RSAPSS_2048,
+             Resp_Alg_Struct.RBAA_TPM_ALG_RSASSA_2048,
+             Resp_Alg_Struct.RBAA_TPM_ALG_ECDSA_ECC_NIST_P521);
 
          Sel_TPM_ALG_ECDSA_ECC_NIST_P384 := RBAA_Algo = SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P384;
          Sel_TPM_ALG_RSAPSS_4096         := RBAA_Algo = SPDM::BA_TPM_ALG_RSAPSS_4096;
@@ -753,29 +743,27 @@ package SPDM_Responder is
 #if FEATURE_KEY_EXCHANGE then
       state Check_Algorithms_Key_Schedule
       is
+         Key_Schedule_List      : SPDM::Req_Alg_Structs;
       begin
          Key_Schedule_List := [for A in Request.Negotiate_Algorithms_Request_Req_Alg_Structs
                                if A.Alg_Type = SPDM::Key_Schedule => A];
+         Resp_Alg_Struct := Key_Schedule_List'Head;
       transition
          goto Prepare_Algorithms_Key_Schedule
-            if Key_Schedule_List'Size > 0 and Cap_Key_Ex
-         goto Prepare_Algorithms
       exception
-         goto Error_Unspecified
+         goto Prepare_Algorithms
       end Check_Algorithms_Key_Schedule;
 
       state Prepare_Algorithms_Key_Schedule
       is
-         Key_Schedule : SPDM::Alg_Struct;
       begin
-         Key_Schedule := Key_Schedule_List'Head;
          Resp_Alg_Structs'Append (
             SPDM::Alg_Struct'(
                Alg_Type        => SPDM::Key_Schedule,
                Fixed_Alg_Count => 2,
                Ext_Alg_Count   => 0,
                KS_Reserved_1   => 0,
-               KS_SPDM         => Key_Schedule.KS_SPDM,
+               KS_SPDM         => Resp_Alg_Struct.KS_SPDM,
                KS_Reserved_2   => 0,
                Alg_External    => [])
          );
