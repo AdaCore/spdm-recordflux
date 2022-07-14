@@ -328,7 +328,8 @@ const char *measurements[] = {"[6:0]=00h immutable rom",
                               "[6:0]=01h mutable firmware",
                               "[6:0]=02h hardware configuration",
                               "[6:0]=03h firmware configuration",
-                              "[6:0]=04h measurement manifest"};
+                              "[6:0]=04h measurement manifest",
+                              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"};
 
 
 unsigned char spdm_platform_get_number_of_indices (__attribute__((unused)) instance_t *instance)
@@ -364,7 +365,7 @@ void spdm_platform_get_dmtf_measurement_field(instance_t *instance,
     __unused_cross__ const char *measurement = measurements[index - 1];
     const unsigned length = strlen(measurement);
     *representation = 1;
-    *type = index - 1;
+    *type = index < 6 ? index - 1 : 0;
     if(*size < length){
         memcpy(buffer, measurement, *size);
     }else{
