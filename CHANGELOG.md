@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use single field setting to improve binary size (V621-019)
 - Pass length of opaque object into platform functions
 - Rework transcript hash and signature generation (V622-001)
+- Distribute RecordFlux as source package
 
 ### Fixed
 
