@@ -32,7 +32,6 @@ package SPDM is
    type Reserved_16 is range 0 .. 0 with Size => 16;
    type Reserved_24 is range 0 .. 0 with Size => 24;
    type Reserved_32 is range 0 .. 0 with Size => 32;
-   type Reserved_64 is range 0 .. 0 with Size => 64;
 
    -- 2.5.1 Version encoding
 
@@ -518,8 +517,9 @@ package SPDM is
          Base_Hash_Algo_TPM_ALG_SHA_384 : Boolean;
          Base_Hash_Algo_TPM_ALG_SHA_256 : Boolean;
          Base_Hash_Algo_Reserved_2 : Reserved_24;
-         Reserved_2 : Reserved_64;
+         Reserved_2 : Reserved_32;
          Reserved_3 : Reserved_32;
+         Reserved_4 : Reserved_32;
          -- FIXME:
          -- [185]
          -- ExtAsymCount
@@ -534,7 +534,7 @@ package SPDM is
          -- A + E + ExtAlgCount2 + ExtAlgCount3 + ExtAlgCount4 + ExtAlgCount5 shall be less than or equal to 20.
          -- If the capabilities do not support this algorithm, this value is not used and shall be set to zero.
          Ext_Hash_Count : Ext_Hash_Count;
-         Reserved_4 : Reserved_16;
+         Reserved_5 : Reserved_16;
          Ext_Asym : Ext_Algs
             with Size => 32 * Ext_Asym_Count;
          Ext_Hash : Ext_Algs
@@ -597,13 +597,14 @@ package SPDM is
          Measurement_Hash_Algo : Measurement_Hash_Algo;
          Base_Asym_Sel : Base_Asym_Algo;
          Base_Hash_Sel : Base_Hash_Algo;
-         Reserved_2 : Reserved_64;
+         Reserved_2 : Reserved_32;
          Reserved_3 : Reserved_32;
+         Reserved_4 : Reserved_32;
          Ext_Asym_Sel_Count : Ext_Asym_Count
             if Ext_Asym_Sel_Count <= 1;
          Ext_Hash_Sel_Count : Ext_Hash_Count
             if Ext_Hash_Sel_Count <= 1;
-         Reserved_4 : Reserved_16;
+         Reserved_5 : Reserved_16;
          Ext_Asym : Ext_Algs
             with Size => 32 * Ext_Asym_Sel_Count;
          Ext_Hash : Ext_Algs

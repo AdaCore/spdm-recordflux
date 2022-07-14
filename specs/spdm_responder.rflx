@@ -855,9 +855,10 @@ package SPDM_Responder is
                Algorithms_Response_Base_Hash_Sel                 => Base_Hash_Sel,
                Algorithms_Response_Reserved_2                    => 0,
                Algorithms_Response_Reserved_3                    => 0,
+               Algorithms_Response_Reserved_4                    => 0,
                Algorithms_Response_Ext_Asym_Sel_Count            => 0,
                Algorithms_Response_Ext_Hash_Sel_Count            => 0,
-               Algorithms_Response_Reserved_4                    => 0,
+               Algorithms_Response_Reserved_5                    => 0,
                Algorithms_Response_Ext_Asym                      => Ext_Asym,
                Algorithms_Response_Ext_Hash                      => Ext_Hash,
                Algorithms_Response_Resp_Alg_Structs              => Resp_Alg_Structs);
