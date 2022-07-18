@@ -35,7 +35,7 @@ is
          Convention    => C,
          External_Name => "spdm_platform_config_ct_exponent";
    begin
-      if not RFLX.SPDM.Valid_CT_Exponent (RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance))) then
+      if not RFLX.SPDM.Valid_CT_Exponent (RFLX.RFLX_Types.Base_Integer (C_Interface (Ctx.Instance))) then
          raise Constraint_Error;
       end if;
       Result := RFLX.SPDM.CT_Exponent (C_Interface (Ctx.Instance));
@@ -64,7 +64,7 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_meas";
-      Value : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
+      Value : constant RFLX.RFLX_Types.Base_Integer := RFLX.RFLX_Types.Base_Integer (C_Interface (Ctx.Instance));
    begin
       if not RFLX.SPDM.Valid_Meas_Cap (Value) then
          raise Constraint_Error;
@@ -221,7 +221,7 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_config_cap_psk";
-      Value : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
+      Value : constant RFLX.RFLX_Types.Base_Integer := RFLX.RFLX_Types.Base_Integer (C_Interface (Ctx.Instance));
    begin
       if not RFLX.SPDM.Valid_PSK_Resp_Cap (Value) then
          raise Constraint_Error;
@@ -285,8 +285,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_measurement_hash_algo";
-      Value : constant RFLX.RFLX_Types.U64 :=
-         RFLX.RFLX_Types.U64
+      Value : constant RFLX.RFLX_Types.Base_Integer :=
+         RFLX.RFLX_Types.Base_Integer
             (C_Interface
                (Instance             => Ctx.Instance,
                 TPM_ALG_SHA_256      => C_Bool (TPM_ALG_SHA_256),
@@ -332,8 +332,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_base_asym_algo";
-      Value : constant RFLX.RFLX_Types.U64 :=
-         RFLX.RFLX_Types.U64
+      Value : constant RFLX.RFLX_Types.Base_Integer :=
+         RFLX.RFLX_Types.Base_Integer
             (C_Interface
                (Instance                    => Ctx.Instance,
                 TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (TPM_ALG_ECDSA_ECC_NIST_P384),
@@ -375,8 +375,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_base_hash_algo";
-      Value : constant RFLX.RFLX_Types.U64 :=
-         RFLX.RFLX_Types.U64
+      Value : constant RFLX.RFLX_Types.Base_Integer :=
+         RFLX.RFLX_Types.Base_Integer
             (C_Interface
                (Instance         => Ctx.Instance,
                 TPM_ALG_SHA_256  => C_Bool (TPM_ALG_SHA_256),
@@ -415,8 +415,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_dhe";
-      Value : constant RFLX.RFLX_Types.U64 :=
-         RFLX.RFLX_Types.U64
+      Value : constant RFLX.RFLX_Types.Base_Integer :=
+         RFLX.RFLX_Types.Base_Integer
             (C_Interface
                (Instance  => Ctx.Instance,
                 SecP521r1 => C_Bool (Req_SecP521r1),
@@ -449,8 +449,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_aead";
-      Value : constant RFLX.RFLX_Types.U64 :=
-         RFLX.RFLX_Types.U64
+      Value : constant RFLX.RFLX_Types.Base_Integer :=
+         RFLX.RFLX_Types.Base_Integer
             (C_Interface
                (Instance             => Ctx.Instance,
                 AA_ChaCha20_Poly1305 => C_Bool (Req_ChaCha20_Poly1305),
@@ -492,8 +492,8 @@ is
          Import        => True,
          Convention    => C,
          External_Name => "spdm_platform_select_rbaa";
-      Value : constant RFLX.RFLX_Types.U64 :=
-         (RFLX.RFLX_Types.U64
+      Value : constant RFLX.RFLX_Types.Base_Integer :=
+         (RFLX.RFLX_Types.Base_Integer
             (C_Interface
                (Instance                       => Ctx.Instance,
                 RA_TPM_ALG_ECDSA_ECC_NIST_P384 => C_Bool (Req_TPM_ALG_ECDSA_ECC_NIST_P384),
@@ -566,7 +566,7 @@ is
       use type Interfaces.C.unsigned_char;
    begin
       Result := 0 /= C_Interface (Instance => Ctx.Instance,
-                                  Slot     => Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
+                                  Slot     => Interfaces.C.unsigned_char (RFLX.SPDM.To_Base_Integer (Slot)),
                                   Offset   => Interfaces.C.unsigned_short (Offset),
                                   Length   => Interfaces.C.unsigned_short (Length));
    end Plat_Valid_Certificate_Request;
@@ -595,7 +595,7 @@ is
       Max_Length               : constant RFLX.SPDM.Length_16 := 508;
       Cert_Length              : Interfaces.C.unsigned_short;
       Total_Length             : Interfaces.C.unsigned_short;
-      Portion_Remainder_Length : RFLX.RFLX_Types.U64;
+      Portion_Remainder_Length : RFLX.RFLX_Types.Base_Integer;
    begin
       if Length <= Max_Length then
          Cert_Length := Interfaces.C.unsigned_short (Length);
@@ -604,23 +604,23 @@ is
       end if;
       C_Interface (Instance     => Ctx.Instance,
                    Data         => Result.Cert_Chain'Address,
-                   Slot         => Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
+                   Slot         => Interfaces.C.unsigned_char (RFLX.SPDM.To_Base_Integer (Slot)),
                    Offset       => Interfaces.C.unsigned_short (Offset),
                    Length       => Cert_Length,
                    Total_Length => Total_Length);
       Result.Slot := Slot;
       Result.Param_2 := 0;
       if Cert_Length = Interfaces.C.unsigned_short (Max_Length) then
-         Portion_Remainder_Length := RFLX.RFLX_Types.U64 (Max_Length);
+         Portion_Remainder_Length := RFLX.RFLX_Types.Base_Integer (Max_Length);
       else
-         Portion_Remainder_Length := RFLX.RFLX_Types.U64 (Cert_Length);
+         Portion_Remainder_Length := RFLX.RFLX_Types.Base_Integer (Cert_Length);
       end if;
       if not RFLX.SPDM.Valid_Length_16 (Portion_Remainder_Length) then
          raise Constraint_Error;
       end if;
       Result.Portion_Length := RFLX.SPDM.To_Actual (Portion_Remainder_Length);
       Portion_Remainder_Length :=
-         RFLX.RFLX_Types.U64 (Total_Length - Cert_Length - Interfaces.C.unsigned_short (Offset));
+         RFLX.RFLX_Types.Base_Integer (Total_Length - Cert_Length - Interfaces.C.unsigned_short (Offset));
       if not RFLX.SPDM.Valid_Length_16 (Portion_Remainder_Length) then
          raise Constraint_Error;
       end if;
@@ -636,7 +636,7 @@ is
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_number_of_indices";
-      Count : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
+      Count : constant RFLX.RFLX_Types.Base_Integer := RFLX.RFLX_Types.Base_Integer (C_Interface (Ctx.Instance));
    begin
       if not RFLX.SPDM.Valid_Measurement_Count (Count) then
          raise Constraint_Error;
@@ -653,7 +653,7 @@ is
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_number_of_indices_tcb";
-      Count : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
+      Count : constant RFLX.RFLX_Types.Base_Integer := RFLX.RFLX_Types.Base_Integer (C_Interface (Ctx.Instance));
    begin
       if not RFLX.SPDM.Valid_Measurement_Count (Count) then
          raise Constraint_Error;
@@ -699,13 +699,15 @@ is
                    Interfaces.C.unsigned (Result.Measurement_Value_Length),
                    Result.Measurement_Value);
       if
-         not RFLX.SPDM.Valid_DMTF_Spec_Measurement_Value_Representation (RFLX.RFLX_Types.U64 (Value_Representation))
-         or not RFLX.SPDM.Valid_DMTF_Spec_Measurement_Value_Type (RFLX.RFLX_Types.U64 (Value_Type))
+         not RFLX.SPDM.Valid_DMTF_Spec_Measurement_Value_Representation
+                (RFLX.RFLX_Types.Base_Integer (Value_Representation))
+         or not RFLX.SPDM.Valid_DMTF_Spec_Measurement_Value_Type (RFLX.RFLX_Types.Base_Integer (Value_Type))
       then
          raise Constraint_Error;
       end if;
-      Result.Measurement_Value_Representation := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Value_Representation));
-      Result.Measurement_Value_Type := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Value_Type));
+      Result.Measurement_Value_Representation :=
+         RFLX.SPDM.To_Actual (RFLX.RFLX_Types.Base_Integer (Value_Representation));
+      Result.Measurement_Value_Type := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.Base_Integer (Value_Type));
    end Plat_Get_DMTF_Measurement_Field;
 
    overriding
@@ -721,10 +723,10 @@ is
       Length : Interfaces.C.unsigned := Result.Data'Length;
    begin
       C_Interface (Ctx.Instance, Result.Data'Address, Length);
-      if not RFLX.SPDM.Valid_Length_16 (RFLX.RFLX_Types.U64 (Length)) then
+      if not RFLX.SPDM.Valid_Length_16 (RFLX.RFLX_Types.Base_Integer (Length)) then
          raise Constraint_Error;
       end if;
-      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Length));
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.Base_Integer (Length));
    end Plat_Get_Meas_Opaque_Data;
 
    overriding
@@ -735,8 +737,8 @@ is
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_new_hash";
-      Hash : constant RFLX.RFLX_Types.U64 :=
-         RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
+      Hash : constant RFLX.RFLX_Types.Base_Integer :=
+         RFLX.RFLX_Types.Base_Integer (C_Interface (Ctx.Instance));
    begin
       if not RFLX.SPDM_Responder.Valid_Hash_ID (Hash) then
          raise Constraint_Error;
@@ -769,8 +771,8 @@ is
          Import,
          Convention => C,
          External_Name => "spdm_platform_reset_hash";
-      New_Hash : constant RFLX.RFLX_Types.U64 :=
-         RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance, Interfaces.C.unsigned (Hash)));
+      New_Hash : constant RFLX.RFLX_Types.Base_Integer :=
+         RFLX.RFLX_Types.Base_Integer (C_Interface (Ctx.Instance, Interfaces.C.unsigned (Hash)));
    begin
       if not RFLX.SPDM_Responder.Valid_Hash_ID (New_Hash) then
          raise Constraint_Error;
@@ -843,13 +845,13 @@ is
    begin
       C_Interface (Ctx.Instance,
                    Interfaces.C.unsigned (Hash),
-                   Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
+                   Interfaces.C.unsigned_char (RFLX.SPDM.To_Base_Integer (Slot)),
                    Result.Data,
                    Length);
-      if not RFLX.SPDM.Valid_Signature_Length (RFLX.RFLX_Types.U64 (Length)) then
+      if not RFLX.SPDM.Valid_Signature_Length (RFLX.RFLX_Types.Base_Integer (Length)) then
          raise Constraint_Error;
       end if;
-      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Length));
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.Base_Integer (Length));
    end Plat_Get_Signature;
 
    overriding
@@ -890,10 +892,10 @@ is
       Result.Pad := 0;
       Result.Data (Result.Data'First .. Result.Data'First + Exchange_Data'Length - 1) := Exchange_Data;
       C_Interface (Ctx.Instance, Result.Data'Address, Size);
-      if not RFLX.SPDM.Valid_Exchange_Data_Length (RFLX.RFLX_Types.U64 (Size)) then
+      if not RFLX.SPDM.Valid_Exchange_Data_Length (RFLX.RFLX_Types.Base_Integer (Size)) then
          raise Constraint_Error;
       end if;
-      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Size));
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.Base_Integer (Size));
    end Plat_Get_Exchange_Data;
 
    overriding
@@ -904,7 +906,7 @@ is
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_heartbeat_period";
-      Period : constant RFLX.RFLX_Types.U64 := RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance));
+      Period : constant RFLX.RFLX_Types.Base_Integer := RFLX.RFLX_Types.Base_Integer (C_Interface (Ctx.Instance));
    begin
       if not RFLX.SPDM.Valid_Heartbeat_Period (Period) then
          raise Constraint_Error;
@@ -937,8 +939,8 @@ is
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_session_id";
-      Session_ID : constant RFLX.RFLX_Types.U64 :=
-         RFLX.RFLX_Types.U64 (C_Interface (Ctx.Instance, Interfaces.C.unsigned_short (Req_Session_ID)));
+      Session_ID : constant RFLX.RFLX_Types.Base_Integer :=
+         RFLX.RFLX_Types.Base_Integer (C_Interface (Ctx.Instance, Interfaces.C.unsigned_short (Req_Session_ID)));
    begin
       if not RFLX.SPDM.Valid_Session_ID (Session_ID) then
          raise Constraint_Error;
@@ -979,10 +981,10 @@ is
                    Data'Length,
                    Result.Data'Address,
                    Hash_Length);
-      if not RFLX.SPDM.Valid_Hash_Length (RFLX.RFLX_Types.U64 (Hash_Length)) then
+      if not RFLX.SPDM.Valid_Hash_Length (RFLX.RFLX_Types.Base_Integer (Hash_Length)) then
          raise Constraint_Error;
       end if;
-      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Hash_Length));
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.Base_Integer (Hash_Length));
    end Plat_Get_Summary_Hash;
 
    overriding
@@ -1001,7 +1003,7 @@ is
    begin
       Result := C_Interface (Ctx.Instance,
                              Interfaces.C.unsigned (Hash),
-                             Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot))) > 0;
+                             Interfaces.C.unsigned_char (RFLX.SPDM.To_Base_Integer (Slot))) > 0;
    end Plat_Update_Hash_Cert;
 
    overriding
@@ -1026,10 +1028,10 @@ is
          Size := Interfaces.C.unsigned (Request_Data'Length);
       end if;
       C_Interface (Ctx.Instance, Result.Data'Address, Size);
-      if not RFLX.SPDM.Valid_Length_16 (RFLX.RFLX_Types.U64 (Size)) then
+      if not RFLX.SPDM.Valid_Length_16 (RFLX.RFLX_Types.Base_Integer (Size)) then
          raise Constraint_Error;
       end if;
-      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Size));
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.Base_Integer (Size));
    end Plat_Get_Key_Ex_Opaque_Data;
 
    overriding
@@ -1045,10 +1047,10 @@ is
       Size : Interfaces.C.unsigned := Interfaces.C.unsigned (Result.Data'Length);
    begin
       C_Interface (Ctx.Instance, Result.Data'Address, Size);
-      if not RFLX.SPDM.Valid_Hash_Length (RFLX.RFLX_Types.U64 (Size)) then
+      if not RFLX.SPDM.Valid_Hash_Length (RFLX.RFLX_Types.Base_Integer (Size)) then
          raise Constraint_Error;
       end if;
-      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Size));
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.Base_Integer (Size));
    end Plat_Get_Key_Ex_Verify_Data;
 
    overriding
@@ -1072,7 +1074,7 @@ is
                              Interfaces.C.unsigned (Hash),
                              Signature'Address,
                              Signature'Length,
-                             Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot))) > 0;
+                             Interfaces.C.unsigned_char (RFLX.SPDM.To_Base_Integer (Slot))) > 0;
    end Plat_Validate_Finish_Signature;
 
    overriding
@@ -1096,7 +1098,7 @@ is
                              Interfaces.C.unsigned (Hash),
                              HMAC'Address,
                              HMAC'Length,
-                             Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot))) > 0;
+                             Interfaces.C.unsigned_char (RFLX.SPDM.To_Base_Integer (Slot))) > 0;
    end Plat_Validate_Finish_HMAC;
 
    overriding
@@ -1117,13 +1119,13 @@ is
    begin
       C_Interface (Ctx.Instance,
                    Interfaces.C.unsigned (Hash),
-                   Interfaces.C.unsigned_char (RFLX.SPDM.To_U64 (Slot)),
+                   Interfaces.C.unsigned_char (RFLX.SPDM.To_Base_Integer (Slot)),
                    Result.Data'Address,
                    Size);
-      if not RFLX.SPDM.Valid_Hash_Length (RFLX.RFLX_Types.U64 (Size)) then
+      if not RFLX.SPDM.Valid_Hash_Length (RFLX.RFLX_Types.Base_Integer (Size)) then
          raise Constraint_Error;
       end if;
-      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.U64 (Size));
+      Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.Base_Integer (Size));
    end Plat_Get_Finish_Verify_Data;
 
    overriding
@@ -1153,7 +1155,7 @@ is
          Convention => C,
          External_Name => "spdm_platform_key_update";
    begin
-      Result := C_Interface (Ctx.Instance, Interfaces.C.unsigned (RFLX.SPDM.To_U64 (Operation))) > 0;
+      Result := C_Interface (Ctx.Instance, Interfaces.C.unsigned (RFLX.SPDM.To_Base_Integer (Operation))) > 0;
    end Plat_Key_Update;
 
    overriding
