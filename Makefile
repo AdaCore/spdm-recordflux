@@ -323,19 +323,29 @@ test_integration: test_integration_build
 	tests/integration/V614-025.expect
 	tests/integration/V616-034.expect
 
-$(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx:
-	python3 -m venv $(TMPDIR)/venv
-	$(TMPDIR)/venv/bin/pip3 install wheel
-	$(TMPDIR)/venv/bin/pip3 install contrib/RecordFlux[devel]
-
 package: build/spdm-$(VERSION).tar.xz
 
-build/spdm-$(VERSION).tar: .git/logs/HEAD
+# Determine RecordFlux version and create target for source distribution if a project file
+# in the contrib/RecordFlux directory exists (which is only the case in a Git tree)
+ifneq ($(wildcard contrib/RecordFlux/pyproject.toml),)
+
+RECORDFLUX_VERSION := $(shell python3 -m setuptools_scm -r contrib/RecordFlux 2> /dev/null)
+
+ifeq ($(RECORDFLUX_VERSION),)
+$(error Unable to determine RecordFlux version. Make sure "wheel", "setuptools", "setuptools_scm", "build" and "pip" are installed in a current version (pip install --upgrade wheel setuptools setuptools_scm build pip))
+endif
+
+build/RecordFlux-$(RECORDFLUX_VERSION).tar.gz:
+	python3 -m build --sdist -o build contrib/RecordFlux
+
+build/spdm-$(VERSION).tar: build/RecordFlux-$(RECORDFLUX_VERSION).tar.gz | .git/logs/HEAD
 	# check for local changes, abort if not committed
 	git diff --summary --exit-code
 	git diff --summary --exit-code --cached
 	mkdir -p build
-	git ls-files --recurse-submodules | grep -v -e "^.git\|/\.git" | grep -v -e "^contrib/RecordFlux/examples/specs/tests/data" > $(FILE_LIST)
+	git ls-files --recurse-submodules | grep -v -e "^.git\|/\.git" | grep -v -e "^contrib/RecordFlux" > $(FILE_LIST)
+	echo $^ >> $(FILE_LIST)
+	echo contrib/RecordFlux/defaults.gpr >> $(FILE_LIST)
 	tar cvf build/spdm-$(VERSION).tar -T $(FILE_LIST)
 	git rev-parse HEAD > $(TMPDIR)/commit
 	tar rvf build/spdm-$(VERSION).tar --directory $(TMPDIR) commit
@@ -352,10 +362,17 @@ test_package: build/spdm-$(VERSION).tar
 	make -C $(TMPDIR)/package_test
 	python3 -m venv $(TMPDIR)/package_test_venv
 	$(TMPDIR)/package_test_venv/bin/pip3 install wheel
-	$(TMPDIR)/package_test_venv/bin/pip3 install contrib/RecordFlux[devel]
+	$(TMPDIR)/package_test_venv/bin/pip3 install $(TMPDIR)/package_test/build/RecordFlux-*.tar.gz
 	PATH="$(TMPDIR)/package_test_venv/bin:$(PATH)" make -C $(TMPDIR)/package_test lib
 	# static library must exist
 	test -f $(TMPDIR)/package_test/build/lib/libspdm.a
+
+$(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx: build/RecordFlux-$(RECORDFLUX_VERSION).tar.gz
+	python3 -m venv $(TMPDIR)/venv
+	$(TMPDIR)/venv/bin/pip3 install wheel
+	$(TMPDIR)/venv/bin/pip3 install $^
+
+endif
 
 prove: $(addprefix build/generated/,$(GENERATED))
 	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder -u responder_multiple_responders -u responder_select

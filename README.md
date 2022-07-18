@@ -55,7 +55,7 @@ installation will also work:
 ```
 $ python3 -m venv venv
 $ . venv/bin/activate
-$ PATH=/path/to/your/NATIVE/gnat:$PATH pip install contrib/RecordFlux
+$ PATH=/path/to/your/NATIVE/gnat:$PATH pip install build/RecordFlux-*.tar.gz
 [this will take a while]
 ```
 
