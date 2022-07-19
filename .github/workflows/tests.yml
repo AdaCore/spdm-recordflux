@@ -45,7 +45,7 @@ jobs:
             - name: Install SPARK Pro
               uses: ./contrib/RecordFlux/.github/actions/install_spark_pro
               with:
-                  version: "23.0w-20220128"
+                  version: "23.0w-20220612"
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
                   server: ${{ secrets.MEMCACHED_SERVER }}
             - name: Connect to Memcached server
