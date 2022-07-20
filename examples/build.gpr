@@ -38,34 +38,17 @@ is
    for Main use ("main.adb", "main_multiple_responders.adb", "main_select.adb", "main_c.c");
 
    package Compiler is
-      for Default_Switches ("C") use ("-W", "-Wall", "-Wextra", "-Werror", "-Wstrict-prototypes", "-Wmissing-prototypes");
+      for Default_Switches ("C") use Build_Lib.Default_Switches_C;
    end Compiler;
 
    package Builder is
-      for Global_Compilation_Switches ("Ada") use (
-         "-ffunction-sections",
-         "-fdata-sections",
-         "-Os",
-         "-gnatp",
-         "-gnatd.8"
-      ) & Stack_Check_Switches;
-      for Global_Compilation_Switches ("C") use (
-         "-ffunction-sections",
-         "-fdata-sections",
-         "-Os"
-      ) & Stack_Check_Switches;
+      for Global_Compilation_Switches ("Ada") use Build_Lib.Default_Switches_Ada & Stack_Check_Switches;
       for Global_Configuration_Pragmas use "../pragmas.adc";
    end Builder;
 
    package Linker is
-      for Default_Switches ("Ada") use (
-         "-Os",
-         "-Wl,-gc-sections"
-      );
-      for Default_Switches ("C") use (
-         "-Os",
-         "-Wl,-gc-sections"
-      );
+      for Default_Switches ("Ada") use Build_Lib.Default_Switches_Linker;
+      for Default_Switches ("C") use Build_Lib.Default_Switches_Linker;
    end Linker;
 
    package Prove is

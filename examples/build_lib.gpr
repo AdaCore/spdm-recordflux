@@ -7,6 +7,7 @@ is
 
    type Boolean is ("True", "False");
    Check_Stack : Boolean := external ("CHECK_STACK", "False");
+   Debug : Boolean := external ("DEBUG", "False");
 
    Stack_Check_Path := "";
    case Check_Stack is
@@ -40,15 +41,47 @@ is
          null;
    end case;
 
+   Switches_C := ("-W",
+                  "-Wall",
+                  "-Wextra",
+                  "-Werror",
+                  "-Wstrict-prototypes",
+                  "-Wmissing-prototypes");
+   Switches_Ada := ("-gnatp", "-gnatd.8");
+   Optimization_Switches := ("-Os",
+                             "-ffunction-sections",
+                             "-fdata-sections",
+                             "-flto",
+                             "-finline-limit=35",
+                             "-fira-loop-pressure",
+                             "--param", "max-tail-merge-comparisons=40",
+                             "--param", "max-crossjump-edges=120",
+                             "--param", "large-stack-frame=530",
+                             "--param", "gcse-cost-distance-ratio=140",
+                             "--param", "gcse-unrestricted-cost=0",
+                             "--param", "max-hoist-depth=0",
+                             "--param", "max-cse-path-length=40",
+                             "--param", "max-jump-thread-duplication-stmts=0",
+                             "--param", "switch-conversion-max-branch-ratio=30");
+   Optimizations_Switches_Linker := ("-Os",
+                                     "-Wl,-gc-sections",
+                                     "-fuse-linker-plugin",
+                                     "-flto=auto",
+                                     "-flto-partition=none");
+
+   Default_Switches_C := Switches_C & Optimization_Switches;
+   Default_Switches_Ada := Switches_Ada & Optimization_Switches;
+   case Debug is
+      when True =>
+         Default_Switches_C := Default_Switches_C & ("-g");
+         Default_Switches_Ada := Default_Switches_Ada & ("-g");
+      when others =>
+         null;
+   end case;
+
    package Compiler is
-      for Default_Switches ("C") use ("-W", "-Wall", "-Wextra", "-Werror", "-Wstrict-prototypes", "-Wmissing-prototypes");
-      for Default_Switches ("Ada") use (
-         "-ffunction-sections",
-         "-fdata-sections",
-         "-Os",
-         "-gnatp",
-         "-gnatd.8"
-      );
+      for Default_Switches ("C") use Default_Switches_C;
+      for Default_Switches ("Ada") use Default_Switches_Ada;
    end Compiler;
 
    package Builder is
