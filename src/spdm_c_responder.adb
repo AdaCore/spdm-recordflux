@@ -593,6 +593,7 @@ is
       use type Interfaces.C.unsigned_short;
       use type RFLX.SPDM.Length_16;
       Max_Length               : constant RFLX.SPDM.Length_16 := 508;
+      --  Note: Result must have a size of at least Max_Length + 7
       Cert_Length              : Interfaces.C.unsigned_short;
       Total_Length             : Interfaces.C.unsigned_short;
       Portion_Remainder_Length : RFLX.RFLX_Types.Base_Integer;

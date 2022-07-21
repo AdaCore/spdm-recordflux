@@ -8,7 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+
 - Use single field setting to improve binary size (V621-019)
+- Remove unnecessary checks to improve binary size (V621-019)
 - Pass length of opaque object into platform functions
 - Rework transcript hash and signature generation (V622-001)
 - Distribute RecordFlux as source package
@@ -19,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Incomplete initialization of Slot ID for measurement signature (V616-034)
 - Improperly preprocessed spec if only `KEY_EXCHANGE` is enabled (V627-027)
 - Insufficient integration example for larger measurements (V713-064)
+- Ensure sufficient buffer size for result of `Plat_Get_Certificate_Response`
 
 ## [0.2.0] - 2022-06-16
 
