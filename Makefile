@@ -2,7 +2,7 @@
 
 SHELL := /bin/bash
 
-VERSION := 0.2.0
+VERSION := 0.3.0
 
 # Features: set to "True" or "False"
 FEATURE_CHALLENGE_AUTH ?= True
@@ -209,8 +209,8 @@ build/%/example/main: $(addprefix build/generated/,$(GENERATED))
 test_cross: build/arm/example/main build/riscv64/example/main libarm libriscv64
 
 test_size: build/arm/example/main build/riscv64/example/main
-	tools/check_size.py arm build/arm/example/main .text 78000
-	tools/check_size.py riscv64 build/riscv64/example/main .text 68128
+	tools/check_size.py arm build/arm/example/main .text 58000
+	tools/check_size.py riscv64 build/riscv64/example/main .text 50000
 
 check: check_spec check_stack
 
