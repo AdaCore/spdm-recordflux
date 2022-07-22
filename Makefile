@@ -336,7 +336,9 @@ $(error Unable to determine RecordFlux version. Make sure "wheel", "setuptools",
 endif
 
 build/RecordFlux-$(RECORDFLUX_VERSION).tar.gz:
-	python3 -m build --sdist -o build contrib/RecordFlux
+	python3 -m venv $(TMPDIR)/build_venv
+	$(TMPDIR)/build_venv/bin/python -m pip install build
+	$(TMPDIR)/build_venv/bin/python -m build --sdist -o build contrib/RecordFlux
 
 build/spdm-$(VERSION).tar: build/RecordFlux-$(RECORDFLUX_VERSION).tar.gz | .git/logs/HEAD
 	# check for local changes, abort if not committed
