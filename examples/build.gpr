@@ -47,8 +47,8 @@ is
    end Builder;
 
    package Linker is
-      for Default_Switches ("Ada") use Build_Lib.Default_Switches_Linker;
-      for Default_Switches ("C") use Build_Lib.Default_Switches_Linker;
+      for Default_Switches ("Ada") use Build_Lib.Optimizations_Switches_Linker;
+      for Default_Switches ("C") use Build_Lib.Optimizations_Switches_Linker;
    end Linker;
 
    package Prove is

@@ -72,7 +72,7 @@ is
    Default_Switches_C := Switches_C & Optimization_Switches;
    Default_Switches_Ada := Switches_Ada & Optimization_Switches;
    case Debug is
-      when True =>
+      when "True" =>
          Default_Switches_C := Default_Switches_C & ("-g");
          Default_Switches_Ada := Default_Switches_Ada & ("-g");
       when others =>
