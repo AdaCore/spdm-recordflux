@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rework transcript hash and signature generation (V622-001)
 - Distribute RecordFlux as source package
 - Improve compilation switches to reduce binary size (V621-019)
+- Support for latest GNAT wavefront in RecordFlux
 
 ### Fixed
 
