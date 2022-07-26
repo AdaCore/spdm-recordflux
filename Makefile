@@ -365,11 +365,7 @@ test_package: build/spdm-$(VERSION).tar
 	test -z "$$(tar -tf $^ | grep -e '\([@#]\|\.\.\.\|%[0-9]\)')"
 	mkdir -p $(TMPDIR)/package_test
 	tar -xvf $^ --directory $(TMPDIR)/package_test
-	make -C $(TMPDIR)/package_test
-	python3 -m venv $(TMPDIR)/package_test_venv
-	$(TMPDIR)/package_test_venv/bin/pip3 install wheel
-	$(TMPDIR)/package_test_venv/bin/pip3 install $(TMPDIR)/package_test/build/RecordFlux-*.tar.gz
-	PATH="$(TMPDIR)/package_test_venv/bin:$(PATH)" make -C $(TMPDIR)/package_test lib
+	$(MAKE) -C $(TMPDIR)/package_test lib
 	# static library must exist
 	test -f $(TMPDIR)/package_test/build/lib/libspdm.a
 
