@@ -212,7 +212,10 @@ test_size: build/arm/example/main build/riscv64/example/main
 	tools/check_size.py arm build/arm/example/main .text 58000
 	tools/check_size.py riscv64 build/riscv64/example/main .text 50000
 
-check: check_spec check_stack
+check: check_version check_spec check_stack
+
+check_version:
+	@./tools/check_version.py $(VERSION)
 
 check_spec: $(SPECIFICATIONS) | $(INTEGRATION_FILES) $(RFLX)
 	$(RFLX) check $^
