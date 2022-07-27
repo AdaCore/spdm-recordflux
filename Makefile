@@ -343,14 +343,13 @@ build/RecordFlux-$(RECORDFLUX_VERSION).tar.gz:
 	$(TMPDIR)/build_venv/bin/python -m pip install build
 	$(TMPDIR)/build_venv/bin/python -m build --sdist -o build contrib/RecordFlux
 
-build/spdm-$(VERSION).tar: build/RecordFlux.tar.gz | .git/logs/HEAD
+build/spdm-$(VERSION).tar: RecordFlux.tar.gz | .git/logs/HEAD
 	# check for local changes, abort if not committed
 	git diff --summary --exit-code
 	git diff --summary --exit-code --cached
 	mkdir -p build
 	git ls-files --recurse-submodules | grep -v -e "^.git\|/\.git" | grep -v -e "^contrib/RecordFlux" > $(FILE_LIST)
 	echo $^ >> $(FILE_LIST)
-	echo build/RecordFlux-$(RECORDFLUX_VERSION).tar.gz >> $(FILE_LIST)
 	echo contrib/RecordFlux/defaults.gpr >> $(FILE_LIST)
 	tar cvf build/spdm-$(VERSION).tar -T $(FILE_LIST)
 	git rev-parse HEAD > $(TMPDIR)/commit
@@ -369,12 +368,12 @@ test_package: build/spdm-$(VERSION).tar
 	# static library must exist
 	test -f $(TMPDIR)/package_test/build/lib/libspdm.a
 
-build/RecordFlux.tar.gz: build/RecordFlux-$(RECORDFLUX_VERSION).tar.gz
+RecordFlux.tar.gz: build/RecordFlux-$(RECORDFLUX_VERSION).tar.gz
 	cp -v $< $@
 
 endif
 
-$(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx: build/RecordFlux.tar.gz
+$(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx: RecordFlux.tar.gz
 	python3 -m venv $(TMPDIR)/venv
 	$(TMPDIR)/venv/bin/pip3 install wheel
 	$(TMPDIR)/venv/bin/pip3 install $^
@@ -385,3 +384,5 @@ prove: $(addprefix build/generated/,$(GENERATED))
 
 clean:
 	rm -rf build
+cleanall: clean
+	rm -f RecordFlux.tar.gz

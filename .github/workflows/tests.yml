@@ -91,7 +91,7 @@ jobs:
                 FEATURE_CHALLENGE_AUTH: "False"
                 FEATURE_RESPOND_IF_READY: "False"
               run: make check_spec test_cross test_size check_stack prove build/tests/responder
-            - name: Clean
-              run: make clean
+            - name: Clean All
+              run: make cleanall
             - name: Test Package
               run: make test_package
