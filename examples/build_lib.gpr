@@ -30,13 +30,16 @@ is
 
    for Create_Missing_Dirs use "True";
    for Target use Target_Arch & "-elf";
+   Target_Optimization_Switches := ();
    case Target_Arch is
       when "arm" =>
          for Runtime ("Ada") use "light-stm32f4";
       when "riscv32" =>
          for Runtime ("Ada") use "light-hifive1";
+         Target_Optimization_Switches := ("-msave-restore");
       when "riscv64" =>
          for Runtime ("Ada") use "light-spike";
+         Target_Optimization_Switches := ("-msave-restore");
       when others =>
          null;
    end case;
@@ -69,8 +72,8 @@ is
                                      "-flto=auto",
                                      "-flto-partition=none");
 
-   Default_Switches_C := Switches_C & Optimization_Switches;
-   Default_Switches_Ada := Switches_Ada & Optimization_Switches;
+   Default_Switches_C := Switches_C & Optimization_Switches & Target_Optimization_Switches;
+   Default_Switches_Ada := Switches_Ada & Optimization_Switches & Target_Optimization_Switches;
    case Debug is
       when "True" =>
          Default_Switches_C := Default_Switches_C & ("-g");
