@@ -6,8 +6,8 @@ package body Responder with
    SPARK_Mode,
    Refined_State => (Responder_State => (Buffer, Context))
 is
-   use type RFLX.RFLX_Types.Index;
-   Buffer : RFLX.RFLX_Types.Bytes (RFLX.RFLX_Types.Index'First .. RFLX.RFLX_Types.Index'First + 1279) := (others => 0);
+   use RFLX.RFLX_Types;
+   Buffer : Bytes (Index'First .. Index'First + 1279) := (others => 0);
    Context : SPDM_C_Responder.Context;
 
    function Uninitialized return Boolean is (RFLX.SPDM_Responder.Session.Uninitialized (Context));
@@ -27,7 +27,6 @@ is
 
    procedure Responder_Main
    is
-      use type RFLX.RFLX_Types.Length;
       package SR renames RFLX.SPDM_Responder.Session;
    begin
       loop
@@ -42,13 +41,14 @@ is
 
             if SR.Has_Data (Context, SR.C_Transport) then
                declare
-                  BS : constant RFLX.RFLX_Types.Length := SR.Read_Buffer_Size (Context, SR.C_Transport);
+                  use type RFLX.RFLX_Types.Length;
+                  BS : constant Length := SR.Read_Buffer_Size (Context, SR.C_Transport);
                begin
                   if Buffer'Length >= BS then
                      SR.Read
                         (Context,
                          SR.C_Transport,
-                         Buffer (Buffer'First .. Buffer'First - 2 + RFLX.RFLX_Types.Index (BS + 1)));
+                         Buffer (Buffer'First .. Buffer'First + BS - 1));
                      pragma Inspection_Point (Buffer);
                   end if;
                end;
@@ -56,9 +56,9 @@ is
 
             if SR.Needs_Data (Context, SR.C_Transport) then
                declare
-                  BS : constant RFLX.RFLX_Types.Length := SR.Write_Buffer_Size (Context, SR.C_Transport);
+                  BS : constant Length := SR.Write_Buffer_Size (Context, SR.C_Transport);
                begin
-                  SR.Write (Context, SR.C_Transport, Buffer (Buffer'First .. Buffer'First - 2 + RFLX.RFLX_Types.Index (BS + 1)));
+                  SR.Write (Context, SR.C_Transport, Buffer (Buffer'First .. Buffer'First + BS - 1));
                end;
             end if;
 

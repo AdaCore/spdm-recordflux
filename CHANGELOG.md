@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Updated example responders according to RecordFlux type operators (V727-019)
+
 ### Fixed
 
 - Improper packaging and missing packaging test (V726-033)

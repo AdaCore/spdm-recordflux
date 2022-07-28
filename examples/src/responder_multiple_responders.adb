@@ -30,14 +30,13 @@ is
 
    procedure Responder_Main
    is
-      use type RFLX.RFLX_Types.Index;
-      use type RFLX.RFLX_Types.Length;
+      use RFLX.RFLX_Types;
 
       package SR renames RFLX.SPDM_Responder.Session;
 
       generic
-         with procedure Send (Buffer : RFLX.RFLX_Types.Bytes);
-         with procedure Receive (Buffer : out RFLX.RFLX_Types.Bytes; Length : out RFLX.RFLX_Types.Length);
+         with procedure Send (Buffer : Bytes);
+         with procedure Receive (Buffer : out Bytes; Length : out RFLX.RFLX_Types.Length);
          with function Has_Message return Boolean;
       procedure Run_Responder (Context : in out SPDM_C_Responder.Context) with
          Pre =>
@@ -50,19 +49,20 @@ is
          if SR.Active (Context) then
             declare
                Skip_Run : Boolean := False;
-               Buffer : RFLX.RFLX_Types.Bytes (RFLX.RFLX_Types.Index'First .. RFLX.RFLX_Types.Index'First + 4095) := (others => 0);
+               Buffer : Bytes (Index'First .. Index'First + 4095) := (others => 0);
                Length : RFLX.RFLX_Types.Length;
             begin
                if SR.Has_Data (Context, SR.C_Transport) then
                   declare
+                     use type RFLX.RFLX_Types.Length;
                      BS : constant RFLX.RFLX_Types.Length := SR.Read_Buffer_Size (Context, SR.C_Transport);
                   begin
                      if Buffer'Length >= BS then
                         SR.Read
                            (Context,
                             SR.C_Transport,
-                            Buffer (Buffer'First .. Buffer'First - 2 + RFLX.RFLX_Types.Index (BS + 1)));
-                        Send (Buffer (Buffer'First .. Buffer'First - 2 + RFLX.RFLX_Types.Index (BS + 1)));
+                            Buffer (Buffer'First .. Buffer'First + BS - 1));
+                        Send (Buffer (Buffer'First .. Buffer'First + BS - 1));
                      end if;
                   end;
                end if;
@@ -77,7 +77,7 @@ is
                            SR.Write
                               (Context,
                                SR.C_Transport,
-                               Buffer (Buffer'First .. Buffer'First +  RFLX.RFLX_Types.Index (Length) - 1));
+                               Buffer (Buffer'First .. Buffer'First + Length - 1));
                         end if;
                      end;
                   else
