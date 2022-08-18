@@ -19,15 +19,3 @@ Session:
                     Measurement_Field: 256
                 Prepare_Certificate:
                     Cert: 515
-#if FEATURE_KEY_EXCHANGE then
-                Check_Algorithms_DHE:
-                    DHE_List: 100
-                Check_Algorithms_AEAD_Cipher_Suite:
-                    AEAD_Cipher_Suite_List: 100
-#end if;
-                Check_Algorithms_Req_Base_Asym_Alg:
-                    Req_Base_Asym_Alg_List: 100
-#if FEATURE_KEY_EXCHANGE then
-                Check_Algorithms_Key_Schedule:
-                    Key_Schedule_List: 100
-#end if;
