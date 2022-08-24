@@ -109,25 +109,28 @@ void spdm_platform_get_dmtf_measurement_field (instance_t *instance,
 void spdm_platform_get_meas_opaque_data(instance_t *instance,
                                         void *data,
                                         unsigned *size);
-unsigned spdm_platform_get_new_hash(instance_t *instance);
 
-unsigned char spdm_platform_valid_hash_id(instance_t *instance,
-                                          unsigned hash);
+unsigned spdm_platform_get_new_transcript(instance_t *instance,
+                                          unsigned char kind);
 
-unsigned spdm_platform_reset_hash(instance_t *instance,
-                                  unsigned hash);
+unsigned char spdm_platform_valid_transcript_id(instance_t *instance,
+                                                unsigned transcript);
 
-unsigned char spdm_platform_update_hash(instance_t *instance,
-                                        unsigned hash,
-                                        void *data,
-                                        unsigned offset,
-                                        unsigned size);
+unsigned spdm_platform_reset_transcript(instance_t *instance,
+                                        unsigned transcript,
+                                        unsigned char kind);
 
-unsigned char spdm_platform_update_hash_nonce(instance_t *instance,
-                                              unsigned hash);
+unsigned char spdm_platform_update_transcript(instance_t *instance,
+                                              unsigned transcript,
+                                              void *data,
+                                              unsigned offset,
+                                              unsigned size);
+
+unsigned char spdm_platform_update_transcript_nonce(instance_t *instance,
+                                                    unsigned transcript);
 
 void spdm_platform_get_signature(instance_t *instance,
-                                 unsigned hash,
+                                 unsigned transcript,
                                  unsigned char slot,
                                  void *signature,
                                  unsigned *size);
@@ -153,9 +156,9 @@ void spdm_platform_get_summary_hash(instance_t *instance,
                                     void *hash,
                                     unsigned *hash_length);
 
-unsigned char spdm_platform_update_hash_cert(instance_t *instance,
-                                             unsigned hash,
-                                             unsigned char slot);
+unsigned char spdm_platform_update_transcript_cert(instance_t *instance,
+                                                   unsigned transcript,
+                                                   unsigned char slot);
 
 void spdm_platform_get_key_ex_opaque_data(instance_t *instance,
                                           void *data,
@@ -166,19 +169,19 @@ void spdm_platform_get_key_ex_verify_data(instance_t *instance,
                                           unsigned *size);
 
 unsigned char spdm_platform_validate_finish_signature(instance_t *instance,
-                                                      unsigned hash,
+                                                      unsigned transcript,
                                                       void *signature,
                                                       unsigned size,
                                                       unsigned char slot);
 
 unsigned char spdm_platform_validate_finish_hmac(instance_t *instance,
-                                                 unsigned hash,
+                                                 unsigned transcript,
                                                  void *hmac,
                                                  unsigned size,
                                                  unsigned char slot);
 
 void spdm_platform_get_finish_verify_data(instance_t *instance,
-                                          unsigned hash,
+                                          unsigned transcript,
                                           unsigned char slot,
                                           void *data,
                                           unsigned *size);

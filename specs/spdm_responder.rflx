@@ -57,7 +57,12 @@ package SPDM_Responder is
             with Size => Length * 8;
       end message;
 
-   type Hash_ID is mod 2 ** 32;
+   type Transcript_ID is mod 2 ** 32;
+
+   type Transcript_Kind is
+      (Session_Transcript     => 0,
+       Measurement_Transcript => 1)
+   with Size => 8;
 
 #if FEATURE_KEY_EXCHANGE then
    type Hash is
@@ -181,21 +186,22 @@ package SPDM_Responder is
 
       with function Plat_Get_Meas_Opaque_Data return Opaque_Data;
 
-      with function Plat_Get_New_Hash return Hash_ID;
+      with function Plat_Get_New_Transcript (Kind : Transcript_Kind) return Transcript_ID;
 
-      with function Plat_Valid_Hash_ID (Hash : Hash_ID) return Boolean;
+      with function Plat_Valid_Transcript_ID (Transcript : Transcript_ID) return Boolean;
 
-      with function Plat_Reset_Hash (Hash : Hash_ID) return Hash_ID;
+      with function Plat_Reset_Transcript (Transcript : Transcript_ID;
+                                           Kind       : Transcript_Kind) return Transcript_ID;
 
-      with function Plat_Update_Hash (Hash   : Hash_ID;
-                                      Data   : Opaque;
-                                      Offset : SPDM::Length_16;
-                                      Length : SPDM::Length_16) return Boolean;
+      with function Plat_Update_Transcript (Transcript   : Transcript_ID;
+                                            Data         : Opaque;
+                                            Offset       : SPDM::Length_16;
+                                            Length       : SPDM::Length_16) return Boolean;
 
-      with function Plat_Update_Hash_Nonce (Hash : Hash_ID) return Boolean;
+      with function Plat_Update_Transcript_Nonce (Transcript : Transcript_ID) return Boolean;
 
-      with function Plat_Get_Signature (Hash : Hash_ID;
-                                        Slot : SPDM::Slot) return Signature;
+      with function Plat_Get_Signature (Transcript : Transcript_ID;
+                                        Slot       : SPDM::Slot) return Signature;
 #if FEATURE_KEY_EXCHANGE then
       with function Plat_Get_Exchange_Data (Exchange_Data : Opaque) return Exchange_Data;
 
@@ -209,23 +215,23 @@ package SPDM_Responder is
 
       with function Plat_Get_Summary_Hash (Data : Opaque) return Hash;
 
-      with function Plat_Update_Hash_Cert (Hash : Hash_ID;
-                                           Slot : SPDM::Slot) return Boolean;
+      with function Plat_Update_Transcript_Cert (Transcript : Transcript_ID;
+                                                 Slot       : SPDM::Slot) return Boolean;
 
       with function Plat_Get_Key_Ex_Opaque_Data (Request_Data : Opaque) return Opaque_Data;
 
       with function Plat_Get_Key_Ex_Verify_Data return Hash;
 
-      with function Plat_Validate_Finish_Signature (Hash      : Hash_ID;
-                                                    Signature : Opaque;
-                                                    Slot      : SPDM::Slot) return Boolean;
+      with function Plat_Validate_Finish_Signature (Transcript : Transcript_ID;
+                                                    Signature  : Opaque;
+                                                    Slot       : SPDM::Slot) return Boolean;
 
-      with function Plat_Validate_Finish_HMAC (Hash : Hash_ID;
-                                               HMAC : Opaque;
-                                               Slot : SPDM::Slot) return Boolean;
+      with function Plat_Validate_Finish_HMAC (Transript : Transcript_ID;
+                                               HMAC      : Opaque;
+                                               Slot      : SPDM::Slot) return Boolean;
 
-      with function Plat_Get_Finish_Verify_Data (Hash : Hash_ID;
-                                                 Slot : SPDM::Slot) return Hash;
+      with function Plat_Get_Finish_Verify_Data (Transcript : Transcript_ID;
+                                                 Slot       : SPDM::Slot) return Hash;
 
       with function Plat_Set_Session_Phase (Phase : Session_Phase) return Session_Phase;
 
@@ -254,14 +260,14 @@ package SPDM_Responder is
       Reset_Measurement_Sig  : Boolean := True;
       Measurement_Slot       : SPDM::Narrow_Slot;
       Measurement_Record     : SPDM::Measurement_Record;
-      Measurement_Hash       : Hash_ID;
+      Transcript_Meas        : Transcript_ID;
       Current_Measurement    : SPDM::Index;
       Last_Measurement       : SPDM::Index;
       Number_Of_Indices      : SPDM::Measurement_Count;
       Number_Of_Blocks       : SPDM::Block_Count;
       Error_Code             : SPDM::Error_Code;
 #if FEATURE_KEY_EXCHANGE then
-      Transcript_Hash        : Hash_ID;
+      Transcript_Session     : Transcript_ID;
       Exchange_Data_Length   : SPDM::Exchange_Data_Length := 0;
       Measurement_Summary    : Boolean;
       Use_Mutual_Auth        : Boolean;
@@ -293,12 +299,12 @@ package SPDM_Responder is
          Next_Valid : Boolean;
 #end if;
       begin
-         Measurement_Hash := Plat_Get_New_Hash;
-         Valid            := Plat_Valid_Hash_ID (Measurement_Hash);
+         Transcript_Meas    := Plat_Get_New_Transcript (Measurement_Transcript);
+         Valid              := Plat_Valid_Transcript_ID (Transcript_Meas);
 #if FEATURE_KEY_EXCHANGE then
-         Transcript_Hash  := Plat_Get_New_Hash;
-         Next_Valid       := Plat_Valid_Hash_ID (Transcript_Hash);
-         Valid            := Valid and Next_Valid;
+         Transcript_Session := Plat_Get_New_Transcript (Session_Transcript);
+         Next_Valid         := Plat_Valid_Transcript_ID (Transcript_Session);
+         Valid              := Valid and Next_Valid;
 #end if;
       transition
          goto Receive_Get_Version
@@ -326,17 +332,17 @@ package SPDM_Responder is
       state Prepare_Version
       is
 #if FEATURE_KEY_EXCHANGE then
-         Req_Size     : SPDM::Length_16;
-         Resp_Size    : SPDM::Length_16;
-         Success_Next : Boolean;
-         Success      : Boolean;
-         Local_Hash   : Hash_ID;
+         Req_Size         : SPDM::Length_16;
+         Resp_Size        : SPDM::Length_16;
+         Success_Next     : Boolean;
+         Success          : Boolean;
+         Local_Transcript : Transcript_ID;
 #end if;
       begin
 #if FEATURE_KEY_EXCHANGE then
-         Local_Hash      := Plat_Reset_Hash (Transcript_Hash);
-         Transcript_Hash := Local_Hash;
-         Success         := Plat_Valid_Hash_ID (Transcript_Hash);
+         Local_Transcript   := Plat_Reset_Transcript (Transcript_Session, Session_Transcript);
+         Transcript_Session := Local_Transcript;
+         Success            := Plat_Valid_Transcript_ID (Transcript_Session);
 #end if;
          Supp_Versions'Reset;
          Supp_Versions'Append
@@ -377,10 +383,10 @@ package SPDM_Responder is
          Req_Size     := Request'Size / 8;
          Resp_Size    := Response'Size / 8;
          --  TH1/2 Key_Exchange transcript hash: [GET_VERSION].*
-         Success_Next := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, Req_Size);
+         Success_Next := Plat_Update_Transcript (Transcript_Session, Request'Opaque, 0, Req_Size);
          Success      := Success and Success_Next;
          --  TH1/2 Key_Exchange transcript hash: [VERSION].*
-         Success_Next := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Resp_Size);
+         Success_Next := Plat_Update_Transcript (Transcript_Session, Response'Opaque, 0, Resp_Size);
          Success      := Success and Success_Next;
 #end if;
       transition
@@ -512,9 +518,9 @@ package SPDM_Responder is
          Req_Size     := Request'Size / 8;
          Resp_Size    := Response'Size / 8;
          --  TH1/2 Key_Exchange transcript hash: [GET_CAPABILITIES].*
-         Success      := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, Req_Size);
+         Success      := Plat_Update_Transcript (Transcript_Session, Request'Opaque, 0, Req_Size);
          --  TH1/2 Key_Exchange transcript hash: [CAPABILITIES].*
-         Success_Next := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Resp_Size);
+         Success_Next := Plat_Update_Transcript (Transcript_Session, Response'Opaque, 0, Resp_Size);
          Success      := Success and Success_Next;
 #end if;
       transition
@@ -855,9 +861,9 @@ package SPDM_Responder is
          Req_Size     := Request'Size / 8;
          Resp_Size    := Response'Size / 8;
          --  TH1/2 Key_Exchange transcript hash: [NEGOTIATE_ALGORITHMS].*
-         Success      := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, Req_Size);
+         Success      := Plat_Update_Transcript (Transcript_Session, Request'Opaque, 0, Req_Size);
          --  TH1/2 Key_Exchange transcript hash: [ALGORITHMS].*
-         Success_Next := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Resp_Size);
+         Success_Next := Plat_Update_Transcript (Transcript_Session, Response'Opaque, 0, Resp_Size);
          Success      := Success and Success_Next;
 #end if;
          Hash_Length := (case Base_Hash_Sel is
@@ -1065,8 +1071,8 @@ package SPDM_Responder is
       is
          Valid    : Boolean;
       begin
-         Measurement_Hash      := Plat_Reset_Hash (Measurement_Hash);
-         Valid                 := Plat_Valid_Hash_ID (Measurement_Hash);
+         Transcript_Meas       := Plat_Reset_Transcript (Transcript_Meas, Measurement_Transcript);
+         Valid                 := Plat_Valid_Transcript_ID (Transcript_Meas);
          Reset_Measurement_Sig := False;
       transition
          goto Prepare_Measurements
@@ -1080,7 +1086,7 @@ package SPDM_Responder is
          Req_Size : SPDM::Length_16;
       begin
          Req_Size := Request'Size / 8;
-         Success  := Plat_Update_Hash (Measurement_Hash, Request'Opaque, 0, Req_Size);
+         Success  := Plat_Update_Transcript (Transcript_Meas, Request'Opaque, 0, Req_Size);
          Measurement_Record'Reset;
          Current_Measurement := Request.Get_Measurements_Request_Measurement_Operation;
          Last_Measurement    := Request.Get_Measurements_Request_Measurement_Operation;
@@ -1166,12 +1172,12 @@ package SPDM_Responder is
 
       state Prepare_Measurements_Response
       is
-         Nonce : SPDM::Nonce;
-         Opaque_Data : Opaque_Data;
+         Nonce         : SPDM::Nonce;
+         Opaque_Data   : Opaque_Data;
          Has_Signature : Boolean;
       begin
-         Nonce := Plat_Get_Nonce;
-         Opaque_Data := Plat_Get_Meas_Opaque_Data;
+         Nonce         := Plat_Get_Nonce;
+         Opaque_Data   := Plat_Get_Meas_Opaque_Data;
          Has_Signature := Request.Get_Measurements_Request_Generate_Signature;
          Response'Reset (
 #if FEATURE_CHALLENGE_AUTH then
@@ -1228,15 +1234,16 @@ package SPDM_Responder is
          Record_Length_16                         := Record_Length_24;
          Resp_Size                                := Record_Length_16 + 8;
          --  Hash message part before nonce
-         Success                                  := Plat_Update_Hash (Measurement_Hash, Response'Opaque, 0, Resp_Size);
+         Success                                  :=
+            Plat_Update_Transcript (Transcript_Meas, Response'Opaque, 0, Resp_Size);
          --  Hash last generated nonce
-         Next_Success                             := Plat_Update_Hash_Nonce (Measurement_Hash);
+         Next_Success                             := Plat_Update_Transcript_Nonce (Transcript_Meas);
          Success                                  := Success and Next_Success;
          Nonce_Offset                             := Resp_Size + 32;
          Resp_Size                                := Response.Measurements_Response_Opaque_Length + 2;
          --  Hash message part after nonce
          Next_Success                             :=
-            Plat_Update_Hash (Measurement_Hash, Response'Opaque, Nonce_Offset, Resp_Size);
+            Plat_Update_Transcript (Transcript_Meas, Response'Opaque, Nonce_Offset, Resp_Size);
          Success                                  := Success and Next_Success;
          Narrow_Slot_ID                           := Response.Measurements_Response_Slot_ID;
          Slot_ID                                  :=
@@ -1250,7 +1257,7 @@ package SPDM_Responder is
                when SPDM::NS_6 => SPDM::Slot_6,
                when SPDM::NS_7 => SPDM::Slot_7,
                when SPDM::NS_Trusted_Environment => SPDM::Trusted_Environment);
-         Signature                                := Plat_Get_Signature (Measurement_Hash, Slot_ID);
+         Signature                                := Plat_Get_Signature (Transcript_Meas, Slot_ID);
          Response.Measurements_Response_Signature := Signature.Data;
          Reset_Measurement_Sig                    := True;
       transition
@@ -1265,7 +1272,7 @@ package SPDM_Responder is
          Resp_Size : SPDM::Length_16;
       begin
          Resp_Size := Response'Size / 8;
-         Success   := Plat_Update_Hash (Measurement_Hash, Response'Opaque, 0, Resp_Size);
+         Success   := Plat_Update_Transcript (Transcript_Meas, Response'Opaque, 0, Resp_Size);
       transition
          goto Send_Idle
             if Success
@@ -1339,10 +1346,10 @@ package SPDM_Responder is
          Response.Key_Exchange_Response_Random_Data              := Nonce.Data;
          Response.Key_Exchange_Response_Exchange_Data            := Exchange_Data.Data;
          --  TH1/2 Key_Exchange transcript hash: Hash of the specified certificate chain in DER format
-         Cert_Hash_Success := Plat_Update_Hash_Cert (Transcript_Hash, Request.Key_Exchange_Request_Slot);
+         Cert_Hash_Success := Plat_Update_Transcript_Cert (Transcript_Session, Request.Key_Exchange_Request_Slot);
          Req_Size := Request'Size / 8;
          --  TH1/2 Key_Exchange transcript hash: [KEY_EXCHANGE].*
-         Success := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, Req_Size);
+         Success := Plat_Update_Transcript (Transcript_Session, Request'Opaque, 0, Req_Size);
          Success := Success and Cert_Hash_Success;
       transition
          goto Error_Unspecified
@@ -1438,15 +1445,15 @@ package SPDM_Responder is
          Success                                  :=
          --  TH1/2 Key_Exchange transcript hash:
          --  [KEY_EXCHANGE_RSP].* except the `Signature` and `ResponderVerifyData` fields
-            Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Transcript_Len);
+            Plat_Update_Transcript (Transcript_Session, Response'Opaque, 0, Transcript_Len);
          Signature                                :=
-            Plat_Get_Signature (Transcript_Hash, Request.Key_Exchange_Request_Slot);
+            Plat_Get_Signature (Transcript_Session, Request.Key_Exchange_Request_Slot);
          Response.Key_Exchange_Response_Signature := Signature.Data;
          Transcript_Len                           := Signature_Length;
          Success_Sig                              :=
          --  TH1/2 Key_Exchange transcript hash: [KEY_EXCHANGE_RSP].* except the `ResponderVerifyData` field
          --  The transcript hash from the signature generation is kept, so only the signature has to be added.
-            Plat_Update_Hash (Transcript_Hash, Response.Key_Exchange_Response_Signature, 0, Transcript_Len);
+            Plat_Update_Transcript (Transcript_Session, Response.Key_Exchange_Response_Signature, 0, Transcript_Len);
          Current_Phase                            := Plat_Set_Session_Phase (Session_Handshake);
       transition
          goto Error_Unspecified
@@ -1473,7 +1480,7 @@ package SPDM_Responder is
          Success :=
          --  TH1/2 Key_Exchange transcript hash: [KEY_EXCHANGE_RSP].*
          --  The transcript hash from the HMAC generation is kept, so only the HMAC has to be added.
-            Plat_Update_Hash (Transcript_Hash,
+            Plat_Update_Transcript (Transcript_Session,
                               Response.Key_Exchange_Response_Responder_Verify_Data,
                               0, Transcript_Len);
       transition
@@ -1513,7 +1520,7 @@ package SPDM_Responder is
       begin
          Local_Slot := Request.Finish_Request_Slot;
          --  TH1/2 Finish transcript hash: Hash of the specified certificate chain in DER format
-         Success    := Plat_Update_Hash_Cert (Transcript_Hash, Local_Slot);
+         Success    := Plat_Update_Transcript_Cert (Transcript_Session, Local_Slot);
       transition
          goto Hash_Finish_Header
             if Success
@@ -1527,7 +1534,7 @@ package SPDM_Responder is
          Success : Boolean;
       begin
          --  TH1/2 Finish transcript hash: [FINISH].SPDM Header Fields
-         Success := Plat_Update_Hash (Transcript_Hash, Request'Opaque, 0, 4);
+         Success := Plat_Update_Transcript (Transcript_Session, Request'Opaque, 0, 4);
       transition
          goto Validate_Finish_Signature
             if Success and Use_Mutual_Auth and Request.Finish_Request_Signature_Included
@@ -1543,11 +1550,11 @@ package SPDM_Responder is
          Valid   : Boolean;
          Success : Boolean;
       begin
-         Valid := Plat_Validate_Finish_Signature (Transcript_Hash,
+         Valid := Plat_Validate_Finish_Signature (Transcript_Session,
                                                   Request.Finish_Request_Signature,
                                                   Request.Finish_Request_Slot);
          --  TH1/2 Finish transcript hash: [FINISH].Signature
-         Success := Plat_Update_Hash (Transcript_Hash,
+         Success := Plat_Update_Transcript (Transcript_Session,
                                       Request.Finish_Request_Signature,
                                       0, Signature_Length);
       transition
@@ -1563,14 +1570,14 @@ package SPDM_Responder is
          Valid   : Boolean;
          Success : Boolean;
       begin
-         Valid := Plat_Validate_Finish_HMAC (Transcript_Hash,
+         Valid := Plat_Validate_Finish_HMAC (Transcript_Session,
                                              Request.Finish_Request_Requester_Verify_Data,
                                              Request.Finish_Request_Slot);
          --  TH1/2 Finish transcript hash: [FINISH].*
          --  Complete Finish request hash, only Responder_Verify_Data is missing
-         Success := Plat_Update_Hash (Transcript_Hash,
-                                      Request.Finish_Request_Requester_Verify_Data,
-                                      0, Hash_Length);
+         Success := Plat_Update_Transcript (Transcript_Session,
+                                            Request.Finish_Request_Requester_Verify_Data,
+                                            0, Hash_Length);
       transition
          goto Prepare_Finish_Response
             if Valid
@@ -1623,7 +1630,7 @@ package SPDM_Responder is
          Valid : Boolean;
       begin
          --  TH1/2 Finish transcript hash: [FINISH_RSP].SPDM header fields
-         Valid := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, 4);
+         Valid := Plat_Update_Transcript (Transcript_Session, Response'Opaque, 0, 4);
       transition
          goto Set_Finish_Response_Verify
             if Valid and Cap_Handshake_In_The_Clear
@@ -1639,13 +1646,13 @@ package SPDM_Responder is
          Verify_Data : Hash;
          Success     : Boolean;
       begin
-         Verify_Data := Plat_Get_Finish_Verify_Data (Transcript_Hash, Request.Finish_Request_Slot);
+         Verify_Data := Plat_Get_Finish_Verify_Data (Transcript_Session, Request.Finish_Request_Slot);
          Response.Finish_Response_Responder_Verify_Data := Verify_Data.Data;
          --  TH1/2 Finish transcript hash: [FINISH_RSP]
          --  Only Responder_Verify_Data is missing.
-         Success        := Plat_Update_Hash (Transcript_Hash,
-                                             Response.Finish_Response_Responder_Verify_Data,
-                                             0, Hash_Length);
+         Success := Plat_Update_Transcript (Transcript_Session,
+                                            Response.Finish_Response_Responder_Verify_Data,
+                                            0, Hash_Length);
       transition
          goto Finish_Session_Handshake
             if Success

@@ -2,6 +2,16 @@
 #include <dummy_spdm_platform_interface.h>
 #include <../include/spdm_platform_interface.h>
 
+#define SESSION_TRANSCRIPT 0
+#define MEASUREMENT_TRANSCRIPT 1
+
+struct transcript {
+    unsigned used;
+    unsigned char kind;
+    int size;
+    void *data;
+};
+
 struct instance {
     unsigned char base_hash_algo;
     long base_asym_algo;
@@ -9,8 +19,7 @@ struct instance {
     unsigned char dhe_named_group;
     int valid_nonce;
     unsigned char nonce[32];
-    void *hashes[8];
-    int hash_sizes[8];
+    struct transcript transcripts[8];
     unsigned char dhe_key[512];
     unsigned dhe_key_size;
     unsigned char secure_session;
@@ -25,7 +34,6 @@ void spdm_platform_initialize(instance_t **instance)
         errx(1, "failed to create instance");
     }
     memset(*instance, 0, sizeof(instance_t));
-    memset((*instance)->hash_sizes, -1, sizeof(int) * 8);
     (*instance)->transcript_headers[0]  = 0x8410; //[GET_VERSION].*
     (*instance)->transcript_headers[1]  = 0x0410; //[VERSION].*
     (*instance)->transcript_headers[2]  = 0xe111; //[GET_CAPABILITIES].*
@@ -381,51 +389,58 @@ void spdm_platform_get_meas_opaque_data(__attribute__((unused)) instance_t *inst
     *size = 0;
 }
 
-unsigned spdm_platform_get_new_hash(instance_t *instance)
+unsigned spdm_platform_get_new_transcript(instance_t *instance,
+                                          unsigned char kind)
 {
+    if(kind > 1){
+        return 0xff;
+    }
     for(int i = 0; i < 8; i++){
-        if(instance->hash_sizes[i] == -1){
-            instance->hashes[i] = 0;
-            instance->hash_sizes[i] = 0;
+        if(!(instance->transcripts[i].used)){
+            instance->transcripts[i].used = 1;
+            instance->transcripts[i].kind = kind;
+            instance->transcripts[i].size = 0;
             return i;
         }
     }
     return 0xff;
 }
 
-unsigned char spdm_platform_valid_hash_id(instance_t *instance,
-                                          unsigned hash)
+unsigned char spdm_platform_valid_transcript_id(instance_t *instance,
+                                                unsigned transcript)
 {
-    return hash <= 8 && instance->hash_sizes[hash] != -1;
+    return transcript <= 8 && instance->transcripts[transcript].used;
 }
 
-unsigned spdm_platform_reset_hash(instance_t *instance,
-                                  unsigned hash)
+unsigned spdm_platform_reset_transcript(instance_t *instance,
+                                        unsigned transcript,
+                                        unsigned char kind)
 {
-    if(!spdm_platform_valid_hash_id(instance, hash)){
-        return hash;
+    if(!spdm_platform_valid_transcript_id(instance, transcript)){
+        return transcript;
     }
-    if(instance->hash_sizes[hash] != -1){
-        free(instance->hashes[hash]);
-        instance->hash_sizes[hash] = -1;
-        instance->hashes[hash] = 0;
-    }
+    if(instance->transcripts[transcript].used){
+        free(instance->transcripts[transcript].data);
+        instance->transcripts[transcript].size = 0;
+        instance->transcripts[transcript].used = 0;
+        instance->transcripts[transcript].data = 0;
 #ifdef FEATURE_KEY_EXCHANGE
-    if(hash == 1){
-        instance->transcript_stage = 0;
-    }
+        if(instance->transcripts[transcript].kind == SESSION_TRANSCRIPT){
+            instance->transcript_stage = 0;
+        }
 #endif
-    return spdm_platform_get_new_hash(instance);
+    }
+    return spdm_platform_get_new_transcript(instance, kind);
 }
 
-unsigned char spdm_platform_update_hash(instance_t *instance,
-                                        unsigned hash,
-                                        __unused_cross__ void *data,
-                                        __unused_cross__ unsigned offset,
-                                        unsigned size)
+unsigned char spdm_platform_update_transcript(instance_t *instance,
+                                              unsigned transcript,
+                                              __unused_cross__ void *data,
+                                              __unused_cross__ unsigned offset,
+                                              unsigned size)
 {
 #ifdef FEATURE_KEY_EXCHANGE
-    if(hash == 1){
+    if(instance->transcripts[transcript].kind == SESSION_TRANSCRIPT){
         printf("transcript stage %u: %04hx\n",
                instance->transcript_stage,
                instance->transcript_headers[instance->transcript_stage]);
@@ -438,32 +453,33 @@ unsigned char spdm_platform_update_hash(instance_t *instance,
         instance->transcript_stage = instance->transcript_stage + 1;
     }
 #endif
-    if(!spdm_platform_valid_hash_id(instance, hash)){
-        errx(1, "invalid hash slot");
+    if(!spdm_platform_valid_transcript_id(instance, transcript)){
+        errx(1, "invalid transcript slot: %u", transcript);
         return 0;
     }
-    instance->hashes[hash] = realloc(instance->hashes[hash], instance->hash_sizes[hash] + size);
-    if(!instance->hashes[hash]){
+    instance->transcripts[transcript].data = realloc(instance->transcripts[transcript].data,
+                                                     instance->transcripts[transcript].size + size);
+    if(!instance->transcripts[transcript].data){
         errx(1, "realloc failed");
         return 0;
     }
-    memcpy(instance->hashes[hash] + instance->hash_sizes[hash], data + offset, size);
-    instance->hash_sizes[hash] = instance->hash_sizes[hash] + size;
+    memcpy(instance->transcripts[transcript].data + instance->transcripts[transcript].size, data + offset, size);
+    instance->transcripts[transcript].size = instance->transcripts[transcript].size + size;
     return 1;
 }
 
-unsigned char spdm_platform_update_hash_nonce(instance_t *instance,
-                                              unsigned hash)
+unsigned char spdm_platform_update_transcript_nonce(instance_t *instance,
+                                                    unsigned transcript)
 {
     if(!instance->valid_nonce){
         return 0;
     }
     instance->valid_nonce = 0;
-    return spdm_platform_update_hash(instance, hash, instance->nonce, 0, 32);
+    return spdm_platform_update_transcript(instance, transcript, instance->nonce, 0, 32);
 }
 
 void spdm_platform_get_signature(instance_t *instance,
-                                 unsigned hash,
+                                 unsigned transcript,
                                  __attribute__((unused)) unsigned char slot,
                                  __unused_cross__ void *signature,
                                  unsigned *size)
@@ -476,22 +492,22 @@ void spdm_platform_get_signature(instance_t *instance,
         return;
     }
     uintn sig_size = *size;
-    if(!spdm_platform_valid_hash_id(instance, hash)){
-        errx(1, "invalid hash slot");
+    if(!spdm_platform_valid_transcript_id(instance, transcript)){
+        errx(1, "invalid transcript slot: %u", transcript);
     }
     boolean res = spdm_hash_all(instance->base_hash_algo,
-                                instance->hashes[hash],
-                                instance->hash_sizes[hash],
+                                instance->transcripts[transcript].data,
+                                instance->transcripts[transcript].size,
                                 hash_data);
     if(!res){
         errx(1, "failed to hash summary");
     }
     __unused_cross__ unsigned code = 0;
-    if(hash == 0){
+    if(instance->transcripts[transcript].kind == MEASUREMENT_TRANSCRIPT){
         code = SPDM_MEASUREMENTS;
 #ifdef FEATURE_KEY_EXCHANGE
     }
-    if(hash == 1){
+    if(instance->transcripts[transcript].kind == SESSION_TRANSCRIPT){
         code = SPDM_KEY_EXCHANGE_RSP;
 #endif
     }
@@ -570,8 +586,8 @@ void spdm_platform_get_summary_hash(__unused_cross__ instance_t *instance,
     *hash_length = spdm_get_hash_size(instance->base_hash_algo);
 }
 
-unsigned char spdm_platform_update_hash_cert(instance_t *instance,
-                                             unsigned hash,
+unsigned char spdm_platform_update_transcript_cert(instance_t *instance,
+                                             unsigned transcript,
                                              unsigned char slot)
 {
     if(slot != 0){
@@ -586,7 +602,7 @@ unsigned char spdm_platform_update_hash_cert(instance_t *instance,
     if(!res){
         errx(0, "failed to get certificate");
     }
-    return spdm_platform_update_hash(instance, hash, raw_data, 0, size);
+    return spdm_platform_update_transcript(instance, transcript, raw_data, 0, size);
 }
 
 void spdm_platform_get_key_ex_opaque_data(__attribute__((unused)) instance_t *instance,
@@ -603,7 +619,7 @@ void spdm_platform_get_key_ex_verify_data(__unused_cross__ instance_t *instance,
 }
 
 unsigned char spdm_platform_validate_finish_signature(__attribute__((unused)) instance_t *instance,
-                                                      __attribute__((unused)) unsigned hash,
+                                                      __attribute__((unused)) unsigned transcript,
                                                       __attribute__((unused)) void *signature,
                                                       __attribute__((unused)) unsigned size,
                                                       __attribute__((unused)) unsigned char slot)
@@ -612,7 +628,7 @@ unsigned char spdm_platform_validate_finish_signature(__attribute__((unused)) in
 }
 
 unsigned char spdm_platform_validate_finish_hmac(__attribute__((unused)) instance_t *instance,
-                                                 __attribute__((unused)) unsigned hash,
+                                                 __attribute__((unused)) unsigned transcript,
                                                  __attribute__((unused)) void *hmac,
                                                  __attribute__((unused)) unsigned size,
                                                  __attribute__((unused)) unsigned char slot)
@@ -621,7 +637,7 @@ unsigned char spdm_platform_validate_finish_hmac(__attribute__((unused)) instanc
 }
 
 void spdm_platform_get_finish_verify_data(__unused_cross__ instance_t *instance,
-                                          __attribute__((unused)) unsigned hash,
+                                          __attribute__((unused)) unsigned transcript,
                                           __attribute__((unused)) unsigned char slot,
                                           __attribute__((unused)) void *data,
                                           unsigned *size)
