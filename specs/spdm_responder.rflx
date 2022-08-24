@@ -1417,27 +1417,33 @@ package SPDM_Responder is
 
       state Prepare_Key_Exchange_Sign
       is
-         Signature     : Signature;
-         Resp_Length   : SPDM::Length_16;
-         Exch_Data_Len : SPDM::Length_16;
-         Hash_Len      : SPDM::Length_16;
-         Success       : Boolean;
+         Signature      : Signature;
+         Exch_Data_Len  : SPDM::Length_16;
+         Hash_Len       : SPDM::Length_16;
+         Transcript_Len : SPDM::Length_16;
+         Success        : Boolean;
+         Success_Sig    : Boolean;
       begin
          Exch_Data_Len                            := Exchange_Data_Length;
          Hash_Len                                 := Hash_Length;
-         Resp_Length                              :=
+         Transcript_Len                           :=
             42 + Response.Key_Exchange_Response_Opaque_Data_Length + Exch_Data_Len + Hash_Len;
          Success                                  :=
          --  TH1/2 Key_Exchange transcript hash:
          --  [KEY_EXCHANGE_RSP].* except the `Signature` and `ResponderVerifyData` fields
-            Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Resp_Length);
+            Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Transcript_Len);
          Signature                                :=
             Plat_Get_Signature (Transcript_Hash, Request.Key_Exchange_Request_Slot);
          Response.Key_Exchange_Response_Signature := Signature.Data;
          Secure_Session                           := False;
+         Transcript_Len                           := Signature_Length;
+         Success_Sig                              :=
+         --  TH1/2 Key_Exchange transcript hash: [KEY_EXCHANGE_RSP].* except the `ResponderVerifyData` field
+         --  The transcript hash from the signature generation is kept, so only the signature has to be added.
+            Plat_Update_Hash (Transcript_Hash, Response.Key_Exchange_Response_Signature, 0, Transcript_Len);
       transition
          goto Error_Unspecified
-            if Success = False
+            if Success = False or Success_Sig = False
          goto Send_Key_Exchange
             if Cap_Handshake_In_The_Clear
          goto Set_Key_Exchange_Verify_Data
@@ -1450,18 +1456,12 @@ package SPDM_Responder is
          Verify_Data    : Hash;
          Transcript_Len : SPDM::Length_16;
          Success        : Boolean;
-         Success_Next   : Boolean;
       begin
-         Transcript_Len                                       := Signature_Length;
-         Success                                              :=
-         --  TH1/2 Key_Exchange transcript hash: [KEY_EXCHANGE_RSP].* except the `ResponderVerifyData` field
-         --  The transcript hash from the signature generation is kept, so only the signature has to be added.
-            Plat_Update_Hash (Transcript_Hash, Response.Key_Exchange_Response_Signature, 0, Transcript_Len);
          --  Transcript hash for KEY_EXCHANGE_RSP HMAC [438] / TH1 [593]
          Verify_Data                                          := Plat_Get_Key_Ex_Verify_Data;
          Response.Key_Exchange_Response_Responder_Verify_Data := Verify_Data.Data;
          Transcript_Len                                       := Hash_Length;
-         Success_Next :=
+         Success :=
          --  TH1/2 Key_Exchange transcript hash: [KEY_EXCHANGE_RSP].*
          --  The transcript hash from the HMAC generation is kept, so only the HMAC has to be added.
             Plat_Update_Hash (Transcript_Hash,
@@ -1470,7 +1470,7 @@ package SPDM_Responder is
          Secure_Session := True;
       transition
          goto Send_Key_Exchange
-            if Success and Success_Next
+            if Success
          goto Error_Unspecified
       exception
          goto Error_Unspecified
