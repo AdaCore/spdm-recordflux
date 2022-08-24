@@ -638,7 +638,8 @@ unsigned char spdm_platform_set_secure_session(instance_t *instance,
 }
 
 unsigned char spdm_platform_key_update(__attribute__((unused)) instance_t *instance,
-                                       __attribute__((unused)) unsigned operation)
+                                       __attribute__((unused)) unsigned operation,
+                                       __attribute__((unused)) unsigned tag)
 {
     return 1;
 }

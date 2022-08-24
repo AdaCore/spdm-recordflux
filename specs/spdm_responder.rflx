@@ -222,7 +222,8 @@ package SPDM_Responder is
 
       with function Plat_Set_Secure_Session (Enable : Boolean) return Boolean;
 
-      with function Plat_Key_Update (Operation : SPDM::Key_Operation) return Boolean;
+      with function Plat_Key_Update (Operation : SPDM::Key_Operation;
+                                     Tag       : SPDM::Key_Update_Tag) return Boolean;
 
       with function Plat_End_Session return Boolean;
 
@@ -1658,7 +1659,7 @@ package SPDM_Responder is
       is
          Success : Boolean;
       begin
-         Success := Plat_Key_Update (Request.Key_Update_Request_Key_Operation);
+         Success := Plat_Key_Update (Request.Key_Update_Request_Key_Operation, Request.Key_Update_Request_Tag);
          Response :=
             SPDM::Response'(
 #if FEATURE_CHALLENGE_AUTH then

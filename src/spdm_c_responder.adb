@@ -1126,16 +1126,21 @@ is
    overriding
    procedure Plat_Key_Update (Ctx       : in out Context;
                               Operation :        RFLX.SPDM.Key_Operation;
+                              Tag       :        RFLX.SPDM.Key_Update_Tag;
                               Result    :    out Boolean)
    is
       use type Interfaces.C.unsigned_char;
       function C_Interface (Instance  : System.Address;
-                            Operation : Interfaces.C.unsigned) return Interfaces.C.unsigned_char with
+                            Operation : Interfaces.C.unsigned;
+                            Tag       : Interfaces.C.unsigned) return Interfaces.C.unsigned_char with
          Import,
          Convention => C,
          External_Name => "spdm_platform_key_update";
    begin
-      Result := C_Interface (Ctx.Instance, Interfaces.C.unsigned (RFLX.SPDM.To_Base_Integer (Operation))) > 0;
+      Result := C_Interface
+         (Ctx.Instance,
+          Interfaces.C.unsigned (RFLX.SPDM.To_Base_Integer (Operation)),
+          Interfaces.C.unsigned (RFLX.SPDM.To_Base_Integer (Tag))) > 0;
    end Plat_Key_Update;
 
    overriding

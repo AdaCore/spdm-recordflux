@@ -187,7 +187,8 @@ unsigned char spdm_platform_set_secure_session(instance_t *instance,
                                                unsigned char enable);
 
 unsigned char spdm_platform_key_update(instance_t *instance,
-                                       unsigned operation);
+                                       unsigned operation,
+                                       unsigned tag);
 
 unsigned char spdm_platform_end_session(instance_t *instance);
 #endif

@@ -326,6 +326,7 @@ is
    overriding
    procedure Plat_Key_Update (Ctx       : in out Context;
                               Operation :        RFLX.SPDM.Key_Operation;
+                              Tag       :        RFLX.SPDM.Key_Update_Tag;
                               Result    :    out Boolean);
 
    overriding
