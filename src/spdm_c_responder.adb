@@ -1109,19 +1109,25 @@ is
    end Plat_Get_Finish_Verify_Data;
 
    overriding
-   procedure Plat_Set_Secure_Session (Ctx    : in out Context;
-                                      Enable :        Boolean;
-                                      Result :    out Boolean)
+   procedure Plat_Set_Session_Phase (Ctx    : in out Context;
+                                     Phase  :        RFLX.SPDM_Responder.Session_Phase;
+                                     Result :    out RFLX.SPDM_Responder.Session_Phase)
    is
-      use type Interfaces.C.unsigned_char;
       function C_Interface (Instance : System.Address;
-                            Enable   : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char with
+                            Phase    : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char with
          Import,
          Convention => C,
-         External_Name => "spdm_platform_set_secure_session";
+         External_Name => "spdm_platform_set_session_phase";
+      Current_Phase : constant RFLX.RFLX_Types.Base_Integer :=
+         RFLX.RFLX_Types.Base_Integer
+            (C_Interface (Ctx.Instance,
+                          Interfaces.C.unsigned_char (RFLX.SPDM_Responder .To_Base_Integer (Phase))));
    begin
-      Result := C_Interface (Ctx.Instance, (if Enable then 1 else 0)) /= 0;
-   end Plat_Set_Secure_Session;
+      if not RFLX.SPDM_Responder.Valid_Session_Phase (Current_Phase) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM_Responder.To_Actual (Current_Phase);
+   end Plat_Set_Session_Phase;
 
    overriding
    procedure Plat_Key_Update (Ctx       : in out Context;
@@ -1142,19 +1148,6 @@ is
           Interfaces.C.unsigned (RFLX.SPDM.To_Base_Integer (Operation)),
           Interfaces.C.unsigned (RFLX.SPDM.To_Base_Integer (Tag))) > 0;
    end Plat_Key_Update;
-
-   overriding
-   procedure Plat_End_Session (Ctx    : in out Context;
-                               Result :    out Boolean)
-   is
-      use type Interfaces.C.unsigned_char;
-      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
-         Import,
-         Convention => C,
-         External_Name => "spdm_platform_end_session";
-   begin
-      Result := C_Interface (Ctx.Instance) > 0;
-   end Plat_End_Session;
 
    overriding
    procedure Null_Hash (Ctx    : in out Context;

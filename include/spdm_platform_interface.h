@@ -183,13 +183,11 @@ void spdm_platform_get_finish_verify_data(instance_t *instance,
                                           void *data,
                                           unsigned *size);
 
-unsigned char spdm_platform_set_secure_session(instance_t *instance,
-                                               unsigned char enable);
+unsigned char spdm_platform_set_session_phase(instance_t *instance,
+                                              unsigned char phase);
 
 unsigned char spdm_platform_key_update(instance_t *instance,
                                        unsigned operation,
                                        unsigned tag);
-
-unsigned char spdm_platform_end_session(instance_t *instance);
 #endif
 #endif // __SPDM_PLATFORM_INTERFACE__

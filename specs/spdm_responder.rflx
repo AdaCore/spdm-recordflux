@@ -83,6 +83,13 @@ package SPDM_Responder is
       message
          Data : SPDM::Measurement_Record;
       end message;
+
+   type Session_Phase is
+      (Session_Error     => 0,
+       No_Session        => 1,
+       Session_Handshake => 2,
+       Secure_Session    => 3)
+   with Size => 8;
 #end if;
    generic
       Transport : Channel with Readable, Writable;
@@ -220,12 +227,10 @@ package SPDM_Responder is
       with function Plat_Get_Finish_Verify_Data (Hash : Hash_ID;
                                                  Slot : SPDM::Slot) return Hash;
 
-      with function Plat_Set_Secure_Session (Enable : Boolean) return Boolean;
+      with function Plat_Set_Session_Phase (Phase : Session_Phase) return Session_Phase;
 
       with function Plat_Key_Update (Operation : SPDM::Key_Operation;
                                      Tag       : SPDM::Key_Update_Tag) return Boolean;
-
-      with function Plat_End_Session return Boolean;
 
       with function Null_Hash (Length : SPDM::Hash_Length) return Hash;
 #end if;
@@ -260,7 +265,7 @@ package SPDM_Responder is
       Exchange_Data_Length   : SPDM::Exchange_Data_Length := 0;
       Measurement_Summary    : Boolean;
       Use_Mutual_Auth        : Boolean;
-      Secure_Session         : Boolean;
+      Current_Phase          : Session_Phase;
 #end if;
 
       --  Capabilities
@@ -343,7 +348,7 @@ package SPDM_Responder is
          Resp_Alg_Struct_Count := 0;
          Reset_Measurement_Sig := True;
 #if FEATURE_KEY_EXCHANGE then
-         Secure_Session := Plat_Set_Secure_Session (False);
+         Current_Phase := Plat_Set_Session_Phase (No_Session);
 #end if;
          Response := SPDM::Response'(
 #if FEATURE_CHALLENGE_AUTH then
@@ -381,7 +386,7 @@ package SPDM_Responder is
       transition
          goto Send_Version
 #if FEATURE_KEY_EXCHANGE then
-            if Success
+            if Success and Current_Phase = No_Session
          goto Error_Unspecified
 #end if;
       exception
@@ -923,11 +928,13 @@ package SPDM_Responder is
 #if FEATURE_KEY_EXCHANGE then
          goto Prepare_Key_Exchange
             if Request'Valid and Request.Code = SPDM::Key_Exchange and Cap_Key_Ex
-               and Secure_Session = False
+               and Current_Phase = No_Session
          goto Prepare_Key_Update
-            if Request'Valid and Request.Code = SPDM::Key_Update and Secure_Session
+            if Request'Valid and Request.Code = SPDM::Key_Update
+               and Current_Phase = Secure_Session
          goto Prepare_End_Session
-            if Request'Valid and Request.Code = SPDM::End_Session and Secure_Session
+            if Request'Valid and Request.Code = SPDM::End_Session
+               and Current_Phase = Secure_Session
          goto Error_Unexpected_Request
             if Request'Valid
                and (Request.Code = SPDM::Key_Exchange
@@ -1435,15 +1442,17 @@ package SPDM_Responder is
          Signature                                :=
             Plat_Get_Signature (Transcript_Hash, Request.Key_Exchange_Request_Slot);
          Response.Key_Exchange_Response_Signature := Signature.Data;
-         Secure_Session                           := False;
          Transcript_Len                           := Signature_Length;
          Success_Sig                              :=
          --  TH1/2 Key_Exchange transcript hash: [KEY_EXCHANGE_RSP].* except the `ResponderVerifyData` field
          --  The transcript hash from the signature generation is kept, so only the signature has to be added.
             Plat_Update_Hash (Transcript_Hash, Response.Key_Exchange_Response_Signature, 0, Transcript_Len);
+         Current_Phase                            := Plat_Set_Session_Phase (Session_Handshake);
       transition
          goto Error_Unspecified
-            if Success = False or Success_Sig = False
+            if Success = False
+               or Success_Sig = False
+               or Current_Phase /= Session_Handshake
          goto Send_Key_Exchange
             if Cap_Handshake_In_The_Clear
          goto Set_Key_Exchange_Verify_Data
@@ -1467,7 +1476,6 @@ package SPDM_Responder is
             Plat_Update_Hash (Transcript_Hash,
                               Response.Key_Exchange_Response_Responder_Verify_Data,
                               0, Transcript_Len);
-         Secure_Session := True;
       transition
          goto Send_Key_Exchange
             if Success
@@ -1481,16 +1489,8 @@ package SPDM_Responder is
       begin
          Transport'Write (Response);
       transition
-         goto Set_Secure_Session
-      end Send_Key_Exchange;
-
-      state Set_Secure_Session
-      is
-      begin
-         Secure_Session := Plat_Set_Secure_Session (Secure_Session);
-      transition
          goto Receive_Finish
-      end Set_Secure_Session;
+      end Send_Key_Exchange;
 
       state Receive_Finish
       is
@@ -1627,7 +1627,7 @@ package SPDM_Responder is
       transition
          goto Set_Finish_Response_Verify
             if Valid and Cap_Handshake_In_The_Clear
-         goto Send_Idle
+         goto Finish_Session_Handshake
             if Valid
          goto Error_Unspecified
       exception
@@ -1641,19 +1641,28 @@ package SPDM_Responder is
       begin
          Verify_Data := Plat_Get_Finish_Verify_Data (Transcript_Hash, Request.Finish_Request_Slot);
          Response.Finish_Response_Responder_Verify_Data := Verify_Data.Data;
-         Secure_Session := Plat_Set_Secure_Session (True);
          --  TH1/2 Finish transcript hash: [FINISH_RSP]
          --  Only Responder_Verify_Data is missing.
          Success        := Plat_Update_Hash (Transcript_Hash,
                                              Response.Finish_Response_Responder_Verify_Data,
                                              0, Hash_Length);
       transition
-         goto Send_Idle
+         goto Finish_Session_Handshake
             if Success
          goto Error_Unspecified
       exception
          goto Error_Unspecified
       end Set_Finish_Response_Verify;
+
+      state Finish_Session_Handshake
+      is
+      begin
+         Current_Phase := Plat_Set_Session_Phase (Secure_Session);
+      transition
+         goto Send_Idle
+            if Current_Phase = Secure_Session
+         goto Error_Unspecified
+      end Finish_Session_Handshake;
 
       state Prepare_Key_Update
       is
@@ -1687,9 +1696,7 @@ package SPDM_Responder is
 
       state Prepare_End_Session
       is
-         Success : Boolean;
       begin
-         Success := Plat_End_Session;
          Response :=
             SPDM::Response'(
 #if FEATURE_CHALLENGE_AUTH then
@@ -1707,10 +1714,10 @@ package SPDM_Responder is
                Code                                  => SPDM::End_Session_ACK,
                End_Session_Response_Reserved_1       => 0,
                End_Session_Response_Reserved_2       => 0);
-         Secure_Session := False;
+         Current_Phase := Plat_Set_Session_Phase (No_Session);
       transition
          goto Send_Idle
-            if Success
+            if Current_Phase = No_Session
          goto Error_Unspecified
       exception
          goto Error_Unspecified

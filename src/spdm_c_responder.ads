@@ -319,19 +319,15 @@ is
                                           Result :    out RFLX.SPDM_Responder.Hash.Structure);
 
    overriding
-   procedure Plat_Set_Secure_Session (Ctx    : in out Context;
-                                      Enable :        Boolean;
-                                      Result :    out Boolean);
+   procedure Plat_Set_Session_Phase (Ctx    : in out Context;
+                                     Phase  :        RFLX.SPDM_Responder.Session_Phase;
+                                     Result :    out RFLX.SPDM_Responder.Session_Phase);
 
    overriding
    procedure Plat_Key_Update (Ctx       : in out Context;
                               Operation :        RFLX.SPDM.Key_Operation;
                               Tag       :        RFLX.SPDM.Key_Update_Tag;
                               Result    :    out Boolean);
-
-   overriding
-   procedure Plat_End_Session (Ctx    : in out Context;
-                               Result :    out Boolean);
 
    overriding
    procedure Null_Hash (Ctx    : in out Context;

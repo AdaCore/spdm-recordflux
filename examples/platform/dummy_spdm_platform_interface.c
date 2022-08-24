@@ -48,7 +48,7 @@ void spdm_platform_initialize(instance_t **instance)
 #ifdef FEATURE_KEY_EXCHANGE
 unsigned char spdm_platform_is_secure_session(instance_t *instance)
 {
-    return instance->secure_session;
+    return instance->secure_session == 2 || instance->secure_session == 3;
 }
 #endif
 unsigned char spdm_platform_config_ct_exponent(__attribute__((unused)) instance_t *instance) {
@@ -629,26 +629,22 @@ void spdm_platform_get_finish_verify_data(__unused_cross__ instance_t *instance,
     *size = spdm_get_hash_size(instance->base_hash_algo);
 }
 
-unsigned char spdm_platform_set_secure_session(instance_t *instance,
-                                               unsigned char enable)
+unsigned char spdm_platform_set_session_phase(instance_t *instance,
+                                              unsigned char phase)
 {
-    printf("secure session: %u\n", enable);
-    instance->secure_session = enable;
-    return enable;
+    printf("secure session: %u\n", phase);
+    if(phase == 1 && instance->secure_session > 1){
+        memset(instance->dhe_key, 0, 512);
+        instance->dhe_key_size = 0;
+    }
+    instance->secure_session = phase;
+    return phase;
 }
 
 unsigned char spdm_platform_key_update(__attribute__((unused)) instance_t *instance,
                                        __attribute__((unused)) unsigned operation,
                                        __attribute__((unused)) unsigned tag)
 {
-    return 1;
-}
-
-unsigned char spdm_platform_end_session(instance_t *instance)
-{
-    instance->secure_session = 0;
-    memset(instance->dhe_key, 0, 512);
-    instance->dhe_key_size = 0;
     return 1;
 }
 #endif
