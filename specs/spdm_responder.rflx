@@ -243,7 +243,6 @@ package SPDM_Responder is
       Measurement_Hash_Algo  : SPDM::Measurement_Hash_Algo;
       Hash_Length            : SPDM::Hash_Length := 32;
       Signature_Length       : SPDM::Signature_Length := 0;
-      Base_Asym_Sel          : SPDM::Base_Asym_Algo;
       Slot                   : SPDM::Slot;
       Offset                 : SPDM::Offset;
       Length                 : SPDM::Length_16;
@@ -261,7 +260,6 @@ package SPDM_Responder is
       Error_Code             : SPDM::Error_Code;
 #if FEATURE_KEY_EXCHANGE then
       Transcript_Hash        : Hash_ID;
-      DHE_Algo               : DHE_Algo;
       Exchange_Data_Length   : SPDM::Exchange_Data_Length := 0;
       Measurement_Summary    : Boolean;
       Use_Mutual_Auth        : Boolean;
@@ -573,6 +571,7 @@ package SPDM_Responder is
          Sel_FFDHE4096 : Boolean;
          Sel_FFDHE3072 : Boolean;
          Sel_FFDHE2048 : Boolean;
+         DHE_Algo      : DHE_Algo;
       begin
          DHE_Algo := Plat_Cfg_Sel_DHE
             (Resp_Alg_Struct.DHE_SecP521r1,
@@ -605,6 +604,13 @@ package SPDM_Responder is
                Alg_External    => [])
          );
          Resp_Alg_Struct_Count := Resp_Alg_Struct_Count + 1;
+         Exchange_Data_Length := (case DHE_Algo is
+                                    when DA_SecP256r1 => 64,
+                                    when DA_SecP384r1 => 96,
+                                    when DA_SecP521r1 => 132,
+                                    when DA_FFDHE2048 => 256,
+                                    when DA_FFDHE3072 => 384,
+                                    when DA_FFDHE4096 => 512);
       transition
          goto Check_Algorithms_AEAD_Cipher_Suite
       exception
@@ -768,6 +774,7 @@ package SPDM_Responder is
 #end if;
       state Prepare_Algorithms
       is
+         Base_Asym_Sel : SPDM::Base_Asym_Algo;
          Base_Hash_Sel : SPDM::Base_Hash_Algo;
          Ext_Asym      : SPDM::Ext_Algs;
          Ext_Hash      : SPDM::Ext_Algs;
@@ -851,233 +858,32 @@ package SPDM_Responder is
          Success_Next := Plat_Update_Hash (Transcript_Hash, Response'Opaque, 0, Resp_Size);
          Success      := Success and Success_Next;
 #end if;
+         Hash_Length := (case Base_Hash_Sel is
+                           when SPDM::BH_TPM_ALG_SHA_256 | SPDM::BH_TPM_ALG_SHA3_256 => 32,
+                           when SPDM::BH_TPM_ALG_SHA_384 | SPDM::BH_TPM_ALG_SHA3_384 => 48,
+                           when SPDM::BH_TPM_ALG_SHA_512 | SPDM::BH_TPM_ALG_SHA3_512 => 64,
+                           when SPDM::BH_Unsupported => 0);
+         Signature_Length := (case Base_Asym_Sel is
+                                 when SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P256 => 64,
+                                 when SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P384 => 96,
+                                 when SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P521 => 132,
+                                 when SPDM::BA_TPM_ALG_RSAPSS_2048 | SPDM::BA_TPM_ALG_RSASSA_2048 => 256,
+                                 when SPDM::BA_TPM_ALG_RSAPSS_3072 | SPDM::BA_TPM_ALG_RSASSA_3072 => 384,
+                                 when SPDM::BA_TPM_ALG_RSAPSS_4096 | SPDM::BA_TPM_ALG_RSASSA_4096 => 512,
+                                 when SPDM::BA_Unsupported => 0);
       transition
 #if FEATURE_KEY_EXCHANGE then
          goto Error_Unspecified
             if Success = False
 #end if;
-         --  https://github.com/Componolit/RecordFlux/issues/907
-         --  This cannot be done more elegantly right now
-         goto Set_Hash_Len_32
-            if Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA_256
-               or Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA3_256
-         goto Set_Hash_Len_48
-            if Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA_384
-               or Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA3_384
-         goto Set_Hash_Len_64
-            if Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA_512
-               or Measurement_Hash_Algo = SPDM::MH_TPM_ALG_SHA3_512
          goto Error_Invalid_Request
+            if Base_Hash_Sel = SPDM::BH_Unsupported
+               or Base_Asym_Sel = SPDM::BA_Unsupported
+         goto Send_Idle
       exception
          goto Error_Unspecified
       end Prepare_Algorithms;
 
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Hash_Len_32
-      is
-      begin
-         Hash_Length := 32;
-      transition
-         goto Set_Signature_Len
-      end Set_Hash_Len_32;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Hash_Len_48
-      is
-      begin
-         Hash_Length := 48;
-      transition
-         goto Set_Signature_Len
-      end Set_Hash_Len_48;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Hash_Len_64
-      is
-      begin
-         Hash_Length := 64;
-      transition
-         goto Set_Signature_Len
-      end Set_Hash_Len_64;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Signature_Len
-      is
-      begin
-      transition
-         goto Set_Signature_Len_64
-            if Base_Asym_Sel = SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P256
-         goto Set_Signature_Len_96
-            if Base_Asym_Sel = SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P384
-         goto Set_Signature_Len_132
-            if Base_Asym_Sel = SPDM::BA_TPM_ALG_ECDSA_ECC_NIST_P521
-         goto Set_Signature_Len_256
-            if Base_Asym_Sel = SPDM::BA_TPM_ALG_RSAPSS_2048
-               or Base_Asym_Sel = SPDM::BA_TPM_ALG_RSASSA_2048
-         goto Set_Signature_Len_384
-            if Base_Asym_Sel = SPDM::BA_TPM_ALG_RSAPSS_3072
-               or Base_Asym_Sel = SPDM::BA_TPM_ALG_RSASSA_3072
-         goto Set_Signature_Len_512
-            if Base_Asym_Sel = SPDM::BA_TPM_ALG_RSAPSS_4096
-               or Base_Asym_Sel = SPDM::BA_TPM_ALG_RSASSA_4096
-#if FEATURE_KEY_EXCHANGE then
-         goto Set_Exchange_Data_Len
-            if Cap_Key_Ex
-#end if;
-         goto Send_Idle
-      end Set_Signature_Len;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Signature_Len_64
-      is
-      begin
-         Signature_Length := 64;
-      transition
-#if FEATURE_KEY_EXCHANGE then
-         goto Set_Exchange_Data_Len
-            if Cap_Key_Ex
-#end if;
-         goto Send_Idle
-      end Set_Signature_Len_64;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Signature_Len_96
-      is
-      begin
-         Signature_Length := 96;
-      transition
-#if FEATURE_KEY_EXCHANGE then
-         goto Set_Exchange_Data_Len
-            if Cap_Key_Ex
-#end if;
-         goto Send_Idle
-      end Set_Signature_Len_96;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Signature_Len_132
-      is
-      begin
-         Signature_Length := 132;
-      transition
-#if FEATURE_KEY_EXCHANGE then
-         goto Set_Exchange_Data_Len
-            if Cap_Key_Ex
-#end if;
-         goto Send_Idle
-      end Set_Signature_Len_132;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Signature_Len_256
-      is
-      begin
-         Signature_Length := 256;
-      transition
-#if FEATURE_KEY_EXCHANGE then
-         goto Set_Exchange_Data_Len
-            if Cap_Key_Ex
-#end if;
-         goto Send_Idle
-      end Set_Signature_Len_256;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Signature_Len_384
-      is
-      begin
-         Signature_Length := 384;
-      transition
-#if FEATURE_KEY_EXCHANGE then
-         goto Set_Exchange_Data_Len
-            if Cap_Key_Ex
-#end if;
-         goto Send_Idle
-      end Set_Signature_Len_384;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Signature_Len_512
-      is
-      begin
-         Signature_Length := 512;
-      transition
-#if FEATURE_KEY_EXCHANGE then
-         goto Set_Exchange_Data_Len
-            if Cap_Key_Ex
-#end if;
-         goto Send_Idle
-      end Set_Signature_Len_512;
-#if FEATURE_KEY_EXCHANGE then
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Exchange_Data_Len
-      is
-      begin
-      transition
-         goto Set_Exchange_Data_Len_64
-            if DHE_Algo = DA_SecP256r1
-         goto Set_Exchange_Data_Len_96
-            if DHE_Algo = DA_SecP384r1
-         goto Set_Exchange_Data_Len_132
-            if DHE_Algo = DA_SecP521r1
-         goto Set_Exchange_Data_Len_256
-            if DHE_Algo = DA_FFDHE2048
-         goto Set_Exchange_Data_Len_384
-            if DHE_Algo = DA_FFDHE3072
-         goto Set_Exchange_Data_Len_512
-            if DHE_Algo = DA_FFDHE4096
-         goto Error_Unspecified
-      end Set_Exchange_Data_Len;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Exchange_Data_Len_64
-      is
-      begin
-         Exchange_Data_Length := 64;
-      transition
-         goto Send_Idle
-      end Set_Exchange_Data_Len_64;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Exchange_Data_Len_96
-      is
-      begin
-         Exchange_Data_Length := 96;
-      transition
-         goto Send_Idle
-      end Set_Exchange_Data_Len_96;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Exchange_Data_Len_132
-      is
-      begin
-         Exchange_Data_Length := 132;
-      transition
-         goto Send_Idle
-      end Set_Exchange_Data_Len_132;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Exchange_Data_Len_256
-      is
-      begin
-         Exchange_Data_Length := 256;
-      transition
-         goto Send_Idle
-      end Set_Exchange_Data_Len_256;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Exchange_Data_Len_384
-      is
-      begin
-         Exchange_Data_Length := 384;
-      transition
-         goto Send_Idle
-      end Set_Exchange_Data_Len_384;
-
-      --  https://github.com/Componolit/RecordFlux/issues/907
-      state Set_Exchange_Data_Len_512
-      is
-      begin
-         Exchange_Data_Length := 512;
-      transition
-         goto Send_Idle
-      end Set_Exchange_Data_Len_512;
-#end if;
       state Send_Idle
       is
       begin
