@@ -254,11 +254,6 @@ is
                                  Hash   :        RFLX.SPDM_Responder.Hash_ID;
                                  Slot   :        RFLX.SPDM.Slot;
                                  Result :    out RFLX.SPDM_Responder.Signature.Structure);
-
-   overriding
-   procedure To_Slot (Ctx    : in out Context;
-                      Slot   :        RFLX.SPDM.Narrow_Slot;
-                      Result :    out RFLX.SPDM.Slot);
 #if FEATURE_KEY_EXCHANGE then
    overriding
    procedure Plat_Get_Exchange_Data (Ctx           : in out Context;
@@ -336,11 +331,6 @@ is
    overriding
    procedure Plat_End_Session (Ctx    : in out Context;
                                Result :    out Boolean);
-
-   overriding
-   procedure To_Narrow_Slot (Ctx    : in out Context;
-                             Slot   :        RFLX.SPDM.Slot;
-                             Result :    out RFLX.SPDM.Narrow_Slot);
 
    overriding
    procedure Null_Hash (Ctx    : in out Context;

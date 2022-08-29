@@ -189,8 +189,6 @@ package SPDM_Responder is
 
       with function Plat_Get_Signature (Hash : Hash_ID;
                                         Slot : SPDM::Slot) return Signature;
-
-      with function To_Slot (Slot : SPDM::Narrow_Slot) return SPDM::Slot;
 #if FEATURE_KEY_EXCHANGE then
       with function Plat_Get_Exchange_Data (Exchange_Data : Opaque) return Exchange_Data;
 
@@ -227,8 +225,6 @@ package SPDM_Responder is
       with function Plat_Key_Update (Operation : SPDM::Key_Operation) return Boolean;
 
       with function Plat_End_Session return Boolean;
-
-      with function To_Narrow_Slot (Slot : SPDM::Slot) return SPDM::Narrow_Slot;
 
       with function Null_Hash (Length : SPDM::Hash_Length) return Hash;
 #end if;
@@ -1235,7 +1231,17 @@ package SPDM_Responder is
             Plat_Update_Hash (Measurement_Hash, Response'Opaque, Nonce_Offset, Resp_Size);
          Success                                  := Success and Next_Success;
          Narrow_Slot_ID                           := Response.Measurements_Response_Slot_ID;
-         Slot_ID                                  := To_Slot (Narrow_Slot_ID);
+         Slot_ID                                  :=
+            (case Narrow_Slot_ID is
+               when SPDM::NS_0 => SPDM::Slot_0,
+               when SPDM::NS_1 => SPDM::Slot_1,
+               when SPDM::NS_2 => SPDM::Slot_2,
+               when SPDM::NS_3 => SPDM::Slot_3,
+               when SPDM::NS_4 => SPDM::Slot_4,
+               when SPDM::NS_5 => SPDM::Slot_5,
+               when SPDM::NS_6 => SPDM::Slot_6,
+               when SPDM::NS_7 => SPDM::Slot_7,
+               when SPDM::NS_Trusted_Environment => SPDM::Trusted_Environment);
          Signature                                := Plat_Get_Signature (Measurement_Hash, Slot_ID);
          Response.Measurements_Response_Signature := Signature.Data;
          Reset_Measurement_Sig                    := True;
@@ -1281,7 +1287,17 @@ package SPDM_Responder is
          Heartbeat_Period    := Plat_Get_Heartbeat_Period;
          Session_ID          := Plat_Get_Session_ID (Session_ID);
          Use_Mutual_Auth     := Plat_Use_Mutual_Auth;
-         Narrow_Slot         := To_Narrow_Slot (Request.Key_Exchange_Request_Slot);
+         Narrow_Slot         :=
+            (case Request.Key_Exchange_Request_Slot is
+               when SPDM::Slot_0 => SPDM::NS_0,
+               when SPDM::Slot_1 => SPDM::NS_1,
+               when SPDM::Slot_2 => SPDM::NS_2,
+               when SPDM::Slot_3 => SPDM::NS_3,
+               when SPDM::Slot_4 => SPDM::NS_4,
+               when SPDM::Slot_5 => SPDM::NS_5,
+               when SPDM::Slot_6 => SPDM::NS_6,
+               when SPDM::Slot_7 => SPDM::NS_7,
+               when SPDM::Trusted_Environment => SPDM::NS_Trusted_Environment);
          Nonce               := Plat_Get_Nonce;
          Exchange_Data       := Plat_Get_Exchange_Data (Request.Key_Exchange_Request_Exchange_Data);
          Has_Measurement_Hash :=

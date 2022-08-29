@@ -854,27 +854,6 @@ is
       end if;
       Result.Length := RFLX.SPDM.To_Actual (RFLX.RFLX_Types.Base_Integer (Length));
    end Plat_Get_Signature;
-
-   overriding
-   procedure To_Slot (Ctx    : in out Context;
-                      Slot   :        RFLX.SPDM.Narrow_Slot;
-                      Result :    out RFLX.SPDM.Slot)
-   is
-      pragma Unreferenced (Ctx);
-   begin
-      case Slot is
-         when RFLX.SPDM.NS_0 => Result := RFLX.SPDM.Slot_0;
-         when RFLX.SPDM.NS_1 => Result := RFLX.SPDM.Slot_1;
-         when RFLX.SPDM.NS_2 => Result := RFLX.SPDM.Slot_2;
-         when RFLX.SPDM.NS_3 => Result := RFLX.SPDM.Slot_3;
-         when RFLX.SPDM.NS_4 => Result := RFLX.SPDM.Slot_4;
-         when RFLX.SPDM.NS_5 => Result := RFLX.SPDM.Slot_5;
-         when RFLX.SPDM.NS_6 => Result := RFLX.SPDM.Slot_6;
-         when RFLX.SPDM.NS_7 => Result := RFLX.SPDM.Slot_7;
-         when RFLX.SPDM.NS_Trusted_Environment =>
-            Result := RFLX.SPDM.Trusted_Environment;
-      end case;
-   end To_Slot;
 #if FEATURE_KEY_EXCHANGE then
    overriding
    procedure Plat_Get_Exchange_Data (Ctx           : in out Context;
@@ -1171,27 +1150,6 @@ is
    begin
       Result := C_Interface (Ctx.Instance) > 0;
    end Plat_End_Session;
-
-   overriding
-   procedure To_Narrow_Slot (Ctx    : in out Context;
-                             Slot   :        RFLX.SPDM.Slot;
-                             Result :    out RFLX.SPDM.Narrow_Slot)
-   is
-      pragma Unreferenced (Ctx);
-   begin
-      case Slot is
-         when RFLX.SPDM.Slot_0 => Result := RFLX.SPDM.NS_0;
-         when RFLX.SPDM.Slot_1 => Result := RFLX.SPDM.NS_1;
-         when RFLX.SPDM.Slot_2 => Result := RFLX.SPDM.NS_2;
-         when RFLX.SPDM.Slot_3 => Result := RFLX.SPDM.NS_3;
-         when RFLX.SPDM.Slot_4 => Result := RFLX.SPDM.NS_4;
-         when RFLX.SPDM.Slot_5 => Result := RFLX.SPDM.NS_5;
-         when RFLX.SPDM.Slot_6 => Result := RFLX.SPDM.NS_6;
-         when RFLX.SPDM.Slot_7 => Result := RFLX.SPDM.NS_7;
-         when RFLX.SPDM.Trusted_Environment =>
-            Result := RFLX.SPDM.NS_Trusted_Environment;
-      end case;
-   end To_Narrow_Slot;
 
    overriding
    procedure Null_Hash (Ctx    : in out Context;
