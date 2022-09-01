@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0] - 2022-07-22
 
+### Added
+
+- Responder API documentation (V726-041)
+
 ### Changed
 
 - Use single field setting to improve binary size (V621-019)
