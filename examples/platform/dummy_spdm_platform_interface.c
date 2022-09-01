@@ -54,7 +54,7 @@ void spdm_platform_initialize(instance_t **instance)
     //(*instance)->transcript_headers[14] = 0xffff; //[FINISH_RSP].*
 }
 #ifdef FEATURE_KEY_EXCHANGE
-unsigned char spdm_platform_is_secure_session(instance_t *instance)
+boolean spdm_platform_is_secure_session(instance_t *instance)
 {
     return instance->secure_session == 2 || instance->secure_session == 3;
 }
@@ -63,7 +63,7 @@ unsigned char spdm_platform_config_ct_exponent(__attribute__((unused)) instance_
     return 10;
 }
 
-unsigned char spdm_platform_config_cap_meas_fresh(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_meas_fresh(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
@@ -72,67 +72,67 @@ unsigned char spdm_platform_config_cap_meas(__attribute__((unused)) instance_t *
     return 2;
 }
 
-unsigned char spdm_platform_config_cap_chal(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_chal(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_cert(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_cert(__attribute__((unused)) instance_t *instance) {
     //  Supported in WP 2.3.7
     return 1;
 }
 
-unsigned char spdm_platform_config_cap_cache(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_cache(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_key_upd(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_key_upd(__attribute__((unused)) instance_t *instance) {
     return 1;
 }
 
-unsigned char spdm_platform_config_cap_hbeat(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_hbeat(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_encap(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_encap(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_mut_auth(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_mut_auth(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_pub_key_id(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_pub_key_id(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 #ifdef FEATURE_KEY_EXCHANGE
-unsigned char spdm_platform_config_cap_mac(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_mac(__attribute__((unused)) instance_t *instance) {
     return 1;
 }
 
-unsigned char spdm_platform_config_cap_encrypt(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_encrypt(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_psk(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_psk(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 
-unsigned char spdm_platform_config_cap_key_ex(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_key_ex(__attribute__((unused)) instance_t *instance) {
     return 1;
 }
 
-unsigned char spdm_platform_config_cap_handshake_in_the_clear(__attribute__((unused)) instance_t *instance) {
+boolean spdm_platform_config_cap_handshake_in_the_clear(__attribute__((unused)) instance_t *instance) {
     return 0;
 }
 #endif
 unsigned char spdm_platform_select_measurement_hash_algo(instance_t *instance,
-                                                         unsigned char tpm_alg_sha_256,
-                                                         unsigned char tpm_alg_sha_384,
-                                                         unsigned char tpm_alg_sha_512,
-                                                         unsigned char tpm_alg_sha3_256,
-                                                         unsigned char tpm_alg_sha3_384,
-                                                         unsigned char tpm_alg_sha3_512,
-                                                         unsigned char raw_bit_streams_only)
+                                                         boolean tpm_alg_sha_256,
+                                                         boolean tpm_alg_sha_384,
+                                                         boolean tpm_alg_sha_512,
+                                                         boolean tpm_alg_sha3_256,
+                                                         boolean tpm_alg_sha3_384,
+                                                         boolean tpm_alg_sha3_512,
+                                                         boolean raw_bit_streams_only)
 {
     if (tpm_alg_sha3_512) {
         instance->measurement_hash_algo = 64;
@@ -157,15 +157,15 @@ unsigned char spdm_platform_select_measurement_hash_algo(instance_t *instance,
 }
 
 long spdm_platform_select_base_asym_algo(instance_t *instance,
-                                         unsigned char tpm_alg_ecdsa_ecc_nist_p384,
-                                         unsigned char tpm_alg_rsapss_4096,
-                                         unsigned char tpm_alg_rsassa_4096,
-                                         unsigned char tpm_alg_ecdsa_ecc_nist_p256,
-                                         unsigned char tpm_alg_rsapss_3072,
-                                         unsigned char tpm_alg_rsassa_3072,
-                                         unsigned char tpm_alg_rsapss_2048,
-                                         unsigned char tpm_alg_rsassa_2048,
-                                         unsigned char tpm_alg_ecdsa_ecc_nist_p521)
+                                         boolean tpm_alg_ecdsa_ecc_nist_p384,
+                                         boolean tpm_alg_rsapss_4096,
+                                         boolean tpm_alg_rsassa_4096,
+                                         boolean tpm_alg_ecdsa_ecc_nist_p256,
+                                         boolean tpm_alg_rsapss_3072,
+                                         boolean tpm_alg_rsassa_3072,
+                                         boolean tpm_alg_rsapss_2048,
+                                         boolean tpm_alg_rsassa_2048,
+                                         boolean tpm_alg_ecdsa_ecc_nist_p521)
 {
     if (tpm_alg_ecdsa_ecc_nist_p521) instance->base_asym_algo = 256;
     else if (tpm_alg_ecdsa_ecc_nist_p384) instance->base_asym_algo = 128;
@@ -182,12 +182,12 @@ long spdm_platform_select_base_asym_algo(instance_t *instance,
 }
 
 unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
-                                                  unsigned char tpm_alg_sha_256,
-                                                  unsigned char tpm_alg_sha_384,
-                                                  unsigned char tpm_alg_sha_512,
-                                                  unsigned char tpm_alg_sha3_256,
-                                                  unsigned char tpm_alg_sha3_384,
-                                                  unsigned char tpm_alg_sha3_512)
+                                                  boolean tpm_alg_sha_256,
+                                                  boolean tpm_alg_sha_384,
+                                                  boolean tpm_alg_sha_512,
+                                                  boolean tpm_alg_sha3_256,
+                                                  boolean tpm_alg_sha3_384,
+                                                  boolean tpm_alg_sha3_512)
 {
     if (tpm_alg_sha3_512) instance->base_hash_algo = 32;
     else if (tpm_alg_sha3_384) instance->base_hash_algo = 16;
@@ -201,12 +201,12 @@ unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
 }
 #ifdef FEATURE_KEY_EXCHANGE
 unsigned char spdm_platform_select_dhe(instance_t *instance,
-                                       unsigned char secp521r1,
-                                       unsigned char secp384r1,
-                                       unsigned char secp256r1,
-                                       unsigned char ffdhe4096,
-                                       unsigned char ffdhe3072,
-                                       unsigned char ffdhe2048)
+                                       boolean secp521r1,
+                                       boolean secp384r1,
+                                       boolean secp256r1,
+                                       boolean ffdhe4096,
+                                       boolean ffdhe3072,
+                                       boolean ffdhe2048)
 {
     if (secp521r1) instance->dhe_named_group = 32;
     else if (secp384r1) instance->dhe_named_group = 16;
@@ -220,9 +220,9 @@ unsigned char spdm_platform_select_dhe(instance_t *instance,
 }
 
 unsigned char spdm_platform_select_aead(__attribute__((unused)) instance_t *instance,
-                                        unsigned char chacha20_poly1305,
-                                        unsigned char aes_256_gcm,
-                                        unsigned char aes_128_gcm)
+                                        boolean chacha20_poly1305,
+                                        boolean aes_256_gcm,
+                                        boolean aes_128_gcm)
 {
     if (chacha20_poly1305) return 4;
     if (aes_256_gcm) return 2;
@@ -232,15 +232,15 @@ unsigned char spdm_platform_select_aead(__attribute__((unused)) instance_t *inst
 }
 #endif
 long spdm_platform_select_rbaa(__attribute__((unused)) instance_t *instance,
-                               unsigned char ra_tpm_alg_ecdsa_ecc_nist_p384,
-                               unsigned char ra_tpm_alg_rsapss_4096,
-                               unsigned char ra_tpm_alg_rsassa_4096,
-                               unsigned char ra_tpm_alg_ecdsa_ecc_nist_p256,
-                               unsigned char ra_tpm_alg_rsapss_3072,
-                               unsigned char ra_tpm_alg_rsassa_3072,
-                               unsigned char ra_tpm_alg_rsapss_2048,
-                               unsigned char ra_tpm_alg_rsassa_2048,
-                               unsigned char ra_tpm_alg_ecdsa_ecc_nist_p521)
+                               boolean ra_tpm_alg_ecdsa_ecc_nist_p384,
+                               boolean ra_tpm_alg_rsapss_4096,
+                               boolean ra_tpm_alg_rsassa_4096,
+                               boolean ra_tpm_alg_ecdsa_ecc_nist_p256,
+                               boolean ra_tpm_alg_rsapss_3072,
+                               boolean ra_tpm_alg_rsassa_3072,
+                               boolean ra_tpm_alg_rsapss_2048,
+                               boolean ra_tpm_alg_rsassa_2048,
+                               boolean ra_tpm_alg_ecdsa_ecc_nist_p521)
 {
     if (ra_tpm_alg_ecdsa_ecc_nist_p521) return 256;
     if (ra_tpm_alg_ecdsa_ecc_nist_p384) return 128;
@@ -295,10 +295,10 @@ void spdm_platform_get_digests_data(__unused_cross__ instance_t *instance,
     *length = 3 * hash_size;
 }
 
-unsigned char spdm_platform_validate_certificate_request(__attribute__((unused)) instance_t *instance,
-                                                         unsigned char slot,
-                                                         __unused_cross__ unsigned short offset,
-                                                         __unused_cross__ unsigned short length)
+boolean spdm_platform_validate_certificate_request(__attribute__((unused)) instance_t *instance,
+                                                   unsigned char slot,
+                                                   __unused_cross__ unsigned short offset,
+                                                   __unused_cross__ unsigned short length)
 {
     if (slot > 3) return 0;
     printf("slot=%d, offset=%d, length=%d\n", slot, offset, length);
@@ -406,8 +406,8 @@ unsigned spdm_platform_get_new_transcript(instance_t *instance,
     return 0xff;
 }
 
-unsigned char spdm_platform_valid_transcript_id(instance_t *instance,
-                                                unsigned transcript)
+boolean spdm_platform_valid_transcript_id(instance_t *instance,
+                                          unsigned transcript)
 {
     return transcript <= 8 && instance->transcripts[transcript].used;
 }
@@ -433,11 +433,11 @@ unsigned spdm_platform_reset_transcript(instance_t *instance,
     return spdm_platform_get_new_transcript(instance, kind);
 }
 
-unsigned char spdm_platform_update_transcript(instance_t *instance,
-                                              unsigned transcript,
-                                              __unused_cross__ void *data,
-                                              __unused_cross__ unsigned offset,
-                                              unsigned size)
+boolean spdm_platform_update_transcript(instance_t *instance,
+                                        unsigned transcript,
+                                        __unused_cross__ void *data,
+                                        __unused_cross__ unsigned offset,
+                                        unsigned size)
 {
 #ifdef FEATURE_KEY_EXCHANGE
     if(instance->transcripts[transcript].kind == SESSION_TRANSCRIPT){
@@ -468,8 +468,8 @@ unsigned char spdm_platform_update_transcript(instance_t *instance,
     return 1;
 }
 
-unsigned char spdm_platform_update_transcript_nonce(instance_t *instance,
-                                                    unsigned transcript)
+boolean spdm_platform_update_transcript_nonce(instance_t *instance,
+                                              unsigned transcript)
 {
     if(!instance->valid_nonce){
         return 0;
@@ -556,8 +556,8 @@ unsigned char spdm_platform_get_heartbeat_period (__attribute__((unused)) instan
     return 0;
 }
 
-unsigned char spdm_platform_valid_session_id (__attribute__((unused)) instance_t *instance,
-                                              __attribute__((unused)) unsigned short session_id)
+boolean spdm_platform_valid_session_id (__attribute__((unused)) instance_t *instance,
+                                        __attribute__((unused)) unsigned short session_id)
 {
     return 1;
 }
@@ -568,7 +568,7 @@ unsigned short spdm_platform_get_session_id (__attribute__((unused)) instance_t 
     return ~session_id;
 }
 
-unsigned char spdm_platform_use_mutual_auth (__attribute__((unused)) instance_t *instance)
+boolean spdm_platform_use_mutual_auth (__attribute__((unused)) instance_t *instance)
 {
     return 0;
 }
@@ -618,20 +618,20 @@ void spdm_platform_get_key_ex_verify_data(__unused_cross__ instance_t *instance,
     *size = spdm_get_hash_size(instance->base_hash_algo);
 }
 
-unsigned char spdm_platform_validate_finish_signature(__attribute__((unused)) instance_t *instance,
-                                                      __attribute__((unused)) unsigned transcript,
-                                                      __attribute__((unused)) void *signature,
-                                                      __attribute__((unused)) unsigned size,
-                                                      __attribute__((unused)) unsigned char slot)
+boolean spdm_platform_validate_finish_signature(__attribute__((unused)) instance_t *instance,
+                                                __attribute__((unused)) unsigned transcript,
+                                                __attribute__((unused)) void *signature,
+                                                __attribute__((unused)) unsigned size,
+                                                __attribute__((unused)) unsigned char slot)
 {
     return 1;
 }
 
-unsigned char spdm_platform_validate_finish_hmac(__attribute__((unused)) instance_t *instance,
-                                                 __attribute__((unused)) unsigned transcript,
-                                                 __attribute__((unused)) void *hmac,
-                                                 __attribute__((unused)) unsigned size,
-                                                 __attribute__((unused)) unsigned char slot)
+boolean spdm_platform_validate_finish_hmac(__attribute__((unused)) instance_t *instance,
+                                           __attribute__((unused)) unsigned transcript,
+                                           __attribute__((unused)) void *hmac,
+                                           __attribute__((unused)) unsigned size,
+                                           __attribute__((unused)) unsigned char slot)
 {
     return 1;
 }
@@ -657,9 +657,9 @@ unsigned char spdm_platform_set_session_phase(instance_t *instance,
     return phase;
 }
 
-unsigned char spdm_platform_key_update(__attribute__((unused)) instance_t *instance,
-                                       __attribute__((unused)) unsigned operation,
-                                       __attribute__((unused)) unsigned tag)
+boolean spdm_platform_key_update(__attribute__((unused)) instance_t *instance,
+                                 __attribute__((unused)) unsigned operation,
+                                 __attribute__((unused)) unsigned tag)
 {
     return 1;
 }

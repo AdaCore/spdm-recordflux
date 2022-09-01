@@ -515,7 +515,6 @@ is
    overriding
    procedure Plat_Get_Digests_Data
       (Ctx    : in out Context;
-       Algo   :        RFLX.SPDM.Measurement_Hash_Algo;
        Result :    out RFLX.SPDM_Responder.Digests_Data.Structure)
    with SPARK_Mode => Off
    is

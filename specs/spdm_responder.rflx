@@ -164,7 +164,7 @@ package SPDM_Responder is
           Req_TPM_ALG_RSASSA_2048         : Boolean;
           Req_TPM_ALG_ECDSA_ECC_NIST_P521 : Boolean) return SPDM::Base_Asym_Algo;
 
-      with function Plat_Get_Digests_Data (Algo : SPDM::Measurement_Hash_Algo) return Digests_Data;
+      with function Plat_Get_Digests_Data return Digests_Data;
 
       with function Plat_Valid_Certificate_Request
          (Slot   : SPDM::Slot;
@@ -965,7 +965,7 @@ package SPDM_Responder is
          Slot_7_Present : SPDM::Slot_Present;
       begin
          Reset_Measurement_Sig := True;
-         Digests_Data := Plat_Get_Digests_Data (Measurement_Hash_Algo);
+         Digests_Data := Plat_Get_Digests_Data;
          Slot_0_Present := Digests_Data.Slot_0_Present;
          Slot_1_Present := Digests_Data.Slot_1_Present;
          Slot_2_Present := Digests_Data.Slot_2_Present;
