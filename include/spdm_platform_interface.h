@@ -32,20 +32,6 @@ typedef struct instance instance_t;
  * @param instance Pointer to instance pointer.
  */
 void spdm_platform_initialize(instance_t **instance);
-#ifdef FEATURE_KEY_EXCHANGE
-
-/**
- * Check if the state machine is currently in a secure session.
- *
- * This function is a helper for the platform to check if the
- * state machine is in a secure session (e.g. to set the correct
- * flags in the transport protocoll).
- *
- * @param instance Platform instance.
- * @return Secure session.
- */
-boolean spdm_platform_is_secure_session(instance_t *instance);
-#endif
 
 /**
  * Return CT exponent (DSP0274_1.1.0 [178]).
@@ -64,7 +50,7 @@ unsigned char spdm_platform_config_ct_exponent(instance_t *instance);
 boolean spdm_platform_config_cap_meas_fresh(instance_t *instance);
 
 /**
- * Check if measurements are supported (DSP0274_1.1.0 [178]).
+ * Check which type of measurements are supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
  * @return 0 if unsupported, 1 for plain measurements, 2 for signed measurements.
@@ -490,10 +476,9 @@ void spdm_platform_get_meas_opaque_data(instance_t *instance,
                                         unsigned *size);
 
 /**
- * Register a new transcript.
+ * Register a new transcript with the platform.
  *
- * Registers a new transcript with the platform. The returned ID must be
- * used on all subsequent operations on the same transcript.
+ * The returned ID must be used on all subsequent operations on the same transcript.
  *
  * @param instance Platform instance.
  * @param kind Transcript kind enum with the following values:
@@ -510,7 +495,7 @@ unsigned spdm_platform_get_new_transcript(instance_t *instance,
  *
  * @param instance Platform instance.
  * @param transcript Transcript ID.
- * @return Success.
+ * @return True if transcript ID is valid.
  */
 boolean spdm_platform_valid_transcript_id(instance_t *instance,
                                           unsigned transcript);
@@ -518,10 +503,9 @@ boolean spdm_platform_valid_transcript_id(instance_t *instance,
 /**
  * Reset an already registered transcript.
  *
- * Resets a transcript on the platform. This operation may change the
- * transcript kind, too. The returned transcript ID may be different from
- * the provided one. It has the same behaviour as spdm_platform_get_new_transcript
- * except that it allows reusing an existing resource.
+ * This operation may change the transcript kind, too. The returned transcript ID
+ * may be different from the provided one. It has the same behaviour as
+ * spdm_platform_get_new_transcript except that it allows reusing an existing resource.
  *
  * @param instance Platform instance.
  * @param transcript Old transcript ID.
@@ -540,7 +524,7 @@ unsigned spdm_platform_reset_transcript(instance_t *instance,
  * @param data Transcript data to be appended.
  * @param offset Offset in data.
  * @param size Size of data to be appended to the transcript,
- *             size + offset is less or equal to the size of data.
+ *             size + offset must be less or equal to the size of data.
  * @return Success.
  */
 boolean spdm_platform_update_transcript(instance_t *instance,
@@ -587,7 +571,7 @@ void spdm_platform_get_signature(instance_t *instance,
 
 #ifdef FEATURE_KEY_EXCHANGE
 /**
- * Handle the exchange data of the key exchange (DSP0274_1.1.0 [421]).
+ * Generate responder exchange data from requester exchange data (DSP0274_1.1.0 [421]).
  *
  * Process the exchange data sent with the key exchange request
  * and generate the appropriate response exchange data.
@@ -617,7 +601,7 @@ unsigned char spdm_platform_get_heartbeat_period (instance_t *instance);
  * @return ID valid.
  */
 boolean spdm_platform_valid_session_id (instance_t *instance,
-                                              unsigned short session_id);
+                                        unsigned short session_id);
 
 /**
  * Get session ID for key exchange response (DSP0274_1.1.0 [422]).
@@ -730,7 +714,7 @@ boolean spdm_platform_validate_finish_hmac(instance_t *instance,
                                            unsigned char slot);
 
 /**
- * Generate the responder verify data finish (DSP0274_1.1.0 [433]).
+ * Generate the responder verify data for the finish response (DSP0274_1.1.0 [433]).
  *
  * @param instance Platform instance.
  * @param transcript Transcript ID.
@@ -767,7 +751,7 @@ unsigned char spdm_platform_set_session_phase(instance_t *instance,
                                               unsigned char phase);
 
 /**
- * Do a key update operation as.
+ * Do a key update operation.
  *
  * @param instance Platform instance.
  * @param operation Key update operation, enum with the following values:

@@ -13,18 +13,7 @@ is
    begin
       C_Interface (Ctx.Instance);
    end Plat_Initialize;
-#if FEATURE_KEY_EXCHANGE then
-   function Plat_Is_Secure_Session (Ctx : Context) return Boolean
-   is
-      use type Interfaces.C.unsigned_char;
-      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
-         Import,
-         Convention => C,
-         External_Name => "spdm_platform_is_secure_session";
-   begin
-      return C_Interface (Ctx.Instance) /= 0;
-   end Plat_Is_Secure_Session;
-#end if;
+
    overriding
    procedure Plat_Cfg_CT_Exponent
       (Ctx    : in out Context;

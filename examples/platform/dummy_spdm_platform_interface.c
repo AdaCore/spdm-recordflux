@@ -53,12 +53,7 @@ void spdm_platform_initialize(instance_t **instance)
     //Only if Handshake_In_The_Clear is set
     //(*instance)->transcript_headers[14] = 0xffff; //[FINISH_RSP].*
 }
-#ifdef FEATURE_KEY_EXCHANGE
-boolean spdm_platform_is_secure_session(instance_t *instance)
-{
-    return instance->secure_session == 2 || instance->secure_session == 3;
-}
-#endif
+
 unsigned char spdm_platform_config_ct_exponent(__attribute__((unused)) instance_t *instance) {
     return 10;
 }
@@ -648,7 +643,6 @@ void spdm_platform_get_finish_verify_data(__unused_cross__ instance_t *instance,
 unsigned char spdm_platform_set_session_phase(instance_t *instance,
                                               unsigned char phase)
 {
-    printf("secure session: %u\n", phase);
     if(phase == 1 && instance->secure_session > 1){
         memset(instance->dhe_key, 0, 512);
         instance->dhe_key_size = 0;

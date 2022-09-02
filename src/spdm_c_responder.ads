@@ -28,7 +28,7 @@ is
       Instance : System.Address := System.Null_Address;
    end record;
 
-   --  Ensure initialization of   --  instance.
+   --  Ensure initialization of Ctx.Instance.
    --
    --  This function is not part of the required API. It exists to
    --  allow the platform performing initialization tasks before
@@ -38,23 +38,11 @@ is
    --
    --  @param Ctx Context.
    procedure Plat_Initialize (Ctx : in out Context);
-#if FEATURE_KEY_EXCHANGE then
-   --
-   --  Check if the state machine is currently in a secure session.
-   --
-   --  This function is a helper for the platform to check if the
-   --  state machine is in a secure session (e.g. to set the correct
-   --  flags in the transport protocoll).
-   --
-   --  @param Ctx Context.
-   --  @return Secure session.
-   function Plat_Is_Secure_Session (Ctx : Context) return Boolean;
-#end if;
 
    --  Return CT exponent (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param result CT exponent.
+   --  @param Result CT exponent.
    overriding
    procedure Plat_Cfg_CT_Exponent
       (Ctx    : in out Context;
@@ -69,9 +57,9 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean);
 
-   --  Check if measurements are supported (DSP0274_1.1.0 [178]).
+   --  Check which type of measurements are supported (DSP0274_1.1.0 [178]).
    --
-   --  @param instance Platform instance.
+   --  @param Ctx Context.
    --  @param Result Measurement capability.
    overriding
    procedure Plat_Cfg_Cap_Meas
@@ -380,8 +368,7 @@ is
    --  @param Ctx Context.
    --  @param Slot Requested certificate slot.
    --  @param Offset Offset in the certificate chain.
-   --  @param Length Contains a pointer to the maximum size of data. On return the size
-   --               must be changed to the actual size of the data copied to data.
+   --  @param Length Length of the requested certificate portion.
    --  @param Result Certificate response including certificate data, portion length and
    --               remainder length.
    overriding
@@ -418,7 +405,7 @@ is
    --  Generate a nonce for cryptographic operations.
    --
    --  The platform must always keep the latest generated nonce and should
-   --  add it to the transcript when spdm_platform_update_transcript_nonce
+   --  add it to the transcript when Plat_Update_Transcript_Nonce
    --  is called. Only after this function is called the nonce can be marked
    --  as valid.
    --
@@ -431,7 +418,7 @@ is
    --  Return a DMTF measurement field (DSP0274_1.1.0 [335]).
    --
    --  @param Ctx Context.
-   --  @param index Requested measurement index.
+   --  @param Index Requested measurement index.
    --  @param Result Complete DMTF measurement field.
    overriding
    procedure Plat_Get_DMTF_Measurement_Field (Ctx    : in out Context;
@@ -446,14 +433,13 @@ is
    procedure Plat_Get_Meas_Opaque_Data (Ctx    : in out Context;
                                         Result :    out RFLX.SPDM_Responder.Opaque_Data.Structure);
 
-   --  Register a new transcript.
+   --  Register a new transcript with the platform.
    --
-   --  Registers a new transcript with the platform. The returned ID must be
-   --  used on all subsequent operations on the same transcript.
+   --  The returned ID must be used on all subsequent operations on the same transcript.
    --
    --  @param Ctx Context.
-   --  @param kind Transcript kind.
-   --  @param Result Transcript ID. On success spdm_platform_valid_transcript_id
+   --  @param Kind Transcript kind.
+   --  @param Result Transcript ID. On success Plat_Valid_Transcript_ID
    --         must return true on this ID.
    overriding
    procedure Plat_Get_New_Transcript (Ctx    : in out Context;
@@ -464,7 +450,7 @@ is
    --
    --  @param Ctx Context.
    --  @param Transcript Transcript ID.
-   --  @param Result Success.
+   --  @param Result True if transcript ID is valid.
    overriding
    procedure Plat_Valid_Transcript_ID (Ctx        : in out Context;
                                        Transcript :        RFLX.SPDM_Responder.Transcript_ID;
@@ -472,10 +458,9 @@ is
 
    --  Reset an already registered transcript.
    --
-   --  Resets a transcript on the platform. This operation may change the
-   --  transcript kind, too. The returned transcript ID may be different from
-   --  the provided one. It has the same behaviour as spdm_platform_get_new_transcript
-   --  except that it allows reusing an existing resource.
+   --  This operation may change the transcript kind, too. The returned transcript ID
+   --  may be different from the provided one. It has the same behaviour as
+   --  Plat_Get_New_Transcript except that it allows reusing an existing resource.
    --
    --  @param Ctx Context.
    --  @param Transcript Old transcript ID.
@@ -494,7 +479,7 @@ is
    --  @param Data Transcript data to be appended.
    --  @param Offset Offset in data.
    --  @param Length Length of data to be appended to the transcript,
-   --               Length + Offset is less or equal to the size of data.
+   --               Length + Offset must be less or equal to the size of data.
    --  @param Result Success.
    overriding
    procedure Plat_Update_Transcript (Ctx        : in out Context;
@@ -506,7 +491,7 @@ is
 
    --  Append the latest generated nonce to the transcript.
    --
-   --  Append the latest nonce generated by spdm_platform_get_nonce to the
+   --  Append the latest nonce generated by Plat_Get_Nonce to the
    --  transcript. The nonce must be marked as invalid after this operation.
    --  If the nonce is already marked as invalid when this function is called
    --  the operation must fail.
@@ -527,14 +512,14 @@ is
    --  @param Ctx Context.
    --  @param Transcript Transcript ID.
    --  @param Slot Slot ID of the signing key.
-   --  @param Result Signature.
+   --  @param Result Signature. In case of an error Result.Length must be set to 0.
    overriding
    procedure Plat_Get_Signature (Ctx        : in out Context;
                                  Transcript :        RFLX.SPDM_Responder.Transcript_ID;
                                  Slot       :        RFLX.SPDM.Slot;
                                  Result     :    out RFLX.SPDM_Responder.Signature.Structure);
 #if FEATURE_KEY_EXCHANGE then
-   --  Handle the exchange data of the key exchange (DSP0274_1.1.0 [421]).
+   --  Generate responder exchange data from requester exchange data (DSP0274_1.1.0 [421]).
    --
    --  @param Ctx Context.
    --  @param Exchange_Data Data sent by the requester.
@@ -651,7 +636,7 @@ is
                                         Slot       :        RFLX.SPDM.Slot;
                                         Result     :    out Boolean);
 
-   --  Generate the responder verify data finish (DSP0274_1.1.0 [433]).
+   --  Generate the responder verify data for the finish response (DSP0274_1.1.0 [433]).
    --
    --  @param Ctx Context.
    --  @param Transcript Transcript ID.
@@ -677,12 +662,12 @@ is
                                      Phase  :        RFLX.SPDM_Responder.Session_Phase;
                                      Result :    out RFLX.SPDM_Responder.Session_Phase);
 
-   --  Do a key update operation as.
+   --  Do a key update operation.
    --
    --  @param Ctx Context.
    --  @param Operation Key update operation.
    --  @param Tag Key update tag.
-   --  @result Success.
+   --  @param Result Success.
    overriding
    procedure Plat_Key_Update (Ctx       : in out Context;
                               Operation :        RFLX.SPDM.Key_Operation;
