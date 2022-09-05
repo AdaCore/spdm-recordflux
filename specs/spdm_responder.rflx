@@ -5,16 +5,18 @@ package SPDM_Responder is
    --  FIXME: Update transcript hash
 
    type DHE_Algo is
-      (DA_FFDHE2048 =>  1,
-       DA_FFDHE3072 =>  2,
-       DA_FFDHE4096 =>  4,
-       DA_SecP256r1 =>  8,
-       DA_SecP384r1 => 16,
-       DA_SecP521r1 => 32)
+      (DA_Unsupported => 0,
+       DA_FFDHE2048   =>  1,
+       DA_FFDHE3072   =>  2,
+       DA_FFDHE4096   =>  4,
+       DA_SecP256r1   =>  8,
+       DA_SecP384r1   => 16,
+       DA_SecP521r1   => 32)
    with Size => 8;
 
    type AEAD_Algo is
-      (AA_AES_128_GCM       => 1,
+      (AA_Unsupported       => 0,
+       AA_AES_128_GCM       => 1,
        AA_AES_256_GCM       => 2,
        AA_ChaCha20_Poly1305 => 4)
    with Size => 8;
@@ -613,12 +615,13 @@ package SPDM_Responder is
          );
          Resp_Alg_Struct_Count := Resp_Alg_Struct_Count + 1;
          Exchange_Data_Length := (case DHE_Algo is
-                                    when DA_SecP256r1 => 64,
-                                    when DA_SecP384r1 => 96,
-                                    when DA_SecP521r1 => 132,
-                                    when DA_FFDHE2048 => 256,
-                                    when DA_FFDHE3072 => 384,
-                                    when DA_FFDHE4096 => 512);
+                                    when DA_Unsupported => 0,
+                                    when DA_SecP256r1   => 64,
+                                    when DA_SecP384r1   => 96,
+                                    when DA_SecP521r1   => 132,
+                                    when DA_FFDHE2048   => 256,
+                                    when DA_FFDHE3072   => 384,
+                                    when DA_FFDHE4096   => 512);
       transition
          goto Check_Algorithms_AEAD_Cipher_Suite
       exception

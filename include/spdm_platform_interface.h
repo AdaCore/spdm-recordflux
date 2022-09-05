@@ -170,7 +170,7 @@ boolean spdm_platform_config_cap_handshake_in_the_clear(instance_t *instance);
  * Select measurement hash algorithm (DSP0274_1.1.0 [185]).
  *
  * The arguments describe the hash algorithms supported by the requester.
- * This function should select one of the provided algorithms.
+ * This function must select one of the provided algorithms or return 0.
  *
  * @param instance Platform instance.
  * @param tpm_alg_sha_256 SHA-256 supported and requested.
@@ -203,7 +203,7 @@ unsigned char spdm_platform_select_measurement_hash_algo(instance_t *instance,
  * Select base asymmetric algorithm (DSP0274_1.1.0 [185]).
  *
  * The arguments describe the signature algorithms supported by the requester.
- * This function should select one of the provided algorithms.
+ * This function must select one of the provided algorithms or return 0.
  *
  * @param instance Platform instance.
  * @param tpm_alg_ecdsa_ecc_nist_p384 ECDSA-ECC-384 supported and requested.
@@ -242,7 +242,7 @@ long spdm_platform_select_base_asym_algo(instance_t *instance,
  * Select base hash algorithm (DSP0274_1.1.0 [185]).
  *
  * The arguments describe the hash algorithms supported by the requester.
- * This function should select one of the provided algorithms.
+ * This function must select one of the provided algorithms or return 0.
  *
  * @param instance Platform instance.
  * @param tpm_alg_sha_256 SHA-256 supported and requested.
@@ -273,7 +273,7 @@ unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
  * Select the Diffie-Hellman Ephemeral group (DSP0274_1.1.0 [189]).
  *
  * The arguments describe the group supported by the requester.
- * This function should select one of the provided groups.
+ * This function must select one of the provided groups or return 0.
  *
  * @param instance Platform instance.
  * @param secp521r1 SECP521R1 supported and requested.
@@ -283,12 +283,13 @@ unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
  * @param ffdhe3072 FFDHE3072 supported and requested.
  * @param ffdhe2048 FFDHE2048 supported and requested.
  * @return Enum with the following values:
- *         ffdhe2048 => 1
- *         ffdhe3072 => 2
- *         ffdhe4096 => 4
- *         secp256r1 => 8
- *         secp384r1 => 16
- *         secp521r1 => 32
+ *         not supported => 0
+ *         ffdhe2048     => 1
+ *         ffdhe3072     => 2
+ *         ffdhe4096     => 4
+ *         secp256r1     => 8
+ *         secp384r1     => 16
+ *         secp521r1     => 32
  */
 unsigned char spdm_platform_select_dhe(instance_t *instance,
                                        boolean secp521r1,
@@ -302,13 +303,14 @@ unsigned char spdm_platform_select_dhe(instance_t *instance,
  * Select the AEAD algorithm (DSP0274_1.1.0 [190]).
  *
  * The arguments describe the algorithm supported by the requester.
- * This function should select one of the provided algorithms.
+ * This function must select one of the provided algorithms or return 0.
  *
  * @param instance Platform instance.
  * @param chacha20_poly1305 CHACHA20-POLY135 supported and requested.
  * @param aes_256_gcm AES-256-GCM supported and requested.
  * @param aes_128_gcm AES-128-GCM supported and requested.
  * @return Enum with the following values:
+ *         not supported     => 0
  *         aes_128_gcm       => 1
  *         aes_256_gcm       => 2
  *         chacha20_poly1305 => 4
@@ -322,7 +324,7 @@ unsigned char spdm_platform_select_aead(instance_t *instance,
  * Select base asymmetric algorithm (DSP0274_1.1.0 [191]).
  *
  * The arguments describe the key signature algorithms supported by the requester.
- * This function should select one of the provided algorithms.
+ * This function must select one of the provided algorithms or return 0.
  *
  * @param instance Platform instance.
  * @param ra_tpm_alg_ecdsa_ecc_nist_p384 ECDSA-ECC-384 supported and requested.
@@ -368,7 +370,10 @@ long spdm_platform_select_rbaa(instance_t *instance,
  *                  certificate chain the according bit needs to be set. This parameter
  *                  is not initialized when this function is called.
  */
-void spdm_platform_get_digests_data(instance_t *instance, char *data, long *length, unsigned char *slot_mask);
+void spdm_platform_get_digests_data(instance_t *instance,
+                                    char *data,
+                                    long *length,
+                                    unsigned char *slot_mask);
 
 /**
  * Validate an incoming certificate request (DSP0274_1.1.0 [238]).
@@ -430,7 +435,7 @@ unsigned char spdm_platform_get_number_of_indices_tcb (instance_t *instance);
 /**
  * Generate a nonce for cryptographic operations.
  *
- * The platform must always keep the latest generated nonce and should
+ * The platform must always keep the latest generated nonce and shall
  * add it to the transcript when spdm_platform_update_transcript_nonce
  * is called. Only after this function is called the nonce can be marked
  * as valid.
@@ -533,7 +538,7 @@ unsigned spdm_platform_reset_transcript(instance_t *instance,
  */
 boolean spdm_platform_update_transcript(instance_t *instance,
                                         unsigned transcript,
-                                        void *data,
+                                        const void *data,
                                         unsigned offset,
                                         unsigned length);
 
@@ -563,7 +568,7 @@ boolean spdm_platform_update_transcript_nonce(instance_t *instance,
  * @param slot Slot ID of the signing key.
  * @param signature Signature buffer.
  * @param length Signature buffer length. The initial value contains the maximum length
- *               of the signature buffer. On return the value should be the correct
+ *               of the signature buffer. On return the value shall be the correct
  *               length for the signature algorithm selected in Negotiate_Algorithms.
  *               On error length can be set to 0.
  */
@@ -632,16 +637,16 @@ boolean spdm_platform_use_mutual_auth (instance_t *instance);
  * Get the hash over the measurement summary (DSP0274_1.1.0 [422]).
  *
  * @param instance Platform instance.
- * @param summary Measurement hash summary.
+ * @param summary Measurement summary.
  * @param summary_length Length of the measurement_hash summary.
  * @param hash Target buffer for the generated hash.
  * @param hash_length Length of the hash buffer. The initial value
  *                    is the maximum length of this buffer. On return
- *                    this value should be set to the size required by
+ *                    this value shall be set to the size required by
  *                    the hash algorithm.
  */
 void spdm_platform_get_summary_hash(instance_t *instance,
-                                    void *summary,
+                                    const void *summary,
                                     unsigned summary_length,
                                     void *hash,
                                     unsigned *hash_length);
@@ -662,13 +667,15 @@ unsigned char spdm_platform_update_transcript_cert(instance_t *instance,
  * Handle key exchange opaque data (DSP0274_1.1.0 [422]).
  *
  * @param instance Platform instance.
- * @param data Initial value is the opaque data sent by the requester.
- *             Can be filled with opaque data for the response.
- * @param length Initial value is the length of the opaque data sent
- *               sent by the requester. Should be set to the size
- *               of the opaque data for the response.
+ * @param req_data Buffer containing the request opaque data.
+ * @param req_length Length of the data sent by the requester.
+ * @param data Buffer for the response opaque data.
+ * @param length Initial value is the maximum length of data. Shall be
+ *               set to the size of the opaque data for the response.
  */
 void spdm_platform_get_key_ex_opaque_data(instance_t *instance,
+                                          const void *req_data,
+                                          unsigned req_length,
                                           void *data,
                                           unsigned *length);
 
@@ -678,7 +685,7 @@ void spdm_platform_get_key_ex_opaque_data(instance_t *instance,
  * @param instance Platform instance.
  * @param data Verify data buffer.
  * @param length Length of the verify data buffer. The initial value is
- *               is the maximum length of that buffer. It should be set to
+ *               is the maximum length of that buffer. It shall be set to
  *               the length of the negotiated hash algorithm.
  */
 void spdm_platform_get_key_ex_verify_data(instance_t *instance,
@@ -697,7 +704,7 @@ void spdm_platform_get_key_ex_verify_data(instance_t *instance,
  */
 boolean spdm_platform_validate_finish_signature(instance_t *instance,
                                                 unsigned transcript,
-                                                void *signature,
+                                                const void *signature,
                                                 unsigned length,
                                                 unsigned char slot);
 
@@ -713,7 +720,7 @@ boolean spdm_platform_validate_finish_signature(instance_t *instance,
  */
 boolean spdm_platform_validate_finish_hmac(instance_t *instance,
                                            unsigned transcript,
-                                           void *hmac,
+                                           const void *hmac,
                                            unsigned length,
                                            unsigned char slot);
 
@@ -725,7 +732,7 @@ boolean spdm_platform_validate_finish_hmac(instance_t *instance,
  * @param slot Slot ID for the used key.
  * @param data Verify data buffer.
  * @param length Length of the verify data buffer. The initial value is
- *               is the maximum length of that buffer. It should be set to
+ *               is the maximum length of that buffer. It shall be set to
  *               the length of the negotiated hash algorithm.
  */
 void spdm_platform_get_finish_verify_data(instance_t *instance,

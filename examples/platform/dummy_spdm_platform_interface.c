@@ -430,7 +430,7 @@ unsigned spdm_platform_reset_transcript(instance_t *instance,
 
 boolean spdm_platform_update_transcript(instance_t *instance,
                                         unsigned transcript,
-                                        __unused_cross__ void *data,
+                                        __unused_cross__ const void *data,
                                         __unused_cross__ unsigned offset,
                                         unsigned length)
 {
@@ -569,7 +569,7 @@ boolean spdm_platform_use_mutual_auth (__attribute__((unused)) instance_t *insta
 }
 
 void spdm_platform_get_summary_hash(__unused_cross__ instance_t *instance,
-                                    __unused_cross__ void *summary,
+                                    __unused_cross__ const void *summary,
                                     __unused_cross__ unsigned summary_length,
                                     __unused_cross__ void *hash,
                                     unsigned *hash_length)
@@ -601,9 +601,17 @@ unsigned char spdm_platform_update_transcript_cert(instance_t *instance,
 }
 
 void spdm_platform_get_key_ex_opaque_data(__attribute__((unused)) instance_t *instance,
+                                          __attribute__((unused)) const void *req_data,
+                                          __attribute__((unused)) unsigned req_length,
                                           __attribute__((unused)) void *data,
                                           __attribute__((unused)) unsigned *length)
 {
+    if(req_length > *length){
+        *length = 0;
+        return;
+    }
+    *length = req_length;
+    memcpy(data, req_data, *length);
 }
 
 void spdm_platform_get_key_ex_verify_data(__unused_cross__ instance_t *instance,
@@ -615,7 +623,7 @@ void spdm_platform_get_key_ex_verify_data(__unused_cross__ instance_t *instance,
 
 boolean spdm_platform_validate_finish_signature(__attribute__((unused)) instance_t *instance,
                                                 __attribute__((unused)) unsigned transcript,
-                                                __attribute__((unused)) void *signature,
+                                                __attribute__((unused)) const void *signature,
                                                 __attribute__((unused)) unsigned length,
                                                 __attribute__((unused)) unsigned char slot)
 {
@@ -624,7 +632,7 @@ boolean spdm_platform_validate_finish_signature(__attribute__((unused)) instance
 
 boolean spdm_platform_validate_finish_hmac(__attribute__((unused)) instance_t *instance,
                                            __attribute__((unused)) unsigned transcript,
-                                           __attribute__((unused)) void *hmac,
+                                           __attribute__((unused)) const void *hmac,
                                            __attribute__((unused)) unsigned length,
                                            __attribute__((unused)) unsigned char slot)
 {

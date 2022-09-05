@@ -420,7 +420,7 @@ is
 #end if;
    --  Generate a nonce for cryptographic operations.
    --
-   --  The platform must always keep the latest generated nonce and should
+   --  The platform must always keep the latest generated nonce and shall
    --  add it to the transcript when Plat_Update_Transcript_Nonce
    --  is called. Only after this function is called the nonce can be marked
    --  as valid.

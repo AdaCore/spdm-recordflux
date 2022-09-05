@@ -987,23 +987,17 @@ is
                                           Request_Data :        RFLX.RFLX_Types.Bytes;
                                           Result       :    out RFLX.SPDM_Responder.Opaque_Data.Structure)
    is
-      use type RFLX.RFLX_Types.Index;
-      procedure C_Interface (Instance :        System.Address;
-                             Data     :        System.Address;
-                             Length   : in out Interfaces.C.unsigned) with
+      procedure C_Interface (Instance   :        System.Address;
+                             Req_Data   :        System.Address;
+                             Req_Length :        Interfaces.C.unsigned;
+                             Data       :        System.Address;
+                             Length     : in out Interfaces.C.unsigned) with
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_key_ex_opaque_data";
-      Size : Interfaces.C.unsigned;
+         Size : Interfaces.C.unsigned := Result.Data'Length;
    begin
-      if Request_Data'Length > Result.Data'Length then
-         Result.Data := Request_Data (Request_Data'First .. Request_Data'First + Result.Data'Length - 1);
-         Size := Interfaces.C.unsigned (Result.Data'Length);
-      else
-         Result.Data (Result.Data'First .. Result.Data'First + Request_Data'Length - 1) := Request_Data;
-         Size := Interfaces.C.unsigned (Request_Data'Length);
-      end if;
-      C_Interface (Ctx.Instance, Result.Data'Address, Size);
+      C_Interface (Ctx.Instance, Request_Data'Address, Request_Data'Length, Result.Data'Address, Size);
       if not RFLX.SPDM.Valid_Length_16 (RFLX.RFLX_Types.Base_Integer (Size)) then
          raise Constraint_Error;
       end if;
