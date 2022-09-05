@@ -23,11 +23,14 @@ typedef struct instance instance_t;
 /**
  * Ensure initialization of *instance.
  *
- * This function is not part of the required API. It exists to
- * allow the platform performing initialization tasks before
- * the state machine calls any other platform function. If the instance
- * pointer is initialized by other means this function can
- * be removed.
+ * This function is both imlemented and called by the platform code.
+ * It is called before the start of the state machine to ensure that
+ * *instance is properly initialized.
+ * If a platform implementation has a different implementation or
+ * different means of initializing *instance this function can be removed.
+ * It does not provide any functionality for the state machine itself.
+ * When this function is removed, Plat_Initialize in spdm_c_responder.ads
+ * needs to be removed, too.
  *
  * @param instance Pointer to instance pointer.
  */
@@ -42,10 +45,10 @@ void spdm_platform_initialize(instance_t **instance);
 unsigned char spdm_platform_config_ct_exponent(instance_t *instance);
 
 /**
- * Check if measurements without restart are supported (DSP0274_1.1.0 [178]).
+ * Indicate whether measurements without restart are supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if measurements without restart are supported.
  */
 boolean spdm_platform_config_cap_meas_fresh(instance_t *instance);
 
@@ -58,107 +61,107 @@ boolean spdm_platform_config_cap_meas_fresh(instance_t *instance);
 unsigned char spdm_platform_config_cap_meas(instance_t *instance);
 
 /**
- * Check if challenge authentication is supported (DSP0274_1.1.0 [178]).
+ * Indicate whether challenge authentication is supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if challenge authentication is supported.
  */
 boolean spdm_platform_config_cap_chal(instance_t *instance);
 
 /**
- * Check if digests and certificate responses are supported (DSP0274_1.1.0 [178]).
+ * Indicate whether digests and certificate responses are supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if digests and certificate responses are supported.
  */
 boolean spdm_platform_config_cap_cert(instance_t *instance);
 
 /**
- * Check if responder is able to cache the negotiated state after reset (DSP0274_1.1.0 [178]).
+ * Indicate whether responder is able to cache the negotiated state after reset (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if caching is supported.
  */
 boolean spdm_platform_config_cap_cache(instance_t *instance);
 
 /**
- * Check if key update is supported (DSP0274_1.1.0 [178]).
+ * Indicate whether key update is supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if key update is supported.
  */
 boolean spdm_platform_config_cap_key_upd(instance_t *instance);
 
 /**
- * Check if heartbeat messages are supported (DSP0274_1.1.0 [178]).
+ * Indicate whether heartbeat messages are supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if heartbeat messages are supported.
  */
 boolean spdm_platform_config_cap_hbeat(instance_t *instance);
 
 /**
- * Check if encapsulated messages are supported (DSP0274_1.1.0 [178]).
+ * Indicate whether encapsulated messages are supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if encapsulated messages are supported.
  */
 boolean spdm_platform_config_cap_encap(instance_t *instance);
 
 /**
- * Check if mutual authentication is supported (DSP0274_1.1.0 [178]).
+ * Indicate whether mutual authentication is supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if mutual authentication is supported.
  */
 boolean spdm_platform_config_cap_mut_auth(instance_t *instance);
 
 /**
- * Check if the public key of the responder was provisioned to the requester (DSP0274_1.1.0 [178]).
+ * Indicate whether the public key of the responder was provisioned to the requester (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if the public key was provisioned.
  */
 boolean spdm_platform_config_cap_pub_key_id(instance_t *instance);
 #ifdef FEATURE_KEY_EXCHANGE
 
 /**
- * Check if message authentication is supported (DSP0274_1.1.0 [178]).
+ * Indicate whether message authentication is supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if message authentication is supported.
  */
 boolean spdm_platform_config_cap_mac(instance_t *instance);
 
 /**
- * Check if message encryption is supported (DSP0274_1.1.0 [178]).
+ * Indicate whether message encryption is supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if message encryption is supported.
  */
 boolean spdm_platform_config_cap_encrypt(instance_t *instance);
 
 /**
- * Check if pre-shared keys are supported (DSP0274_1.1.0 [178]).
+ * Indicate whether pre-shared keys are supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if pre-shared keys are supported.
  */
 boolean spdm_platform_config_cap_psk(instance_t *instance);
 
 /**
- * Check if key exchange is supported (DSP0274_1.1.0 [178]).
+ * Indicate whether key exchange is supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if key exchange is supported.
  */
 boolean spdm_platform_config_cap_key_ex(instance_t *instance);
 
 /**
- * Check if handshake without encryption or authentication is supported (DSP0274_1.1.0 [178]).
+ * Indicate whether handshake without encryption or authentication is supported (DSP0274_1.1.0 [178]).
  *
  * @param instance Platform instance.
- * @return Boolean capability.
+ * @return True if handshake in the clear is supported.
  */
 boolean spdm_platform_config_cap_handshake_in_the_clear(instance_t *instance);
 #endif
@@ -391,7 +394,8 @@ boolean spdm_platform_validate_certificate_request(instance_t *instance,
  * @param length Contains a pointer to the maximum size of data. On return the size
  *               must be changed to the actual size of the data copied to data.
  * @param total_length Pointer to the total length of the requested certificate.
- *        Must be filled by that function and must be greater or equal to offset + length.
+ *                     Must be filled by that function and must be greater or
+ *                     equal to offset plus the final value of *length.
  */
 void spdm_platform_get_certificate_data (instance_t *instance,
                                          char *data,
@@ -491,7 +495,7 @@ unsigned spdm_platform_get_new_transcript(instance_t *instance,
                                           unsigned char kind);
 
 /**
- * Check if a transcript ID is valid.
+ * Indicate whether a transcript ID is valid.
  *
  * @param instance Platform instance.
  * @param transcript Transcript ID.
@@ -524,7 +528,7 @@ unsigned spdm_platform_reset_transcript(instance_t *instance,
  * @param data Transcript data to be appended.
  * @param offset Offset in data.
  * @param length Length of data to be appended to the transcript,
- *               length + offset must be less or equal to the size of data.
+ *               length + offset is less or equal to the size of data.
  * @return Success.
  */
 boolean spdm_platform_update_transcript(instance_t *instance,
@@ -751,7 +755,7 @@ unsigned char spdm_platform_set_session_phase(instance_t *instance,
                                               unsigned char phase);
 
 /**
- * Do a key update operation.
+ * Perform a key update operation.
  *
  * @param instance Platform instance.
  * @param operation Key update operation, enum with the following values:

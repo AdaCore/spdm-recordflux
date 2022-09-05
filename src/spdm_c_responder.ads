@@ -13,6 +13,21 @@ with RFLX.SPDM.Nonce;
 with RFLX.SPDM.DMTF_Measurement_Field;
 with RFLX.RFLX_Types;
 
+--  @summary
+--  Example platform implementation for SPDM.
+--
+--  @description
+--  This package serves as both an example and a default C binding for
+--  the platform code required by SPDM. It includes the minimum required
+--  implementation that consists of a Context type derived from the SPDM
+--  responder session context and implementations for all of its abstract
+--  subprograms.
+--  The implementations of these subprograms contain a binding for a C interface.
+--  This binding is not required for pure Ada projects and can be replaced.
+--  Additionally it contains an initialization procedure that is used for the sole
+--  purpose of initializing the example C implementation. It is not strictly required
+--  as an implementation is free to decide how and when to initialize its custom
+--  Context type.
 package SPDM_C_Responder with
    SPARK_Mode,
    Elaborate_Body
@@ -30,11 +45,11 @@ is
 
    --  Ensure initialization of Ctx.Instance.
    --
-   --  This function is not part of the required API. It exists to
-   --  allow the platform performing initialization tasks before
-   --  the state machine calls any other platform function. If the instance
-   --  pointer is initialized by other means this function can
-   --  be removed.
+   --  This procedure is both implemented and called by the platform code.
+   --  It is called before the start of the state machine and ensures that
+   --  Context.Instance is initialized. It is not necessary for the state
+   --  machine to function. If the platform code has other means of initializing
+   --  the Context this procedure can be removed.
    --
    --  @param Ctx Context.
    procedure Plat_Initialize (Ctx : in out Context);
@@ -48,16 +63,16 @@ is
       (Ctx    : in out Context;
        Result :    out RFLX.SPDM.CT_Exponent);
 
-   --  Check if measurements without restart are supported (DSP0274_1.1.0 [178]).
+   --  Indicate whether measurements without restart are supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if measurements without restart are supported.
    overriding
    procedure Plat_Cfg_Cap_Meas_Fresh
       (Ctx    : in out Context;
        Result :    out Boolean);
 
-   --  Check which type of measurements are supported (DSP0274_1.1.0 [178]).
+   --  Indicate which type of measurements are supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
    --  @param Result Measurement capability.
@@ -66,119 +81,120 @@ is
       (Ctx    : in out Context;
        Result :    out RFLX.SPDM.Meas_Cap);
 
-   --  Check if challenge authentication is supported (DSP0274_1.1.0 [178]).
+   --  Indicate whether challenge authentication is supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if challenge authentication is supported.
    overriding
    procedure Plat_Cfg_Cap_Chal
       (Ctx    : in out Context;
        Result :    out Boolean);
 
-   --  Check if digests and certificate responses are supported (DSP0274_1.1.0 [178]).
+   --  Indicate whether digests and certificate responses are supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if digests and certificate responses are supported.
    overriding
    procedure Plat_Cfg_Cap_Cert
       (Ctx    : in out Context;
        Result :    out Boolean);
 
-   --  Check if key update is supported (DSP0274_1.1.0 [178]).
+   --  Indicate whether responder is able to cache the negotiated state after reset (DSP0274_1.1.0 [178]).
+   --  Indicate whether key update is supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if caching is supported.
    overriding
    procedure Plat_Cfg_Cap_Cache
       (Ctx    : in out Context;
        Result :    out Boolean);
 
-   --  Check if key update is supported (DSP0274_1.1.0 [178]).
+   --  Indicate whether key update is supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if key update is supported.
    overriding
    procedure Plat_Cfg_Cap_Key_Upd
       (Ctx    : in out Context;
        Result :    out Boolean);
 
-   --  Check if heartbeat messages are supported (DSP0274_1.1.0 [178]).
+   --  Indicate whether heartbeat messages are supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if heartbeat messages are supported.
    overriding
    procedure Plat_Cfg_Cap_Hbeat
       (Ctx    : in out Context;
        Result :    out Boolean);
 
-   --  Check if encapsulated messages are supported (DSP0274_1.1.0 [178]).
+   --  Indicate whether encapsulated messages are supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if encapsulated messages are supported.
    overriding
    procedure Plat_Cfg_Cap_Encap
       (Ctx    : in out Context;
        Result :    out Boolean);
 
-   --  Check if mutual authentication is supported (DSP0274_1.1.0 [178]).
+   --  Indicate whether mutual authentication is supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if mutual authentication is supported.
    overriding
    procedure Plat_Cfg_Cap_Mut_Auth
       (Ctx    : in out Context;
        Result :    out Boolean);
 
-   --  Check if the public key of the responder was provisioned to the requester (DSP0274_1.1.0 [178]).
+   --  Indicate whether the public key of the responder was provisioned to the requester (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if the public key was provisioned.
    overriding
    procedure Plat_Cfg_Cap_Pub_Key_ID
       (Ctx    : in out Context;
        Result :    out Boolean);
 #if FEATURE_KEY_EXCHANGE then
-   --
-   --  Check if message authentication is supported (DSP0274_1.1.0 [178]).
+
+   --  Indicate whether message authentication is supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if message authentication is supported.
    overriding
    procedure Plat_Cfg_Cap_MAC
       (Ctx    : in out Context;
        Result :    out Boolean);
 
-   --  Check if message encryption is supported (DSP0274_1.1.0 [178]).
+   --  Indicate whether message encryption is supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if message encryption is supported.
    overriding
    procedure Plat_Cfg_Cap_Encrypt
       (Ctx    : in out Context;
        Result :    out Boolean);
 
-   --  Check if pre-shared keys are supported (DSP0274_1.1.0 [178]).
+   --  Indicate whether pre-shared keys are supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if pre-shared keys are supported.
    overriding
    procedure Plat_Cfg_Cap_PSK
       (Ctx    : in out Context;
        Result :    out RFLX.SPDM.PSK_Resp_Cap);
 
-   --  Check if key exchange is supported (DSP0274_1.1.0 [178]).
+   --  Indicate whether key exchange is supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if key exchange is supported.
    overriding
    procedure Plat_Cfg_Cap_Key_Ex
       (Ctx    : in out Context;
        Result :    out Boolean);
 
-   --  Check if handshake without encryption or authentication is supported (DSP0274_1.1.0 [178]).
+   --  Indicate whether handshake without encryption or authentication is supported (DSP0274_1.1.0 [178]).
    --
    --  @param Ctx Context.
-   --  @param Result If True, capability is set.
+   --  @param Result True if handshake in the clear is supported.
    overriding
    procedure Plat_Cfg_Cap_Handshake_In_The_Clear
       (Ctx    : in out Context;
@@ -197,7 +213,7 @@ is
    --  @param TPM_ALG_SHA3_256 SHA3-256 supported and requested.
    --  @param TPM_ALG_SHA3_384 SHA3-384 supported and requested.
    --  @param TPM_ALG_SHA3_512 SHA3-512 supported and requested.
-   --  @param RAW_BIT_STREAMS_ONLY Raw bit streams supported and requested.
+   --  @param Raw_Bit_Streams_Only Raw bit streams supported and requested.
    --  @param Result Selected algorithm.
    overriding
    procedure Plat_Cfg_Sel_Measurement_Hash_Algo
@@ -363,14 +379,14 @@ is
        Length :        RFLX.SPDM.Length_16;
        Result :    out Boolean);
 
-   --  Provide requested certificate chain.
+   --  Provide requested certificate chain (DSP0274_1.1.0 [238]).
    --
    --  @param Ctx Context.
    --  @param Slot Requested certificate slot.
    --  @param Offset Offset in the certificate chain.
    --  @param Length Length of the requested certificate portion.
    --  @param Result Certificate response including certificate data, portion length and
-   --               remainder length.
+   --               remainder length (DSP0274_1.1.0 [239]).
    overriding
    procedure Plat_Get_Certificate_Response
       (Ctx    : in out Context;
@@ -446,7 +462,7 @@ is
                                       Kind   :        RFLX.SPDM_Responder.Transcript_Kind;
                                       Result :    out RFLX.SPDM_Responder.Transcript_ID);
 
-   --  Check if a transcript ID is valid.
+   --  Indicate whether a transcript ID is valid.
    --
    --  @param Ctx Context.
    --  @param Transcript Transcript ID.
@@ -479,7 +495,7 @@ is
    --  @param Data Transcript data to be appended.
    --  @param Offset Offset in data.
    --  @param Length Length of data to be appended to the transcript,
-   --               Length + Offset must be less or equal to the size of data.
+   --                Length + Offset is less or equal to the size of data.
    --  @param Result Success.
    overriding
    procedure Plat_Update_Transcript (Ctx        : in out Context;
@@ -651,18 +667,18 @@ is
    --  Set the current session phase.
    --
    --  Set the current session phase to the phase passed as argument. If
-   --  an error occurs the session phase is set to the error value, otherwise
-   --  it's set to the requested phase.
+   --  an error occurs the session phase must be set to the error value, otherwise
+   --  it must be set to the requested phase.
    --
    --  @param Ctx Context.
-   --  @param phase Requested session phase.
+   --  @param Phase Requested session phase.
    --  @param Result Updated session phase.
    overriding
    procedure Plat_Set_Session_Phase (Ctx    : in out Context;
                                      Phase  :        RFLX.SPDM_Responder.Session_Phase;
                                      Result :    out RFLX.SPDM_Responder.Session_Phase);
 
-   --  Do a key update operation.
+   --  Perform a key update operation.
    --
    --  @param Ctx Context.
    --  @param Operation Key update operation.
@@ -676,6 +692,10 @@ is
 
    --  Initialization function for empty hashes.
    --
+   --  This is a helper function for the specification and does not interact with any
+   --  platform code. It must not be changed. If a custom implementation is done it must
+   --  return a Hash with the requested length and zero initialized data.
+   --
    --  @param Ctx Context.
    --  @param Length Length of the zeroed hash.
    --  @param Result Zeroed out hash data.
@@ -685,6 +705,10 @@ is
                         Result :    out RFLX.SPDM_Responder.Hash.Structure);
 #end if;
    --  Initialization function for empty signatures.
+   --
+   --  This is a helper function for the specification and does not interact with any
+   --  platform code. It must not be changed. if a custom implementation is done it must
+   --  return a Signature with the requested length and zero initialized data.
    --
    --  @param Ctx Context.
    --  @param Length Length of the zeroed signature.
