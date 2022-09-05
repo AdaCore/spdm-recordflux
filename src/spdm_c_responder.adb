@@ -672,7 +672,7 @@ is
                              Index          :        Interfaces.C.unsigned;
                              Representation :    out Interfaces.C.unsigned;
                              Value_Type     :    out Interfaces.C.unsigned;
-                             Size           : in out Interfaces.C.unsigned;
+                             Length         : in out Interfaces.C.unsigned;
                              Data           : in out RFLX.RFLX_Types.Bytes) with
          Import,
          Convention => C,
@@ -705,7 +705,7 @@ is
    is
       procedure C_Interface (Instance :        System.Address;
                              Data     :        System.Address;
-                             Size     : in out Interfaces.C.unsigned) with
+                             Length   : in out Interfaces.C.unsigned) with
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_meas_opaque_data";
@@ -859,7 +859,7 @@ is
       use type RFLX.RFLX_Types.Index;
       procedure C_Interface (Instance : System.Address;
                              Data     : System.Address;
-                             Size     : Interfaces.C.unsigned) with
+                             Length   : Interfaces.C.unsigned) with
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_exchange_data";
@@ -942,11 +942,11 @@ is
                                     Data   :        RFLX.RFLX_Types.Bytes;
                                     Result :    out RFLX.SPDM_Responder.Hash.Structure)
    is
-      procedure C_Interface (Instance : System.Address;
-                             Summary  : System.Address;
-                             Size     : Interfaces.C.unsigned;
-                             Hash     : System.Address;
-                             Hash_Size : in out Interfaces.C.unsigned) with
+      procedure C_Interface (Instance    : System.Address;
+                             Summary     : System.Address;
+                             Length      : Interfaces.C.unsigned;
+                             Hash        : System.Address;
+                             Hash_Length : in out Interfaces.C.unsigned) with
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_summary_hash";
@@ -990,7 +990,7 @@ is
       use type RFLX.RFLX_Types.Index;
       procedure C_Interface (Instance :        System.Address;
                              Data     :        System.Address;
-                             Size     : in out Interfaces.C.unsigned) with
+                             Length   : in out Interfaces.C.unsigned) with
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_key_ex_opaque_data";
@@ -1016,7 +1016,7 @@ is
    is
       procedure C_Interface (Instance :        System.Address;
                              Data     :        System.Address;
-                             Size     : in out Interfaces.C.unsigned) with
+                             Length   : in out Interfaces.C.unsigned) with
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_key_ex_verify_data";
@@ -1040,7 +1040,7 @@ is
       function C_Interface (Instance   : System.Address;
                             Transcript : Interfaces.C.unsigned;
                             Signature  : System.Address;
-                            Size       : Interfaces.C.unsigned;
+                            Length     : Interfaces.C.unsigned;
                             Slot       : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char with
          Import,
          Convention => C,
@@ -1064,7 +1064,7 @@ is
       function C_Interface (Instance   : System.Address;
                             Transcript : Interfaces.C.unsigned;
                             HMAC       : System.Address;
-                            Size       : Interfaces.C.unsigned;
+                            Length     : Interfaces.C.unsigned;
                             Slot       : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char with
          Import,
          Convention => C,
@@ -1087,7 +1087,7 @@ is
                              Transcript :        Interfaces.C.unsigned;
                              Slot       :        Interfaces.C.unsigned_char;
                              Data       :        System.Address;
-                             Size       : in out Interfaces.C.unsigned) with
+                             Length     : in out Interfaces.C.unsigned) with
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_finish_verify_data";

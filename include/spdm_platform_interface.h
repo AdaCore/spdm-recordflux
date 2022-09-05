@@ -450,16 +450,16 @@ void spdm_platform_get_nonce(instance_t *instance, void *nonce);
  *             Hardware_Configuration => 2
  *             Firmware_Configuration => 3
  *             Measured_Manifest      => 4
- * @param size Size of the target buffer. The initial value marks the
- *             maximum size of the buffer. On return it must be set to
- *             the actual size of the data copied into the buffer.
+ * @param length Length of the target buffer. The initial value marks the
+ *               maximum size of the buffer. On return it must be set to
+ *               the actual size of the data copied into the buffer.
  * @param buffer Measurement data buffer.
  */
 void spdm_platform_get_dmtf_measurement_field (instance_t *instance,
                                                unsigned index,
                                                unsigned *representation,
                                                unsigned *type,
-                                               unsigned *size,
+                                               unsigned *length,
                                                void *buffer);
 
 /**
@@ -467,13 +467,13 @@ void spdm_platform_get_dmtf_measurement_field (instance_t *instance,
  *
  * @param instance Platform instance.
  * @param data Opaque data buffer.
- * @param size Opaque data buffer size. The initial value is the maximum size of
- *             the buffer. On return the size must be set to the size of the data
- *             copied to that buffer. It must not exceed 1024.
+ * @param length Opaque data buffer length. The initial value is the maximum size of
+ *               the buffer. On return length must be set to the size of the data
+ *               copied to that buffer. It must not exceed 1024.
  */
 void spdm_platform_get_meas_opaque_data(instance_t *instance,
                                         void *data,
-                                        unsigned *size);
+                                        unsigned *length);
 
 /**
  * Register a new transcript with the platform.
@@ -523,15 +523,15 @@ unsigned spdm_platform_reset_transcript(instance_t *instance,
  * @param transcript Transcript ID.
  * @param data Transcript data to be appended.
  * @param offset Offset in data.
- * @param size Size of data to be appended to the transcript,
- *             size + offset must be less or equal to the size of data.
+ * @param length Length of data to be appended to the transcript,
+ *               length + offset must be less or equal to the size of data.
  * @return Success.
  */
 boolean spdm_platform_update_transcript(instance_t *instance,
                                         unsigned transcript,
                                         void *data,
                                         unsigned offset,
-                                        unsigned size);
+                                        unsigned length);
 
 /**
  * Append the latest generated nonce to the transcript.
@@ -558,16 +558,16 @@ boolean spdm_platform_update_transcript_nonce(instance_t *instance,
  * @param transcript Transcript ID.
  * @param slot Slot ID of the signing key.
  * @param signature Signature buffer.
- * @param size Signature buffer size. The initial value contains the maximum size
- *             of the signature size. On return the value should be the correct
- *             size for the signature algorithm selected in Negotiate_Algorithms.
- *             On error the size can be set to 0.
+ * @param length Signature buffer length. The initial value contains the maximum length
+ *               of the signature buffer. On return the value should be the correct
+ *               length for the signature algorithm selected in Negotiate_Algorithms.
+ *               On error length can be set to 0.
  */
 void spdm_platform_get_signature(instance_t *instance,
                                  unsigned transcript,
                                  unsigned char slot,
                                  void *signature,
-                                 unsigned *size);
+                                 unsigned *length);
 
 #ifdef FEATURE_KEY_EXCHANGE
 /**
@@ -579,11 +579,11 @@ void spdm_platform_get_signature(instance_t *instance,
  * @param instance Platform instance.
  * @param data Exchange data buffer. Initially contains the exchange
  *             request data. Must be filled with the response exchange data.
- * @param size Size of the request exchange data and the data buffer.
+ * @param length Length of the request exchange data and the data buffer.
  */
 void spdm_platform_get_exchange_data (instance_t *instance,
                                       void *data,
-                                      unsigned size);
+                                      unsigned length);
 
 /**
  * Get heartbeat period (DSP0274_1.1.0 [422]).
@@ -629,7 +629,7 @@ boolean spdm_platform_use_mutual_auth (instance_t *instance);
  *
  * @param instance Platform instance.
  * @param summary Measurement hash summary.
- * @param summary_size Size of the measurement_hash summary.
+ * @param summary_length Length of the measurement_hash summary.
  * @param hash Target buffer for the generated hash.
  * @param hash_length Length of the hash buffer. The initial value
  *                    is the maximum length of this buffer. On return
@@ -638,7 +638,7 @@ boolean spdm_platform_use_mutual_auth (instance_t *instance);
  */
 void spdm_platform_get_summary_hash(instance_t *instance,
                                     void *summary,
-                                    unsigned summary_size,
+                                    unsigned summary_length,
                                     void *hash,
                                     unsigned *hash_length);
 
@@ -660,26 +660,26 @@ unsigned char spdm_platform_update_transcript_cert(instance_t *instance,
  * @param instance Platform instance.
  * @param data Initial value is the opaque data sent by the requester.
  *             Can be filled with opaque data for the response.
- * @param size Initial value is the size of the opaque data sent
- *             sent by the requester. Should be set to the size
- *             of the opaque data for the response.
+ * @param length Initial value is the length of the opaque data sent
+ *               sent by the requester. Should be set to the size
+ *               of the opaque data for the response.
  */
 void spdm_platform_get_key_ex_opaque_data(instance_t *instance,
                                           void *data,
-                                          unsigned *size);
+                                          unsigned *length);
 
 /**
  * Generate the responder verify data for key exchange (DSP0274_1.1.0 [422]).
  *
  * @param instance Platform instance.
  * @param data Verify data buffer.
- * @param size Size of the verify data buffer. The initial value is
- *             is the maximum size of that buffer. It should be set to
- *             the length of the negotiated hash algorithm.
+ * @param length Length of the verify data buffer. The initial value is
+ *               is the maximum length of that buffer. It should be set to
+ *               the length of the negotiated hash algorithm.
  */
 void spdm_platform_get_key_ex_verify_data(instance_t *instance,
                                           void *data,
-                                          unsigned *size);
+                                          unsigned *length);
 
 /**
  * Validate the finish signature sent by the requester (DSP0274_1.1.0 [432]).
@@ -687,14 +687,14 @@ void spdm_platform_get_key_ex_verify_data(instance_t *instance,
  * @param instance Platform instance.
  * @param transcript Transcript ID.
  * @param signature Signature sent by the requester.
- * @param size Size of the signature.
+ * @param length Length of the signature.
  * @param slot Slot ID of the signing key.
  * @return Success.
  */
 boolean spdm_platform_validate_finish_signature(instance_t *instance,
                                                 unsigned transcript,
                                                 void *signature,
-                                                unsigned size,
+                                                unsigned length,
                                                 unsigned char slot);
 
 /**
@@ -703,14 +703,14 @@ boolean spdm_platform_validate_finish_signature(instance_t *instance,
  * @param instance Platform instance.
  * @param transcript Transcript ID.
  * @param hmac HMAC sent by the requester.
- * @param size Size of the HMAC.
+ * @param length Length of the HMAC.
  * @param slot Slot ID used for the HMAC generation.
  * @return Success.
  */
 boolean spdm_platform_validate_finish_hmac(instance_t *instance,
                                            unsigned transcript,
                                            void *hmac,
-                                           unsigned size,
+                                           unsigned length,
                                            unsigned char slot);
 
 /**
@@ -720,15 +720,15 @@ boolean spdm_platform_validate_finish_hmac(instance_t *instance,
  * @param transcript Transcript ID.
  * @param slot Slot ID for the used key.
  * @param data Verify data buffer.
- * @param size Size of the verify data buffer. The initial value is
- *             is the maximum size of that buffer. It should be set to
- *             the length of the negotiated hash algorithm.
+ * @param length Length of the verify data buffer. The initial value is
+ *               is the maximum length of that buffer. It should be set to
+ *               the length of the negotiated hash algorithm.
  */
 void spdm_platform_get_finish_verify_data(instance_t *instance,
                                           unsigned transcript,
                                           unsigned char slot,
                                           void *data,
-                                          unsigned *size);
+                                          unsigned *length);
 
 /**
  * Set the current session phase.

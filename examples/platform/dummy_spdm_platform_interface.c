@@ -359,29 +359,29 @@ void spdm_platform_get_dmtf_measurement_field(instance_t *instance,
                                               unsigned index,
                                               unsigned *representation,
                                               unsigned *type,
-                                              unsigned *size,
+                                              unsigned *length,
                                               __unused_cross__ void *buffer)
 {
     if(index < 1 || index > spdm_platform_get_number_of_indices(instance)){
         errx(2, "invalid measurement index");
     }
     __unused_cross__ const char *measurement = measurements[index - 1];
-    const unsigned length = strlen(measurement);
+    const unsigned meas_length = strlen(measurement);
     *representation = 1;
     *type = index < 6 ? index - 1 : 0;
-    if(*size < length){
-        memcpy(buffer, measurement, *size);
+    if(*length < meas_length){
+        memcpy(buffer, measurement, *length);
     }else{
-        memcpy(buffer, measurement, length);
-        *size = length;
+        memcpy(buffer, measurement, meas_length);
+        *length = meas_length;
     }
 }
 
 void spdm_platform_get_meas_opaque_data(__attribute__((unused)) instance_t *instance,
                                         __attribute__((unused)) void *data,
-                                        unsigned *size)
+                                        unsigned *length)
 {
-    *size = 0;
+    *length = 0;
 }
 
 unsigned spdm_platform_get_new_transcript(instance_t *instance,
@@ -432,7 +432,7 @@ boolean spdm_platform_update_transcript(instance_t *instance,
                                         unsigned transcript,
                                         __unused_cross__ void *data,
                                         __unused_cross__ unsigned offset,
-                                        unsigned size)
+                                        unsigned length)
 {
 #ifdef FEATURE_KEY_EXCHANGE
     if(instance->transcripts[transcript].kind == SESSION_TRANSCRIPT){
@@ -453,13 +453,13 @@ boolean spdm_platform_update_transcript(instance_t *instance,
         return 0;
     }
     instance->transcripts[transcript].data = realloc(instance->transcripts[transcript].data,
-                                                     instance->transcripts[transcript].size + size);
+                                                     instance->transcripts[transcript].size + length);
     if(!instance->transcripts[transcript].data){
         errx(1, "realloc failed");
         return 0;
     }
-    memcpy(instance->transcripts[transcript].data + instance->transcripts[transcript].size, data + offset, size);
-    instance->transcripts[transcript].size = instance->transcripts[transcript].size + size;
+    memcpy(instance->transcripts[transcript].data + instance->transcripts[transcript].size, data + offset, length);
+    instance->transcripts[transcript].size = instance->transcripts[transcript].size + length;
     return 1;
 }
 
@@ -477,16 +477,16 @@ void spdm_platform_get_signature(instance_t *instance,
                                  unsigned transcript,
                                  __attribute__((unused)) unsigned char slot,
                                  __unused_cross__ void *signature,
-                                 unsigned *size)
+                                 unsigned *length)
 {
     __unused_cross__ const spdm_version_number_t version = {0, 0, 1, 1};
     __unused_cross__ const unsigned hash_size = spdm_get_hash_size(instance->base_hash_algo);
-    __unused_cross__ unsigned char hash_data[*size];
+    __unused_cross__ unsigned char hash_data[*length];
     if(slot >= 3){
-        *size = 0;
+        *length = 0;
         return;
     }
-    uintn sig_size = *size;
+    uintn sig_size = *length;
     if(!spdm_platform_valid_transcript_id(instance, transcript)){
         errx(1, "invalid transcript slot: %u", transcript);
     }
@@ -518,13 +518,13 @@ void spdm_platform_get_signature(instance_t *instance,
         sig_size = 0;
         printf("failed to sign\n");
     }
-    *size = sig_size;
-    printf("signature_length=%u\n", *size);
+    *length = sig_size;
+    printf("signature_length=%u\n", *length);
 }
 #ifdef FEATURE_KEY_EXCHANGE
 void spdm_platform_get_exchange_data (__unused_cross__ instance_t *instance,
                                       __unused_cross__ void *data,
-                                      unsigned size)
+                                      unsigned length)
 {
     uintn dhe_key_size = spdm_get_dhe_pub_key_size(instance->dhe_named_group);
     __unused_cross__ void *dhe_context = spdm_secured_message_dhe_new(instance->dhe_named_group);
@@ -534,13 +534,13 @@ void spdm_platform_get_exchange_data (__unused_cross__ instance_t *instance,
     if(!spdm_dhe_compute_key(
             instance->dhe_named_group,
             dhe_context,
-            data, size,
+            data, length,
             instance->dhe_key, &dhe_priv_key_size)){
         errx(1, "failed to compute dhe key");
     }
     instance->dhe_key_size = dhe_priv_key_size;
     spdm_secured_message_dhe_free(instance->dhe_named_group, dhe_context);
-    if(size < dhe_key_size){
+    if(length < dhe_key_size){
         errx(1, "insufficient size for dhe key");
     }
     memcpy(data, dhe_key, dhe_key_size);
@@ -570,11 +570,11 @@ boolean spdm_platform_use_mutual_auth (__attribute__((unused)) instance_t *insta
 
 void spdm_platform_get_summary_hash(__unused_cross__ instance_t *instance,
                                     __unused_cross__ void *summary,
-                                    __unused_cross__ unsigned summary_size,
+                                    __unused_cross__ unsigned summary_length,
                                     __unused_cross__ void *hash,
                                     unsigned *hash_length)
 {
-    boolean res = spdm_hash_all(instance->base_hash_algo, summary, summary_size, hash);
+    boolean res = spdm_hash_all(instance->base_hash_algo, summary, summary_length, hash);
     if(!res){
         errx(1, "failed to hash summary");
     }
@@ -602,21 +602,21 @@ unsigned char spdm_platform_update_transcript_cert(instance_t *instance,
 
 void spdm_platform_get_key_ex_opaque_data(__attribute__((unused)) instance_t *instance,
                                           __attribute__((unused)) void *data,
-                                          __attribute__((unused)) unsigned *size)
+                                          __attribute__((unused)) unsigned *length)
 {
 }
 
 void spdm_platform_get_key_ex_verify_data(__unused_cross__ instance_t *instance,
                                           __attribute__((unused)) void *data,
-                                          unsigned *size)
+                                          unsigned *length)
 {
-    *size = spdm_get_hash_size(instance->base_hash_algo);
+    *length = spdm_get_hash_size(instance->base_hash_algo);
 }
 
 boolean spdm_platform_validate_finish_signature(__attribute__((unused)) instance_t *instance,
                                                 __attribute__((unused)) unsigned transcript,
                                                 __attribute__((unused)) void *signature,
-                                                __attribute__((unused)) unsigned size,
+                                                __attribute__((unused)) unsigned length,
                                                 __attribute__((unused)) unsigned char slot)
 {
     return 1;
@@ -625,7 +625,7 @@ boolean spdm_platform_validate_finish_signature(__attribute__((unused)) instance
 boolean spdm_platform_validate_finish_hmac(__attribute__((unused)) instance_t *instance,
                                            __attribute__((unused)) unsigned transcript,
                                            __attribute__((unused)) void *hmac,
-                                           __attribute__((unused)) unsigned size,
+                                           __attribute__((unused)) unsigned length,
                                            __attribute__((unused)) unsigned char slot)
 {
     return 1;
@@ -635,9 +635,9 @@ void spdm_platform_get_finish_verify_data(__unused_cross__ instance_t *instance,
                                           __attribute__((unused)) unsigned transcript,
                                           __attribute__((unused)) unsigned char slot,
                                           __attribute__((unused)) void *data,
-                                          unsigned *size)
+                                          unsigned *length)
 {
-    *size = spdm_get_hash_size(instance->base_hash_algo);
+    *length = spdm_get_hash_size(instance->base_hash_algo);
 }
 
 unsigned char spdm_platform_set_session_phase(instance_t *instance,
