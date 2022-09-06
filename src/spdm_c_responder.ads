@@ -23,7 +23,7 @@ with RFLX.RFLX_Types;
 --  responder session context and implementations for all of its abstract
 --  subprograms.
 --  The implementations of these subprograms contain a binding for a C interface.
---  This binding is not required for pure Ada projects and can be replaced.
+--  This binding is not required for pure SPARK/Ada projects and can be replaced.
 --  Additionally it contains an initialization procedure that is used for the sole
 --  purpose of initializing the example C implementation. It is not strictly required
 --  as an implementation is free to decide how and when to initialize its custom
@@ -200,7 +200,7 @@ is
       (Ctx    : in out Context;
        Result :    out Boolean);
 #end if;
-   --
+
    --  Select measurement hash algorithm (DSP0274_1.1.0 [185]).
    --
    --  The arguments describe the hash algorithms supported by the requester.
@@ -281,7 +281,7 @@ is
        TPM_ALG_SHA3_512 :        Boolean;
        Result           :    out RFLX.SPDM.Base_Hash_Algo);
 #if FEATURE_KEY_EXCHANGE then
-   --
+
    --  Select the Diffie-Hellman Ephemeral group (DSP0274_1.1.0 [189]).
    --
    --  The arguments describe the group supported by the requester.
@@ -324,7 +324,7 @@ is
        Req_AES_128_GCM       :        Boolean;
        Result                :    out RFLX.SPDM_Responder.AEAD_Algo);
 #end if;
-   --
+
    --  Select base asymmetric algorithm (DSP0274_1.1.0 [191]).
    --
    --  The arguments describe the key signature algorithms supported by the requester.
@@ -407,6 +407,7 @@ is
       (Ctx    : in out Context;
        Result :    out RFLX.SPDM.Measurement_Count);
 #if FEATURE_KEY_EXCHANGE then
+
    --  Get the number of measurement indices that include the trusted computing base (DSP0274_1.1.0 [422]).
    --
    --  Otherwise it has the same behaviour as spdm_platform_get_number_of_indices.
@@ -418,6 +419,7 @@ is
       (Ctx    : in out Context;
        Result :    out RFLX.SPDM.Measurement_Count);
 #end if;
+
    --  Generate a nonce for cryptographic operations.
    --
    --  The platform must always keep the latest generated nonce and shall
@@ -535,6 +537,7 @@ is
                                  Slot       :        RFLX.SPDM.Slot;
                                  Result     :    out RFLX.SPDM_Responder.Signature.Structure);
 #if FEATURE_KEY_EXCHANGE then
+
    --  Generate responder exchange data from requester exchange data (DSP0274_1.1.0 [421]).
    --
    --  @param Ctx Context.
@@ -704,6 +707,7 @@ is
                         Length :        RFLX.SPDM.Hash_Length;
                         Result :    out RFLX.SPDM_Responder.Hash.Structure);
 #end if;
+
    --  Initialization function for empty signatures.
    --
    --  This is a helper function for the specification and does not interact with any

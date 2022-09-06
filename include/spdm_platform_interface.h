@@ -2,14 +2,29 @@
 #define __SPDM_PLATFORM_INTERFACE__
 
 /**
+ * @file spdm_platform_interface.h
+ *
+ * @brief C based example platform implementation.
+ *
+ * This implementation provides an example on how to implement
+ * a platform in C. It binds with the SPDM_C_Responder SPARK/Ada
+ * implementation. Note that for pure SPARK/Ada implementation
+ * this file is not required.
+ */
+
+/**
  * Boolean type to interact with Ada.
+ * ```
  * True  => 1
  * False => 0
+ * ```
  * All other values are undefined behaviour.
  */
 typedef unsigned char boolean;
 
 /**
+ * @struct instance
+ *
  * Implementation defined.
  *
  * This struct can be defined freely by the implementer to
@@ -18,6 +33,10 @@ typedef unsigned char boolean;
  * implementer.
  */
 struct instance;
+
+/**
+ * Type name definition for struct instance.
+ */
 typedef struct instance instance_t;
 
 /**
@@ -181,6 +200,7 @@ boolean spdm_platform_config_cap_handshake_in_the_clear(instance_t *instance);
  * @param tpm_alg_sha3_512 SHA3-512 supported and requested.
  * @param raw_bit_streams_only Raw bit streams supported and requested.
  * @return Enum with the following values:
+ * ```
  *         not supported        => 0
  *         raw_bit_streams_only => 1
  *         tpm_alg_sha_256      => 2
@@ -189,6 +209,7 @@ boolean spdm_platform_config_cap_handshake_in_the_clear(instance_t *instance);
  *         tpm_alg_sha3_256     => 16
  *         tpm_alg_sha3_384     => 32
  *         tpm_alg_sha3_512     => 64
+ *```
  */
 unsigned char spdm_platform_select_measurement_hash_algo(instance_t *instance,
                                                          boolean tpm_alg_sha_256,
@@ -216,6 +237,7 @@ unsigned char spdm_platform_select_measurement_hash_algo(instance_t *instance,
  * @param tpm_alg_rsassa_2048 RSASSA-2048 supported and requested.
  * @param tpm_alg_ecdsa_ecc_nist_p521 ECDSA-ECC-521 supported and requested.
  * @return Enum with the following values:
+ * ```
  *         not supported               => 0
  *         tpm_alg_rsassa_2048         => 1
  *         tpm_alg_rsapss_2048         => 2
@@ -226,6 +248,7 @@ unsigned char spdm_platform_select_measurement_hash_algo(instance_t *instance,
  *         tpm_alg_rsapss_4096         => 64
  *         tpm_alg_ecdsa_ecc_nist_p384 => 128
  *         tpm_alg_ecdsa_ecc_nist_p521 => 256
+ * ```
  */
 long spdm_platform_select_base_asym_algo(instance_t *instance,
                                          boolean tpm_alg_ecdsa_ecc_nist_p384,
@@ -252,6 +275,7 @@ long spdm_platform_select_base_asym_algo(instance_t *instance,
  * @param tpm_alg_sha3_384 SHA3-384 supported and requested.
  * @param tpm_alg_sha3_512 SHA3-512 supported and requested.
  * @return Enum with the following values:
+ * ```
  *         not supported        => 0
  *         tpm_alg_sha_256      => 1
  *         tpm_alg_sha_384      => 2
@@ -259,6 +283,7 @@ long spdm_platform_select_base_asym_algo(instance_t *instance,
  *         tpm_alg_sha3_256     => 8
  *         tpm_alg_sha3_384     => 16
  *         tpm_alg_sha3_512     => 32
+ * ```
  */
 unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
                                                   boolean tpm_alg_sha_256,
@@ -283,6 +308,7 @@ unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
  * @param ffdhe3072 FFDHE3072 supported and requested.
  * @param ffdhe2048 FFDHE2048 supported and requested.
  * @return Enum with the following values:
+ * ```
  *         not supported => 0
  *         ffdhe2048     => 1
  *         ffdhe3072     => 2
@@ -290,6 +316,7 @@ unsigned char spdm_platform_select_base_hash_algo(instance_t *instance,
  *         secp256r1     => 8
  *         secp384r1     => 16
  *         secp521r1     => 32
+ * ```
  */
 unsigned char spdm_platform_select_dhe(instance_t *instance,
                                        boolean secp521r1,
@@ -310,10 +337,12 @@ unsigned char spdm_platform_select_dhe(instance_t *instance,
  * @param aes_256_gcm AES-256-GCM supported and requested.
  * @param aes_128_gcm AES-128-GCM supported and requested.
  * @return Enum with the following values:
+ * ```
  *         not supported     => 0
  *         aes_128_gcm       => 1
  *         aes_256_gcm       => 2
  *         chacha20_poly1305 => 4
+ * ```
  */
 unsigned char spdm_platform_select_aead(instance_t *instance,
                                         boolean chacha20_poly1305,
@@ -337,6 +366,7 @@ unsigned char spdm_platform_select_aead(instance_t *instance,
  * @param ra_tpm_alg_rsassa_2048 RSASSA-2048 supported and requested.
  * @param ra_tpm_alg_ecdsa_ecc_nist_p521 ECDSA-ECC-521 supported and requested.
  * @return Enum with the following values:
+ * ```
  *         not supported                  => 0
  *         ra_tpm_alg_rsassa_2048         => 1
  *         ra_tpm_alg_rsapss_2048         => 2
@@ -347,6 +377,7 @@ unsigned char spdm_platform_select_aead(instance_t *instance,
  *         ra_tpm_alg_rsapss_4096         => 64
  *         ra_tpm_alg_ecdsa_ecc_nist_p384 => 128
  *         ra_tpm_alg_ecdsa_ecc_nist_p521 => 256
+ * ```
  */
 long spdm_platform_select_rbaa(instance_t *instance,
                                boolean ra_tpm_alg_ecdsa_ecc_nist_p384,
