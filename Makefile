@@ -2,7 +2,7 @@
 
 SHELL := /bin/bash
 
-VERSION := 0.3.0
+VERSION := 0.4.0
 
 # Features: set to "True" or "False"
 FEATURE_CHALLENGE_AUTH ?= True
