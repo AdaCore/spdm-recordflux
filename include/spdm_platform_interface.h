@@ -714,12 +714,16 @@ void spdm_platform_get_key_ex_opaque_data(instance_t *instance,
  * Generate the responder verify data for key exchange (DSP0274_1.1.0 [422]).
  *
  * @param instance Platform instance.
+ * @param transcript Transcript ID.
+ * @param slot Slot ID of the signing key.
  * @param data Verify data buffer.
  * @param length Length of the verify data buffer. The initial value is
  *               is the maximum length of that buffer. It shall be set to
  *               the length of the negotiated hash algorithm.
  */
 void spdm_platform_get_key_ex_verify_data(instance_t *instance,
+                                          unsigned transcript,
+                                          unsigned char slot,
                                           void *data,
                                           unsigned *length);
 

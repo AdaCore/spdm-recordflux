@@ -615,6 +615,8 @@ void spdm_platform_get_key_ex_opaque_data(__attribute__((unused)) instance_t *in
 }
 
 void spdm_platform_get_key_ex_verify_data(__unused_cross__ instance_t *instance,
+                                          __attribute__((unused)) unsigned transcript,
+                                          __attribute__((unused)) unsigned char slot,
                                           __attribute__((unused)) void *data,
                                           unsigned *length)
 {

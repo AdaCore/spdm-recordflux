@@ -1005,18 +1005,26 @@ is
    end Plat_Get_Key_Ex_Opaque_Data;
 
    overriding
-   procedure Plat_Get_Key_Ex_Verify_Data (Ctx    : in out Context;
-                                          Result :    out RFLX.SPDM_Responder.Hash.Structure)
+   procedure Plat_Get_Key_Ex_Verify_Data (Ctx        : in out Context;
+                                          Transcript :        RFLX.SPDM_Responder.Transcript_ID;
+                                          Slot       :        RFLX.SPDM.Slot;
+                                          Result     :    out RFLX.SPDM_Responder.Hash.Structure)
    is
-      procedure C_Interface (Instance :        System.Address;
-                             Data     :        System.Address;
-                             Length   : in out Interfaces.C.unsigned) with
+      procedure C_Interface (Instance   :        System.Address;
+                             Transcript :        Interfaces.C.unsigned;
+                             Slot       :        Interfaces.C.unsigned_char;
+                             Data       :        System.Address;
+                             Length     : in out Interfaces.C.unsigned) with
          Import,
          Convention => C,
          External_Name => "spdm_platform_get_key_ex_verify_data";
       Size : Interfaces.C.unsigned := Interfaces.C.unsigned (Result.Data'Length);
    begin
-      C_Interface (Ctx.Instance, Result.Data'Address, Size);
+      C_Interface (Ctx.Instance,
+                   Interfaces.C.unsigned (Transcript),
+                   Interfaces.C.unsigned_char (RFLX.SPDM.To_Base_Integer (Slot)),
+                   Result.Data'Address,
+                   Size);
       if not RFLX.SPDM.Valid_Hash_Length (RFLX.RFLX_Types.Base_Integer (Size)) then
          raise Constraint_Error;
       end if;

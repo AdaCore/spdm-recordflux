@@ -222,7 +222,8 @@ package SPDM_Responder is
 
       with function Plat_Get_Key_Ex_Opaque_Data (Request_Data : Opaque) return Opaque_Data;
 
-      with function Plat_Get_Key_Ex_Verify_Data return Hash;
+      with function Plat_Get_Key_Ex_Verify_Data (Transcript : Transcript_ID;
+                                                 Slot       : SPDM::Slot) return Hash;
 
       with function Plat_Validate_Finish_Signature (Transcript : Transcript_ID;
                                                     Signature  : Opaque;
@@ -1477,15 +1478,17 @@ package SPDM_Responder is
          Success        : Boolean;
       begin
          --  Transcript hash for KEY_EXCHANGE_RSP HMAC [438] / TH1 [593]
-         Verify_Data                                          := Plat_Get_Key_Ex_Verify_Data;
+         Verify_Data                                          :=
+            Plat_Get_Key_Ex_Verify_Data (Transcript_Session,
+                                         Request.Key_Exchange_Request_Slot);
          Response.Key_Exchange_Response_Responder_Verify_Data := Verify_Data.Data;
          Transcript_Len                                       := Hash_Length;
          Success :=
          --  TH1/2 Key_Exchange transcript hash: [KEY_EXCHANGE_RSP].*
          --  The transcript hash from the HMAC generation is kept, so only the HMAC has to be added.
-            Plat_Update_Transcript (Transcript_Session,
-                              Response.Key_Exchange_Response_Responder_Verify_Data,
-                              0, Transcript_Len);
+         Plat_Update_Transcript (Transcript_Session,
+                                 Response.Key_Exchange_Response_Responder_Verify_Data,
+                                 0, Transcript_Len);
       transition
          goto Send_Key_Exchange
             if Success

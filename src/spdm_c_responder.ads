@@ -622,10 +622,14 @@ is
    --  Generate the responder verify data for key exchange (DSP0274_1.1.0 [422]).
    --
    --  @param Ctx Context.
+   --  @param Transcript Transcript ID.
+   --  @param Slot Slot ID of the signing key.
    --  @param Result Key exchange verify data.
    overriding
-   procedure Plat_Get_Key_Ex_Verify_Data (Ctx    : in out Context;
-                                          Result :    out RFLX.SPDM_Responder.Hash.Structure);
+   procedure Plat_Get_Key_Ex_Verify_Data (Ctx        : in out Context;
+                                          Transcript :        RFLX.SPDM_Responder.Transcript_ID;
+                                          Slot       :        RFLX.SPDM.Slot;
+                                          Result     :    out RFLX.SPDM_Responder.Hash.Structure);
 
    --  Validate the finish signature sent by the requester (DSP0274_1.1.0 [432]).
    --
