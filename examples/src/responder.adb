@@ -1,5 +1,6 @@
 with RFLX.SPDM_Responder.Session;
 with RFLX.RFLX_Types;
+with RFLX.RFLX_Types.Operators;
 with SPDM_C_Responder;
 
 package body Responder with
@@ -7,6 +8,8 @@ package body Responder with
    Refined_State => (Responder_State => (Buffer, Context))
 is
    use RFLX.RFLX_Types;
+   use RFLX.RFLX_Types.Operators;
+
    Buffer : Bytes (Index'First .. Index'First + 1279) := (others => 0);
    Context : SPDM_C_Responder.Context;
 

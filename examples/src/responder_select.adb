@@ -1,6 +1,7 @@
 with Channel;
 with RFLX.SPDM_Responder.Session;
 with RFLX.RFLX_Types;
+with RFLX.RFLX_Types.Operators;
 with SPDM_C_Responder;
 
 package body Responder_Select with
@@ -32,6 +33,7 @@ is
       SPARK_Mode
    is
       use RFLX.RFLX_Types;
+      use RFLX.RFLX_Types.Operators;
 
       package SR renames RFLX.SPDM_Responder.Session;
 

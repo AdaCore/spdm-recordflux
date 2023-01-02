@@ -6,8 +6,8 @@ package SPDM is
 
    -- Base types
 
-   type Length_16 is mod 2 ** 16;
-   type Length_24 is mod 2 ** 24;
+   type Length_16 is range 0 .. 2 ** 16 - 1 with Size => 16;
+   type Length_24 is range 0 .. 2 ** 24 - 1 with Size => 24;
    type Index is range 0 .. 2 ** 8 - 1 with Size => 8;
 
    -- https://github.com/Componolit/RecordFlux/issues/1058
@@ -341,9 +341,10 @@ package SPDM is
       message
          Index : Index;
          Measurement_Specification : Measurement_Specification;
-         Measurement_Length : Length_16
-            then DMTF_Measurement
-               if Measurement_Specification = DMTF;
+         Measurement_Length : Length_16;
+         --  https://github.com/Componolit/RecordFlux/issues/1276
+         --   then DMTF_Measurement
+         --      if Measurement_Specification = DMTF;
          DMTF_Measurement : DMTF_Measurement_Field
             then null
                if 8 * Measurement_Length = DMTF_Measurement_Measurement_Value'Last - Measurement_Length'Last;
@@ -393,8 +394,8 @@ package SPDM is
        Reg_JEDEC     => 8)
    with Size => 8;
 
-   type Algorithm_ID_16 is mod 2 ** 16;
-   type Algorithm_ID_32 is mod 2 ** 32;
+   type Algorithm_ID_16 is range 0 .. 2 ** 16 - 1 with Size => 16;
+   type Algorithm_ID_32 is range 0 .. 2 ** 32 - 1 with Size => 32;
 
    type Ext_Alg is
       message
@@ -657,7 +658,7 @@ package SPDM is
        Trusted_Environment => 16#FF#)
    with Size => 8;
 
-   type Offset is mod 2 ** 16;
+   type Offset is range 0 .. 2 ** 16 - 1 with Size => 16;
 
    type Get_Certificate_Request is
       message
@@ -753,10 +754,10 @@ package SPDM is
        Vendor                 => 16#FF#)
    with Size => 8;
 
-   type Error_Session_ID is mod 2 ** 8;
+   type Error_Session_ID is range 0 .. 2 ** 8 - 1 with Size => 8;
 
-   type RDT_Exponent is mod 2 ** 8;
-   type Token is mod 2 ** 8;
+   type RDT_Exponent is range 0 .. 2 ** 8 - 1 with Size => 8;
+   type Token is range 0 .. 2 ** 8 - 1 with Size => 8;
    type RDTM is range 1 .. 2 ** 8 - 1 with Size => 8;
 
    type Response_Not_Ready_Data is
@@ -769,9 +770,9 @@ package SPDM is
 
    type Zero_Error_Data is range 0 .. 0 with Size => 8;
 
-   type Vendor_ID_Len is mod 2 ** 8;
-   type Vendor_ID_Double is mod 2 ** 16;
-   type Vendor_ID_Quad is mod 2 ** 32;
+   type Vendor_ID_Len is range 0 .. 2 ** 8 - 1 with Size => 8;
+   type Vendor_ID_Double is range 0 .. 2 ** 16 - 1 with Size => 16;
+   type Vendor_ID_Quad is range 0 .. 2 ** 32 - 1 with Size => 32;
 
    type Error_Response is
       message
@@ -846,7 +847,7 @@ package SPDM is
 #if FEATURE_KEY_EXCHANGE then
    -- 10.16 KEY_EXCHANGE request and KEY_EXCHANGE_RSP response messages
 
-   type Session_ID is mod 2 ** 16;
+   type Session_ID is range 0 .. 2 ** 16 - 1 with Size => 16;
 
    type Key_Exchange_Request (Exchange_Data_Length : Exchange_Data_Length) is
       message
@@ -864,7 +865,7 @@ package SPDM is
       end message
          with Byte_Order => Low_Order_First;
 
-   type Heartbeat_Period is mod 2 ** 8;
+   type Heartbeat_Period is range 0 .. 2 ** 8 - 1 with Size => 8;
 
    type Key_Exchange_Response (Exchange_Data_Length   : Exchange_Data_Length;
                                Hash_Length            : Hash_Length;

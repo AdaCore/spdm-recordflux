@@ -10,10 +10,7 @@ package SPDM_Proxy is
    generic
       Emu_Transport : Channel with Readable, Writable;
       SPDM_Transport : Channel with Readable, Writable;
-   session Proxy with
-      Initial => Proxy_Receive_Request,
-      Final => Proxy_Shutdown
-   is
+   session Proxy is
       Emu_Packet  : SPDM_Emu::Platform_Port;
       SPDM_Packet : Packet;
    begin
@@ -97,17 +94,15 @@ package SPDM_Proxy is
       begin
          Emu_Transport'Write (Emu_Packet);
       transition
-         goto Proxy_Shutdown
+         goto null
       end Proxy_Send_Shutdown;
 
       state Proxy_Error
       is
       begin
       transition
-         goto Proxy_Shutdown
+         goto null
       end Proxy_Error;
-
-      state Proxy_Shutdown is null state;
    end Proxy;
 
 end SPDM_Proxy;

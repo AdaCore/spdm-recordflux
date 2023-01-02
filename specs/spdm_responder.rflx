@@ -59,7 +59,7 @@ package SPDM_Responder is
             with Size => Length * 8;
       end message;
 
-   type Transcript_ID is mod 2 ** 32;
+   type Transcript_ID is range 0 .. 2 ** 32 - 1 with Size => 32;
 
    type Transcript_Kind is
       (Session_Transcript     => 0,
@@ -244,10 +244,7 @@ package SPDM_Responder is
       with function Null_Hash (Length : SPDM::Hash_Length) return Hash;
 #end if;
       with function Null_Signature (Length : SPDM::Signature_Length) return Signature;
-   session Session with
-      Initial => Init,
-      Final => End_Session
-   is
+   session Session is
       Request                : SPDM::Request;
       Response               : SPDM::Response;
       Supp_Versions          : SPDM::Version_Number_Entries;
@@ -1800,7 +1797,7 @@ package SPDM_Responder is
             if Error_Code = SPDM::Unsupported_Request
          goto Prepare_Zero_Data_Error
       exception
-         goto End_Session
+         goto null
       end Prepare_Error;
 
       state Prepare_Zero_Data_Error
@@ -1810,7 +1807,7 @@ package SPDM_Responder is
       transition
          goto Send_Error
       exception
-         goto End_Session
+         goto null
       end Prepare_Zero_Data_Error;
 
       state Prepare_Unexpected_Request_Error
@@ -1820,7 +1817,7 @@ package SPDM_Responder is
       transition
          goto Send_Error
       exception
-         goto End_Session
+         goto null
       end Prepare_Unexpected_Request_Error;
 
       state Send_Error
@@ -1830,8 +1827,6 @@ package SPDM_Responder is
       transition
          goto Receive_Get_Version
       end Send_Error;
-
-      state End_Session is null state;
    end Session;
 
 end SPDM_Responder;

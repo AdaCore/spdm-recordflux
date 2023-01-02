@@ -2,7 +2,7 @@ with SPDM_Emu;
 
 package SPDM_Requester is
 
-   type Size is mod 2 ** 16;
+   type Size is range 0 .. 2 ** 16 - 1 with Size => 16;
 
    type Request is
       message
@@ -15,10 +15,7 @@ package SPDM_Requester is
       Transport : Channel with Readable, Writable;
       with function Get_Request_Data return Request;
       with function Return_Response (Resp : Opaque) return Boolean;
-   session Requester with
-      Initial => Prepare_Request,
-      Final => Done
-   is
+   session Requester is
       Emu_Packet : SPDM_Emu::Platform_Port;
    begin
       state Prepare_Request
@@ -75,7 +72,7 @@ package SPDM_Requester is
       transition
          goto Send_Shutdown
       exception
-         goto Done
+         goto null
       end Prepare_Shutdown;
 
       state Send_Shutdown
@@ -83,10 +80,8 @@ package SPDM_Requester is
       begin
          Transport'Write (Emu_Packet);
       transition
-         goto Done
+         goto null
       end Send_Shutdown;
-
-      state Done is null state;
    end Requester;
 
 end SPDM_Requester;

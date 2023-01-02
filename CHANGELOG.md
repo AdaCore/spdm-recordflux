@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Add transcript ID and slot ID to key exchange verify data function (VA28-039)
+- Update RecordFlux to 0.8.0
 
 ## [0.4.0] - 2022-09-07
 
