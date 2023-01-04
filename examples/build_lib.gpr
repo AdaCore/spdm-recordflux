@@ -1,4 +1,4 @@
-with "contrib/RecordFlux/defaults.gpr";
+with "defaults.gpr";
 
 project Build_Lib
 is

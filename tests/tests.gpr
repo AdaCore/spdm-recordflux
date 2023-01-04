@@ -1,4 +1,4 @@
-with "contrib/RecordFlux/defaults.gpr";
+with "defaults.gpr";
 with "spdm_responder_emu.gpr";
 
 project Tests is

@@ -21,13 +21,13 @@ jobs:
               with:
                   submodules: recursive
             - name: Install GNAT Pro
-              uses: ./contrib/RecordFlux/.github/actions/install_gnat_pro
+              uses: ./.github/actions/install_gnat_pro
               with:
                   version: "23.0w-20220508"
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
                   server: ${{ secrets.MEMCACHED_SERVER }}
             - name: Install GNAT Pro (ARM)
-              uses: ./contrib/RecordFlux/.github/actions/install_gnat_pro
+              uses: ./.github/actions/install_gnat_pro
               with:
                   version: "23.0w-20220508"
                   target: "arm-elf"
@@ -35,7 +35,7 @@ jobs:
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
                   server: ${{ secrets.MEMCACHED_SERVER }}
             - name: Install GNAT Pro (RISC-V 64)
-              uses: ./contrib/RecordFlux/.github/actions/install_gnat_pro
+              uses: ./.github/actions/install_gnat_pro
               with:
                   version: "23.0w-20220508"
                   target: "riscv64-elf"
@@ -43,7 +43,7 @@ jobs:
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
                   server: ${{ secrets.MEMCACHED_SERVER }}
             - name: Install SPARK Pro
-              uses: ./contrib/RecordFlux/.github/actions/install_spark_pro
+              uses: ./.github/actions/install_spark_pro
               with:
                   version: "23.0w-20220612"
                   ssh_key: ${{ secrets.MEMCACHED_SSH_KEY }}
@@ -66,15 +66,9 @@ jobs:
               run: |
                   sudo apt-get update
                   sudo apt-get install -y expect python python3-dev
-                  sudo pip3 install --upgrade pip wheel setuptools setuptools-scm build
+                  sudo env "PATH=$PATH" pip3 install --upgrade pip wheel setuptools setuptools-scm build RecordFlux==0.8.0
                   echo "/canary (for systems using strange)/paths" >> $GITHUB_PATH
             - name: Test
-              env:
-                SPDM_IGNORE_CHALLENGE_AUTH: 1
-                SPDM_IGNORE_KEY_EX_OPAQUE_DATA: 1
-                SPDM_IGNORE_KEY_EX_SIGNATURE: 1
-                SPDM_IGNORE_KEY_EX_HMAC: 1
-                SPDM_IGNORE_FINISH_HMAC: 1
               run: make
             - name: Clean
               run: make clean
@@ -91,7 +85,7 @@ jobs:
                 FEATURE_CHALLENGE_AUTH: "False"
                 FEATURE_RESPOND_IF_READY: "False"
               run: make check_spec test_cross test_size check_stack prove build/tests/responder
-            - name: Clean All
-              run: make cleanall
+            - name: Clean
+              run: make clean
             - name: Test Package
               run: make test_package

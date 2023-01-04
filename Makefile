@@ -184,10 +184,15 @@ GPRBUILD_CARGS = -cargs:c $(FEATURE_CFLAGS)
 INTEGRATION_FILES = \
 	build/specs/$(FEATURES)/spdm_responder.rfi \
 
-ifdef LOCAL_RFLX
-RFLX = $(shell command -v python3) $(shell command -v rflx)
-else
-RFLX = $(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx
+RFLX ?= $(shell command -v rflx)
+
+ifeq ($(RFLX),)
+$(error RecordFlux missing.  See README.md for installation intructions.)
+endif
+
+RFLX_VERSION := $(strip $(shell $(RFLX) --version | head -n1))
+ifeq ($(findstring RecordFlux 0.8., $(RFLX_VERSION)),)
+$(error Unsupported RecordFlux version ($(RFLX_VERSION)) or broken installation.)
 endif
 
 all: check test prove
@@ -290,7 +295,7 @@ build/certificates:
 
 test_validate: test_validate_libspdm test_validate_static
 
-test_validate_libspdm: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump build/certificates | build/specs/$(FEATURES)/spdm.rflx $(RFLX)
+test_validate_libspdm: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/spdm_responder_emu build/spdm_dump/bin/spdm_dump build/certificates | build/specs/$(FEATURES)/spdm.rflx
 	mkdir -p $(TMPDIR)/spdm build
 	rm -f build/validate_libspdm_request.log build/validate_libspdm_response.log
 	tools/run_emu.sh $(TMPDIR)/test_validate.pcap
@@ -300,19 +305,19 @@ test_validate_libspdm: build/spdm_emu/bin/spdm_requester_emu build/spdm_emu/bin/
 
 test_validate_static: $(VALIDATE_STATIC)
 
-test_validate_static_base: | build/specs/$(FEATURES)/spdm.rflx $(RFLX)
+test_validate_static_base: | build/specs/$(FEATURES)/spdm.rflx
 	mkdir -p build
 	rm -f build/validate_static_request.log build/validate_static_response.log
 	$(RFLX) --unsafe --no-verification --max-errors=1 validate -o build/validate_static_request.log -v tests/data/spdm/Request/valid build/specs/$(FEATURES)/spdm.rflx SPDM::Request
 	$(RFLX) --unsafe --no-verification --max-errors=1 validate -o build/validate_static_response.log -v tests/data/spdm/Response/valid build/specs/$(FEATURES)/spdm.rflx SPDM::Response
 
-test_validate_static_challenge_auth: | build/specs/$(FEATURES)/spdm.rflx $(RFLX)
+test_validate_static_challenge_auth: | build/specs/$(FEATURES)/spdm.rflx
 	mkdir -p build
 	rm -f build/validate_static_request_feature_challenge_auth.log build/validate_static_response_feature_challenge_auth.log
 	$(RFLX) --unsafe --no-verification --max-errors=1 validate -o build/validate_static_request_feature_challenge_auth.log -v tests/data/spdm/Request/valid_feature_challenge_auth build/specs/$(FEATURES)/spdm.rflx SPDM::Request
 	$(RFLX) --unsafe --no-verification --max-errors=1 validate -o build/validate_static_response_feature_challenge_auth.log -v tests/data/spdm/Response/valid_feature_challenge_auth build/specs/$(FEATURES)/spdm.rflx SPDM::Response
 
-test_validate_static_key_exchange: | build/specs/$(FEATURES)/spdm.rflx $(RFLX)
+test_validate_static_key_exchange: | build/specs/$(FEATURES)/spdm.rflx
 	mkdir -p build
 	rm -f build/validate_static_request_feature_key_exchange.log build/validate_static_response_feature_key_exchange.log
 	$(RFLX) --unsafe --no-verification --max-errors=1 validate -o build/validate_static_request_feature_key_exchange.log -v tests/data/spdm/Request/valid_feature_key_exchange build/specs/$(FEATURES)/spdm.rflx SPDM::Request
@@ -320,6 +325,11 @@ test_validate_static_key_exchange: | build/specs/$(FEATURES)/spdm.rflx $(RFLX)
 
 test_integration_build: build/tests/responder build/tests/proxy build/tests/requester build/certificates build/spdm_emu/bin/spdm_requester_emu
 
+test_integration: export SPDM_IGNORE_CHALLENGE_AUTH=1
+test_integration: export SPDM_IGNORE_KEY_EX_OPAQUE_DATA=1
+test_integration: export SPDM_IGNORE_KEY_EX_SIGNATURE=1
+test_integration: export SPDM_IGNORE_KEY_EX_HMAC=1
+test_integration: export SPDM_IGNORE_FINISH_HMAC=1
 test_integration: test_integration_build
 	tests/integration/meas_single_secure_session.expect
 	tests/integration/meas_op_all.expect
@@ -333,29 +343,13 @@ test_integration: test_integration_build
 
 package: build/spdm-$(VERSION).tar.xz
 
-# Determine RecordFlux version and create target for source distribution if a project file
-# in the contrib/RecordFlux directory exists (which is only the case in a Git tree)
-ifneq ($(wildcard contrib/RecordFlux/pyproject.toml),)
-
-RECORDFLUX_VERSION := $(shell python3 -m setuptools_scm -r contrib/RecordFlux 2> /dev/null)
-
-ifeq ($(RECORDFLUX_VERSION),)
-$(error Unable to determine RecordFlux version. Make sure "wheel", "setuptools", "setuptools_scm", "build" and "pip" are installed in a current version (pip install --upgrade wheel setuptools setuptools_scm build pip))
-endif
-
-build/RecordFlux-$(RECORDFLUX_VERSION).tar.gz:
-	python3 -m venv $(TMPDIR)/build_venv
-	$(TMPDIR)/build_venv/bin/python -m pip install build
-	$(TMPDIR)/build_venv/bin/python -m build --sdist -o build contrib/RecordFlux
-
-build/spdm-$(VERSION).tar: RecordFlux.tar.gz | .git/logs/HEAD
+build/spdm-$(VERSION).tar: | .git/logs/HEAD
 	# check for local changes, abort if not committed
 	git diff --summary --exit-code
 	git diff --summary --exit-code --cached
 	mkdir -p build
-	git ls-files --recurse-submodules | grep -v -e "^.git\|/\.git" | grep -v -e "^contrib/RecordFlux" > $(FILE_LIST)
+	git ls-files --recurse-submodules | grep -v -e "^.git\|/\.git" > $(FILE_LIST)
 	echo $^ >> $(FILE_LIST)
-	echo contrib/RecordFlux/defaults.gpr >> $(FILE_LIST)
 	tar cvf build/spdm-$(VERSION).tar -T $(FILE_LIST)
 	git rev-parse HEAD > $(TMPDIR)/commit
 	tar rvf build/spdm-$(VERSION).tar --directory $(TMPDIR) commit
@@ -373,21 +367,9 @@ test_package: build/spdm-$(VERSION).tar
 	# static library must exist
 	test -f $(TMPDIR)/package_test/build/lib/libspdm.a
 
-RecordFlux.tar.gz: build/RecordFlux-$(RECORDFLUX_VERSION).tar.gz
-	cp -v $< $@
-
-endif
-
-$(TMPDIR)/venv/bin/python $(TMPDIR)/venv/bin/rflx: RecordFlux.tar.gz
-	python3 -m venv $(TMPDIR)/venv
-	$(TMPDIR)/venv/bin/pip3 install wheel
-	$(TMPDIR)/venv/bin/pip3 install $^
-
 prove: $(addprefix build/generated/,$(GENERATED))
 	gnatprove -P examples/build_lib.gpr -j0 -XTARGET=riscv64 -u responder -u responder_multiple_responders -u responder_select
 	gnatprove -P examples/build.gpr -j0 -XTARGET=riscv64 -u main -u main_multiple_responders -u main_select
 
 clean:
 	rm -rf build
-cleanall: clean
-	rm -f RecordFlux.tar.gz
