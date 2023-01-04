@@ -222,7 +222,7 @@ check_version:
 	@./tools/check_version.py $(VERSION)
 
 check_spec: $(SPECIFICATIONS) | $(INTEGRATION_FILES) $(RFLX)
-	$(RFLX) check $^
+	timeout -k 60 900 $(RFLX) check $^
 
 build/specs/$(FEATURES)/%: specs/%
 	mkdir -p $(dir $@)
@@ -272,7 +272,7 @@ build/debug/generated/spdm_c_responder.%: src/spdm_c_responder.%
 build/debug/generated/%: $(SPECIFICATIONS) | $(INTEGRATION_FILES) $(RFLX)
 	mkdir -p build/debug/generated
 	rm -f build/debug/generated/*
-	$(RFLX) generate $^ --debug external -d build/debug/generated
+	timeout -k 60 900 $(RFLX) generate $^ --debug external -d build/debug/generated
 
 build/generated:
 	mkdir -p build/generated
