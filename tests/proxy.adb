@@ -95,7 +95,7 @@ begin
       SP.Run (Context);
    end loop;
 
-   --  https://github.com/Componolit/Workarounds/issues/32
+   --  Eng/RecordFlux/Workarounds#32
    pragma Warnings (Off, """*"" is set by ""Finalize"" but not used after the call");
    SP.Finalize (Context);
    pragma Warnings (On, """*"" is set by ""Finalize"" but not used after the call");

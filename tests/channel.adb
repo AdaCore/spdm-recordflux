@@ -5,7 +5,7 @@ package body Channel is
    use type RFLX.RFLX_Types.Index;
    use type Ada.Streams.Stream_Element_Offset;
 
-   --  https://github.com/Componolit/RecordFlux/issues/482
+   --  Eng/RecordFlux/RecordFlux#482
    --  Ada.Streams.Stream_Element_Array is not yet supported as buffer type and thus a conversion is needed.
 
    function To_Ada_Stream (Buffer : RFLX.RFLX_Types.Bytes) return Ada.Streams.Stream_Element_Array with
@@ -45,8 +45,8 @@ package body Channel is
       Last : Ada.Streams.Stream_Element_Offset;
    begin
       --  FIXME: The SPDM requester sends a packet in multiple parts, we have to wait for the whole packet to parse it
-      --  https://github.com/Componolit/RecordFlux/issues/80
-      --  https://github.com/Componolit/RecordFlux/issues/644
+      --  Eng/RecordFlux/RecordFlux#80
+      --  Eng/RecordFlux/RecordFlux#644
       while not Has_Data loop
          delay 0.1;
       end loop;

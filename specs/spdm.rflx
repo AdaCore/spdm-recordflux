@@ -10,13 +10,13 @@ package SPDM is
    type Length_24 is range 0 .. 2 ** 24 - 1 with Size => 24;
    type Index is range 0 .. 2 ** 8 - 1 with Size => 8;
 
-   -- https://github.com/Componolit/RecordFlux/issues/1058
+   -- Eng/RecordFlux/RecordFlux#1058
    -- Signature_Length should be 64 .. 512
    type Signature_Length is range 0 .. 512 with Size => 16;
    type Exchange_Data_Length is range 0 .. 512 with Size => 10;
    type Hash_Length is range 0 .. 64 with Size => 8;
 
-   -- https://github.com/Componolit/RecordFlux/issues/601
+   -- Eng/RecordFlux/RecordFlux#601
    -- [33] Unless otherwise specified, reserved numeric and bit fields shall be written as
    --      zero (0) and ignored when read.
 
@@ -132,7 +132,7 @@ package SPDM is
          Reserved : Reserved_8;
          Version_Number_Entry_Count : Version_Number_Entry_Count;
          Version_Number_Entries : Version_Number_Entries
-            --  https://github.com/Componolit/RecordFlux/issues/404
+            --  Eng/RecordFlux/RecordFlux#404
             --  with Size => Version_Number_Entry_Count * Version_Number_Entry'Size;
             with Size => Version_Number_Entry_Count * 16;
       end message;
@@ -342,7 +342,7 @@ package SPDM is
          Index : Index;
          Measurement_Specification : Measurement_Specification;
          Measurement_Length : Length_16;
-         --  https://github.com/Componolit/RecordFlux/issues/1276
+         --  Eng/RecordFlux/RecordFlux#1276
          --   then DMTF_Measurement
          --      if Measurement_Specification = DMTF;
          DMTF_Measurement : DMTF_Measurement_Field
@@ -546,7 +546,7 @@ package SPDM is
                with Size => 8 * Length - 16 - (Ext_Hash'Last - Req_Alg_Struct_Count'First + 1)
                if 8 * Length >= 16 + (Ext_Hash'Last - Req_Alg_Struct_Count'First + 1);
          Req_Alg_Structs : Req_Alg_Structs;
-         -- https://github.com/Componolit/RecordFlux/issues/51
+         -- Eng/RecordFlux/RecordFlux#51
          -- The number of elements should also match Req_Alg_Struct_Count
       end message
          with Byte_Order => Low_Order_First;
@@ -616,7 +616,7 @@ package SPDM is
                with Size => 8 * Length - 16 - (Ext_Hash'Last - Resp_Alg_Struct_Count'First + 1)
                if 8 * Length >= 16 + (Ext_Hash'Last - Resp_Alg_Struct_Count'First + 1);
          Resp_Alg_Structs : Resp_Alg_Structs;
-         -- https://github.com/Componolit/RecordFlux/issues/51
+         -- Eng/RecordFlux/RecordFlux#51
          -- The number of elements should also match Resp_Alg_Struct_Count
       end message
          with Byte_Order => Low_Order_First;

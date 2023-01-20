@@ -1129,7 +1129,7 @@ package SPDM_Responder is
          Local_Number_Of_Indices : SPDM::Measurement_Count;
       begin
          Current_Measurement := 1;
-         --  https://github.com/Componolit/RecordFlux/issues/1055
+         --  Eng/RecordFlux/RecordFlux#1055
          --  Use a local variable to prevent a type error in the generated code.
          Local_Number_Of_Indices := Plat_Get_Number_Of_Indices;
          Last_Measurement        := Local_Number_Of_Indices;

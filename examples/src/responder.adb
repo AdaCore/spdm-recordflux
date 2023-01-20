@@ -33,7 +33,7 @@ is
       package SR renames RFLX.SPDM_Responder.Session;
    begin
       loop
-         --  https://github.com/Componolit/RecordFlux/issues/1032
+         --  Eng/RecordFlux/RecordFlux#1032
          --  Context.Plat_Initialize;
          pragma Loop_Invariant (SR.Uninitialized (Context));
 
