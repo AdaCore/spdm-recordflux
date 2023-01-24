@@ -651,14 +651,25 @@ void spdm_platform_get_finish_verify_data(__unused_cross__ instance_t *instance,
 }
 
 unsigned char spdm_platform_set_session_phase(instance_t *instance,
-                                              unsigned char phase)
+                                              unsigned char phase,
+                                              __attribute__((unused)) unsigned transcript,
+                                              __attribute__((unused)) unsigned char slot)
 {
-    if(phase == 1 && instance->secure_session > 1){
-        memset(instance->dhe_key, 0, 512);
-        instance->dhe_key_size = 0;
+    if(phase < 2){
+        return spdm_platform_reset_session_phase(instance);
     }
     instance->secure_session = phase;
     return phase;
+}
+
+unsigned char spdm_platform_reset_session_phase(instance_t *instance)
+{
+    if(instance->secure_session > 1){
+        memset(instance->dhe_key, 0, 512);
+        instance->dhe_key_size = 0;
+    }
+    instance->secure_session = 1;
+    return 1;
 }
 
 boolean spdm_platform_key_update(__attribute__((unused)) instance_t *instance,

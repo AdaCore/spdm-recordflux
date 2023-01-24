@@ -236,7 +236,11 @@ package SPDM_Responder is
       with function Plat_Get_Finish_Verify_Data (Transcript : Transcript_ID;
                                                  Slot       : SPDM::Slot) return Hash;
 
-      with function Plat_Set_Session_Phase (Phase : Session_Phase) return Session_Phase;
+      with function Plat_Set_Session_Phase (Phase      : Session_Phase;
+                                            Transcript : Transcript_ID;
+                                            Slot       : SPDM::Slot) return Session_Phase;
+
+      with function Plat_Reset_Session_Phase return Session_Phase;
 
       with function Plat_Key_Update (Operation : SPDM::Key_Operation;
                                      Tag       : SPDM::Key_Update_Tag) return Boolean;
@@ -272,6 +276,7 @@ package SPDM_Responder is
       Measurement_Summary    : Boolean;
       Use_Mutual_Auth        : Boolean;
       Current_Phase          : Session_Phase;
+      Request_Slot           : SPDM::Slot;
 #end if;
 
       --  Capabilities
@@ -305,6 +310,7 @@ package SPDM_Responder is
          Transcript_Session := Plat_Get_New_Transcript (Session_Transcript);
          Next_Valid         := Plat_Valid_Transcript_ID (Transcript_Session);
          Valid              := Valid and Next_Valid;
+         Request_Slot       := SPDM::Slot_0;
 #end if;
       transition
          goto Receive_Get_Version
@@ -354,7 +360,7 @@ package SPDM_Responder is
          Resp_Alg_Struct_Count := 0;
          Reset_Measurement_Sig := True;
 #if FEATURE_KEY_EXCHANGE then
-         Current_Phase := Plat_Set_Session_Phase (No_Session);
+         Current_Phase := Plat_Reset_Session_Phase;
 #end if;
          Response := SPDM::Response'(
 #if FEATURE_CHALLENGE_AUTH then
@@ -1303,8 +1309,9 @@ package SPDM_Responder is
          Heartbeat_Period    := Plat_Get_Heartbeat_Period;
          Session_ID          := Plat_Get_Session_ID (Session_ID);
          Use_Mutual_Auth     := Plat_Use_Mutual_Auth;
+         Request_Slot        := Request.Key_Exchange_Request_Slot;
          Narrow_Slot         :=
-            (case Request.Key_Exchange_Request_Slot is
+            (case Request_Slot is
                when SPDM::Slot_0 => SPDM::NS_0,
                when SPDM::Slot_1 => SPDM::NS_1,
                when SPDM::Slot_2 => SPDM::NS_2,
@@ -1347,7 +1354,7 @@ package SPDM_Responder is
          Response.Key_Exchange_Response_Random_Data              := Nonce.Data;
          Response.Key_Exchange_Response_Exchange_Data            := Exchange_Data.Data;
          --  TH1/2 Key_Exchange transcript hash: Hash of the specified certificate chain in DER format
-         Cert_Hash_Success := Plat_Update_Transcript_Cert (Transcript_Session, Request.Key_Exchange_Request_Slot);
+         Cert_Hash_Success := Plat_Update_Transcript_Cert (Transcript_Session, Request_Slot);
          Req_Size := Request'Size / 8;
          --  TH1/2 Key_Exchange transcript hash: [KEY_EXCHANGE].*
          Success := Plat_Update_Transcript (Transcript_Session, Request'Opaque, 0, Req_Size);
@@ -1448,14 +1455,15 @@ package SPDM_Responder is
          --  [KEY_EXCHANGE_RSP].* except the `Signature` and `ResponderVerifyData` fields
             Plat_Update_Transcript (Transcript_Session, Response'Opaque, 0, Transcript_Len);
          Signature                                :=
-            Plat_Get_Signature (Transcript_Session, Request.Key_Exchange_Request_Slot);
+            Plat_Get_Signature (Transcript_Session, Request_Slot);
          Response.Key_Exchange_Response_Signature := Signature.Data;
          Transcript_Len                           := Signature_Length;
          Success_Sig                              :=
          --  TH1/2 Key_Exchange transcript hash: [KEY_EXCHANGE_RSP].* except the `ResponderVerifyData` field
          --  The transcript hash from the signature generation is kept, so only the signature has to be added.
             Plat_Update_Transcript (Transcript_Session, Response.Key_Exchange_Response_Signature, 0, Transcript_Len);
-         Current_Phase                            := Plat_Set_Session_Phase (Session_Handshake);
+         Current_Phase                            :=
+            Plat_Set_Session_Phase (Session_Handshake, Transcript_Session, Request_Slot);
       transition
          goto Error_Unspecified
             if Success = False
@@ -1477,7 +1485,7 @@ package SPDM_Responder is
          --  Transcript hash for KEY_EXCHANGE_RSP HMAC [438] / TH1 [593]
          Verify_Data                                          :=
             Plat_Get_Key_Ex_Verify_Data (Transcript_Session,
-                                         Request.Key_Exchange_Request_Slot);
+                                         Request_Slot);
          Response.Key_Exchange_Response_Responder_Verify_Data := Verify_Data.Data;
          Transcript_Len                                       := Hash_Length;
          Success :=
@@ -1518,12 +1526,11 @@ package SPDM_Responder is
 
       state Hash_Mut_Auth_Cert
       is
-         Success    : Boolean;
-         Local_Slot : SPDM::Slot;
+         Success : Boolean;
       begin
-         Local_Slot := Request.Finish_Request_Slot;
+         Request_Slot := Request.Finish_Request_Slot;
          --  TH1/2 Finish transcript hash: Hash of the specified certificate chain in DER format
-         Success    := Plat_Update_Transcript_Cert (Transcript_Session, Local_Slot);
+         Success    := Plat_Update_Transcript_Cert (Transcript_Session, Request_Slot);
       transition
          goto Hash_Finish_Header
             if Success
@@ -1536,6 +1543,7 @@ package SPDM_Responder is
       is
          Success : Boolean;
       begin
+         Request_Slot := Request.Finish_Request_Slot;
          --  TH1/2 Finish transcript hash: [FINISH].SPDM Header Fields
          Success := Plat_Update_Transcript (Transcript_Session, Request'Opaque, 0, 4);
       transition
@@ -1555,11 +1563,11 @@ package SPDM_Responder is
       begin
          Valid := Plat_Validate_Finish_Signature (Transcript_Session,
                                                   Request.Finish_Request_Signature,
-                                                  Request.Finish_Request_Slot);
+                                                  Request_Slot);
          --  TH1/2 Finish transcript hash: [FINISH].Signature
          Success := Plat_Update_Transcript (Transcript_Session,
-                                      Request.Finish_Request_Signature,
-                                      0, Signature_Length);
+                                            Request.Finish_Request_Signature,
+                                            0, Signature_Length);
       transition
          goto Validate_Finish_HMAC
             if Valid and Success
@@ -1575,7 +1583,7 @@ package SPDM_Responder is
       begin
          Valid := Plat_Validate_Finish_HMAC (Transcript_Session,
                                              Request.Finish_Request_Requester_Verify_Data,
-                                             Request.Finish_Request_Slot);
+                                             Request_Slot);
          --  TH1/2 Finish transcript hash: [FINISH].*
          --  Complete Finish request hash, only Responder_Verify_Data is missing
          Success := Plat_Update_Transcript (Transcript_Session,
@@ -1649,7 +1657,7 @@ package SPDM_Responder is
          Verify_Data : Hash;
          Success     : Boolean;
       begin
-         Verify_Data := Plat_Get_Finish_Verify_Data (Transcript_Session, Request.Finish_Request_Slot);
+         Verify_Data := Plat_Get_Finish_Verify_Data (Transcript_Session, Request_Slot);
          Response.Finish_Response_Responder_Verify_Data := Verify_Data.Data;
          --  TH1/2 Finish transcript hash: [FINISH_RSP]
          --  Only Responder_Verify_Data is missing.
@@ -1667,7 +1675,7 @@ package SPDM_Responder is
       state Finish_Session_Handshake
       is
       begin
-         Current_Phase := Plat_Set_Session_Phase (Secure_Session);
+         Current_Phase := Plat_Set_Session_Phase (Secure_Session, Transcript_Session, Request_Slot);
       transition
          goto Send_Idle
             if Current_Phase = Secure_Session
@@ -1724,7 +1732,7 @@ package SPDM_Responder is
                Code                                  => SPDM::End_Session_ACK,
                End_Session_Response_Reserved_1       => 0,
                End_Session_Response_Reserved_2       => 0);
-         Current_Phase := Plat_Set_Session_Phase (No_Session);
+         Current_Phase := Plat_Reset_Session_Phase;
       transition
          goto Send_Idle
             if Current_Phase = No_Session

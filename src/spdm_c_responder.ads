@@ -681,9 +681,19 @@ is
    --  @param Phase Requested session phase.
    --  @param Result Updated session phase.
    overriding
-   procedure Plat_Set_Session_Phase (Ctx    : in out Context;
-                                     Phase  :        RFLX.SPDM_Responder.Session_Phase;
-                                     Result :    out RFLX.SPDM_Responder.Session_Phase);
+   procedure Plat_Set_Session_Phase (Ctx        : in out Context;
+                                     Phase      :        RFLX.SPDM_Responder.Session_Phase;
+                                     Transcript :        RFLX.SPDM_Responder.Transcript_ID;
+                                     Slot       :        RFLX.SPDM.Slot;
+                                     Result     :    out RFLX.SPDM_Responder.Session_Phase);
+
+   --  Reset current session.
+   --
+   --  @param Ctx Context.
+   --  @param Result Updated session phase. Is either No_Session or Session_Error in case of an error.
+   overriding
+   procedure Plat_Reset_Session_Phase (Ctx    : in out Context;
+                                       Result :    out RFLX.SPDM_Responder.Session_Phase);
 
    --  Perform a key update operation.
    --

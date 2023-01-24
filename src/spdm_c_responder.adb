@@ -1107,25 +1107,48 @@ is
    end Plat_Get_Finish_Verify_Data;
 
    overriding
-   procedure Plat_Set_Session_Phase (Ctx    : in out Context;
-                                     Phase  :        RFLX.SPDM_Responder.Session_Phase;
-                                     Result :    out RFLX.SPDM_Responder.Session_Phase)
+   procedure Plat_Set_Session_Phase (Ctx        : in out Context;
+                                     Phase      :        RFLX.SPDM_Responder.Session_Phase;
+                                     Transcript :        RFLX.SPDM_Responder.Transcript_ID;
+                                     Slot       :        RFLX.SPDM.Slot;
+                                     Result     :    out RFLX.SPDM_Responder.Session_Phase)
    is
-      function C_Interface (Instance : System.Address;
-                            Phase    : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char with
+      function C_Interface (Instance   : System.Address;
+                            Phase      : Interfaces.C.unsigned_char;
+                            Transcript : Interfaces.C.unsigned;
+                            Slot       : Interfaces.C.unsigned_char) return Interfaces.C.unsigned_char with
          Import,
          Convention => C,
          External_Name => "spdm_platform_set_session_phase";
       Current_Phase : constant RFLX.RFLX_Types.Base_Integer :=
          RFLX.RFLX_Types.Base_Integer
             (C_Interface (Ctx.Instance,
-                          Interfaces.C.unsigned_char (RFLX.SPDM_Responder .To_Base_Integer (Phase))));
+                          Interfaces.C.unsigned_char (RFLX.SPDM_Responder .To_Base_Integer (Phase)),
+                          Interfaces.C.unsigned (Transcript),
+                          Interfaces.C.unsigned_char (RFLX.SPDM.To_Base_Integer (Slot))));
    begin
       if not RFLX.SPDM_Responder.Valid_Session_Phase (Current_Phase) then
          raise Constraint_Error;
       end if;
       Result := RFLX.SPDM_Responder.To_Actual (Current_Phase);
    end Plat_Set_Session_Phase;
+
+   overriding
+   procedure Plat_Reset_Session_Phase (Ctx    : in out Context;
+                                       Result :    out RFLX.SPDM_Responder.Session_Phase)
+   is
+      function C_Interface (Instance : System.Address) return Interfaces.C.unsigned_char with
+         Import,
+         Convention => C,
+         External_Name => "spdm_platform_reset_session_phase";
+      Current_Phase : constant RFLX.RFLX_Types.Base_Integer :=
+         RFLX.RFLX_Types.Base_Integer (C_Interface (Ctx.Instance));
+   begin
+      if not RFLX.SPDM_Responder.Valid_Session_Phase (Current_Phase) then
+         raise Constraint_Error;
+      end if;
+      Result := RFLX.SPDM_Responder.To_Actual (Current_Phase);
+   end Plat_Reset_Session_Phase;
 
    overriding
    procedure Plat_Key_Update (Ctx       : in out Context;
