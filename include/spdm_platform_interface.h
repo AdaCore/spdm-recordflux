@@ -788,7 +788,7 @@ void spdm_platform_get_finish_verify_data(instance_t *instance,
  *     No session     => 1
  *     Handshake      => 2
  *     Secure session => 3
- * In for the values 0 and 1 this function should behave equally to
+ * For the values 0 and 1 this function should behave identically to
  * spdm_platform_reset_session_phase.
  *
  * @param instance Platform instance.
@@ -804,7 +804,7 @@ unsigned char spdm_platform_set_session_phase(instance_t *instance,
  * Reset the current session.
  *
  * @param instance Platform instance.
- * @return Updated session phase. Is either 1 or 0 in case of an error.
+ * @return Updated session phase. Return 0 if an error occurred otherwise 1.
  */
 unsigned char spdm_platform_reset_session_phase(instance_t *instance);
 

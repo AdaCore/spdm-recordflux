@@ -1123,7 +1123,7 @@ is
       Current_Phase : constant RFLX.RFLX_Types.Base_Integer :=
          RFLX.RFLX_Types.Base_Integer
             (C_Interface (Ctx.Instance,
-                          Interfaces.C.unsigned_char (RFLX.SPDM_Responder .To_Base_Integer (Phase)),
+                          Interfaces.C.unsigned_char (RFLX.SPDM_Responder.To_Base_Integer (Phase)),
                           Interfaces.C.unsigned (Transcript),
                           Interfaces.C.unsigned_char (RFLX.SPDM.To_Base_Integer (Slot))));
    begin

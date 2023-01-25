@@ -679,6 +679,8 @@ is
    --
    --  @param Ctx Context.
    --  @param Phase Requested session phase.
+   --  @param Transcript Transcript ID.
+   --  @param Slot Slot ID requested by the requester.
    --  @param Result Updated session phase.
    overriding
    procedure Plat_Set_Session_Phase (Ctx        : in out Context;
@@ -690,7 +692,8 @@ is
    --  Reset current session.
    --
    --  @param Ctx Context.
-   --  @param Result Updated session phase. Is either No_Session or Session_Error in case of an error.
+   --  @param Result Updated session phase. Return Session_Error if an error
+   --                occurred, otherwise No_Session.
    overriding
    procedure Plat_Reset_Session_Phase (Ctx    : in out Context;
                                        Result :    out RFLX.SPDM_Responder.Session_Phase);
