@@ -1,0 +1,169 @@
+variables:
+  ANOD_DEFAULT_SANDBOX_DIR: /it/wave
+
+  GITLAB_SERVER: https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}:${CI_SERVER_PORT}
+  CI_FRAGMENTS_GIT: $GITLAB_SERVER/eng/it/ci-fragments
+  RECORDFLUX_ORIGIN: $GITLAB_SERVER/eng/recordflux
+
+  GNATPROVE_CACHE_DIR: /it/gitlab-runner/builds/$CI_PROJECT_PATH/gnatprove_cache
+  GNATPROVE_CACHE: file:$GNATPROVE_CACHE_DIR
+  GNATPROVE_CACHE_PACKAGE: gnatprove_cache.tar.gz
+
+  GNAT_BUILD_DATE: "20220508"
+  SPARK_BUILD_DATE: "20221214"
+  PYTHON_VERSION: "3.10"
+  RECORDFLUX_VERSION: "0.8.0"
+
+stages:
+  - initialization
+  - testing
+  - finalization
+
+##################
+# Initialization #
+##################
+
+cache_restoring:
+  services:
+     - image:e3
+  stage: initialization
+  script:
+    - export PATH=/it/e3/bin:$PATH
+    - git clone $CI_FRAGMENTS_GIT
+    - ci-fragments/download_generic_package $CI_PROJECT_PATH $GNATPROVE_CACHE_PACKAGE
+    - if [ -f $GNATPROVE_CACHE_PACKAGE ]; then
+        tar zxf $GNATPROVE_CACHE_PACKAGE;
+      fi
+  artifacts:
+    paths:
+      - $GNATPROVE_CACHE_DIR
+
+###########
+# Testing #
+###########
+
+.setup_gnat: &setup_gnat
+    - . ~/.aws_container_credentials
+    - export PATH=/it/e3/bin:$PATH
+    - anod install gnat --build-date $GNAT_BUILD_DATE
+    - anod install gnat --build-date $GNAT_BUILD_DATE --target arm-elf
+    - anod install gnat --build-date $GNAT_BUILD_DATE --target riscv64-elf
+    - eval `anod printenv gnat`
+    - eval `anod printenv --target arm-elf gnat`
+    - eval `anod printenv --target riscv64-elf gnat`
+
+.setup_spark: &setup_spark
+    - . ~/.aws_container_credentials
+    - export PATH=/it/e3/bin:$PATH
+    - anod install spark2014 --build-date $SPARK_BUILD_DATE
+    - eval `anod printenv spark2014`
+    - mkdir -p $GNATPROVE_CACHE_DIR
+
+.setup_python: &setup_python
+    - python$PYTHON_VERSION -m venv .venv$PYTHON_VERSION
+    - . .venv$PYTHON_VERSION/bin/activate
+    - python -m pip install --upgrade pip wheel setuptools setuptools-scm build RecordFlux==$RECORDFLUX_VERSION
+
+changelog:
+  stage: testing
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  script:
+    - if [[ "$CI_MERGE_REQUEST_LABELS" != *"No Changelog"* ]]; then
+        git fetch origin main;
+        git diff --name-only origin/main..HEAD | sed -n '/CHANGELOG.md/{:a $q0; n; ba}; ${s/.*/No entry added to CHANGELOG.md/p;q1}';
+      fi
+
+commit_messages:
+  stage: testing
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  script:
+    - git fetch origin main
+    - git log origin/main..HEAD | sed -n "/^.*\b\(fixup\|FIXUP\|wip\|WIP\)\b.*/{p;s/.*/Found fixup commit/p;q1}"
+    - git log origin/main..HEAD | sed -n "/ \#[0-9][0-9]*/{p;s/.*/Found unqualified reference to ticket/p;q1}"
+
+all_features:
+  stage: testing
+  services:
+     - image:recordflux
+     - cpu:4
+     - mem:30
+  script:
+    - git submodule update --init --recursive
+    - apt-get update
+    - apt-get install -y cmake expect
+    - *setup_gnat
+    - *setup_spark
+    - *setup_python
+    - make
+    - make clean
+    - make test_package
+  artifacts:
+    when: always
+    paths:
+      - $GNATPROVE_CACHE_DIR
+
+minimal_features:
+  stage: testing
+  services:
+     - image:recordflux
+     - cpu:4
+     - mem:30
+  script:
+    - git submodule update --init --recursive
+    - apt-get update
+    - apt-get install -y cmake expect
+    - *setup_gnat
+    - *setup_spark
+    - *setup_python
+    - export FEATURE_CHALLENGE_AUTH="False"
+    - export FEATURE_KEY_EXCHANGE="False"
+    - export FEATURE_RESPOND_IF_READY="False"
+    - make check_spec test_cross test_size check_stack prove build/tests/responder
+  artifacts:
+    when: always
+    paths:
+      - $GNATPROVE_CACHE_DIR
+
+key_exchange_only:
+  stage: testing
+  services:
+     - image:recordflux
+     - cpu:4
+     - mem:30
+  script:
+    - git submodule update --init --recursive
+    - apt-get update
+    - apt-get install -y cmake expect
+    - *setup_gnat
+    - *setup_spark
+    - *setup_python
+    - export FEATURE_CHALLENGE_AUTH="False"
+    - export FEATURE_KEY_EXCHANGE="True"
+    - export FEATURE_RESPOND_IF_READY="False"
+    - make check_spec test_cross test_size check_stack prove build/tests/responder
+  artifacts:
+    when: always
+    paths:
+      - $GNATPROVE_CACHE_DIR
+
+################
+# Finalization #
+################
+
+cache_saving:
+  when: always
+  services:
+     - image:e3
+  stage: finalization
+  dependencies:
+    - all_features
+    - minimal_features
+    - key_exchange_only
+  script:
+    - export PATH=/it/e3/bin:$PATH
+    - mkdir -p $GNATPROVE_CACHE_DIR
+    - tar czf $GNATPROVE_CACHE_PACKAGE $GNATPROVE_CACHE_DIR
+    - git clone $CI_FRAGMENTS_GIT
+    - ci-fragments/upload_generic_package $CI_PROJECT_PATH $GNATPROVE_CACHE_PACKAGE
