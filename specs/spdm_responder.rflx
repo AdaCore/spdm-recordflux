@@ -502,7 +502,8 @@ package SPDM_Responder is
                Capabilities_Response_Key_Ex_Cap                 => Cap_Key_Ex,
                Capabilities_Response_Mut_Auth_Cap               => Cap_Mut_Auth,
                Capabilities_Response_Reserved_4                 => 0,
-               Capabilities_Response_Pub_Key_ID_Cap             => Cap_Pub_Key_ID);
+               Capabilities_Response_Pub_Key_ID_Cap             => Cap_Pub_Key_ID,
+               Capabilities_Response_Reserved_5                 => 0);
 
          --  For the behaviour when responding the responder has to take the
          --  capabilities supported by the requester into account.

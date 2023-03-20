@@ -166,8 +166,9 @@ package SPDM is
          PSK_Cap : PSK_Request_Cap;
          Key_Ex_Cap : Boolean;
          Mut_Auth_Cap : Boolean;
+         Reserved_4 : Reserved_7;
          Pub_Key_ID_Cap : Boolean;
-         Reserved_4 : Reserved_15
+         Reserved_5 : Reserved_8
             then null
                if --  Encrypt_Cap:
                   --  [177] If set, one or more of PSK_CAP or KEY_EX_CAP fields shall be specified
@@ -235,8 +236,9 @@ package SPDM is
          PSK_Cap : PSK_Resp_Cap;
          Key_Ex_Cap : Boolean;
          Mut_Auth_Cap : Boolean;
-         Reserved_4 : Reserved_15;
-         Pub_Key_ID_Cap : Boolean
+         Reserved_4 : Reserved_7;
+         Pub_Key_ID_Cap : Boolean;
+         Reserved_5 : Reserved_8
             then null
                if --  Encrypt_Cap:
                   --  [178] If set, one or more of PSK_CAP or KEY_EX_CAP fields shall be specified
