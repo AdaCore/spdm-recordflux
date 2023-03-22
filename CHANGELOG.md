@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add transcript ID and slot ID to session phase functions (VA28-039)
 - Update RecordFlux to 0.8.0
 
+### Fixed
+
+- Wrong order of flags in Get_Capabilities and Capabilities (W317-001)
+
 ## [0.4.0] - 2022-09-07
 
 ### Changed
