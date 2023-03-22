@@ -151,12 +151,16 @@ def dump(
                     # Only some measurement responses contain signatures. Since these
                     # messages are usually short we just assume that the longest of them
                     # are the signed ones.
-                    signed_measurement_length = max(
-                        len(data)
-                        for name, data in messages
-                        if name == "SPDM_MEASUREMENTS"
-                    )
-                    has_signature = not (message_name == "SPDM_MEASUREMENTS" and len(message_data) < signed_measurement_length)
+                    try:
+                        signed_measurement_length = max(
+                            len(data)
+                            for name, data in messages
+                            if name == "SPDM_MEASUREMENTS"
+                        )
+                        has_signature = not (message_name == "SPDM_MEASUREMENTS" and len(message_data) < signed_measurement_length)
+                    except ValueError:
+                        # There are no measurement responses.
+                        has_signature = False
                     config.write(
                         "Meas_Cap: Meas_Signed\n"
                         "Hash_Type: TCB_Measurement\n"
